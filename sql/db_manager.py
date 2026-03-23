@@ -19,9 +19,8 @@ DB_CONFIG = {
     "host": "localhost",
     "port": 3306,
     "user": "root",
-    "password": "",
+    "password": "GG1214",
     "database": "club_selection",
-    "unix_socket": "/var/run/mysqld/mysqld.sock",  # 添加这一行
 }
 
 
