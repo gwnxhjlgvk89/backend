@@ -13,6 +13,7 @@ from app.api import upload
 app = FastAPI(
     title="社团抢课系统",
     description="先到先得，抢完即止",
+    docs_url="/docs",  # Swagger UI
     version="1.0.0",
 )
 # ─────────────────────────────────────────
