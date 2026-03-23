@@ -21,6 +21,7 @@ DB_CONFIG = {
     "user": "root",
     "password": "",
     "database": "club_selection",
+    "unix_socket": "/var/run/mysqld/mysqld.sock",  # 添加这一行
 }
 
 
