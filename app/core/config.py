@@ -7,7 +7,7 @@ class Settings(BaseSettings):
 
     BASE_URL: str = "http://localhost:8000"  # 后端基础URL，生产环境请修改为实际URL
     DATABASE_URL: str = (
-        "mysql+pymysql://root@localhost:3306/club_selection?unix_socket=/var/run/mysqld/mysqld.sock&charset=utf8mb4"
+        "mysql+pymysql://root:GG1214@localhost:3306/club_selection?charset=utf8mb4"
     )
     SERCRET_KEY: str = "gg1214"
     ALGORITHM: str = "HS256"
