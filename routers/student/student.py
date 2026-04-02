@@ -201,6 +201,19 @@ async def select_club(
             status_code=409, content={"code": 409, "message": "社团名额已满"}
         )
 
+    if club.has_major_limit:
+        major_restrictions = (
+            db.query(models.Club_Major_Restrictions)
+            .filter(models.Club_Major_Restrictions.club_name == club_name)
+            .all()
+        )
+        allowed_majors = {r.major_name for r in major_restrictions}
+        if not any(major in student.major_name for major in allowed_majors):
+            return JSONResponse(
+                status_code=403,
+                content={"code": 403, "message": "你的专业不符合社团要求"},
+            )
+
     # 报名成功，更新数据库
     club.remaining_quota -= 1
     if club.remaining_quota == 0:
