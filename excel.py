@@ -28,65 +28,85 @@ def export_clubs_data_to_excel(
 
     df = pd.DataFrame(all_rows)
 
-    student_cols_prefix = "student_"
-    all_possible_student_keys = set()
-    for row_dict in all_rows:
-        for key in row_dict:
-            if key.startswith(student_cols_prefix):
-                all_possible_student_keys.add(key)
-
-    for col in all_possible_student_keys:
-        if col not in df.columns:
-            df[col] = None
-
-    club_columns = [
-        col for col in df.columns if not col.startswith(student_cols_prefix)
+    # ===== 明确：你要保留的 club 字段（原字段名，用于逻辑/合并）=====
+    ordered_club_columns = [
+        "club_name",
+        "teacher_advisor",
+        "club_president",
+        "total_quota",
+        "remaining_quota",
+        "reserved_quota",
+        "has_major_limit",
     ]
-    student_columns = sorted(
-        [col for col in df.columns if col.startswith(student_cols_prefix)]
-    )
+    existing_club_columns = [c for c in ordered_club_columns if c in df.columns]
 
-    # ✅ 让 club_name 在第一列
-    if "club_name" in df.columns:
-        club_columns = ["club_name"] + [c for c in club_columns if c != "club_name"]
+    # ===== 明确：你要保留的 student 字段（原字段名，用于逻辑/合并）=====
+    ordered_student_columns = [
+        "student_student_id",
+        "student_name",
+        "student_major_name",
+        "student_department",
+        "student_class_name",
+    ]
+    existing_student_columns = [c for c in ordered_student_columns if c in df.columns]
 
-    df = df[club_columns + student_columns]
+    # 只保留需要的列
+    keep_cols = existing_club_columns + existing_student_columns
+    df = df[keep_cols] if keep_cols else df
 
-    # ✅ 为了合并：确保相同 club_name 连续
-    if "club_name" in df.columns:
-        df = df.sort_values(by=["club_name"], kind="stable").reset_index(drop=True)
+    # 为合并准备：确保 NaN/INF 不会影响 merge_range
+    df = df.replace([np.inf, -np.inf], np.nan).fillna("")
 
-    output = io.BytesIO()
-
-    # 1) 为了保证相同 club_name 连续：在写入前先排序（只做一次 to_excel）
+    # 确保相同 club_name 连续
     if "club_name" in df.columns and len(df) > 0:
         df_sorted = df.copy()
-        df_sorted["club_name"] = df_sorted["club_name"].fillna("").astype(str)
-        df_sorted = df_sorted.sort_values(by="club_name", kind="stable").reset_index(
+        df_sorted["club_name"] = df_sorted["club_name"].astype(str)
+        df_sorted = df_sorted.sort_values(by=["club_name"], kind="stable").reset_index(
             drop=True
         )
     else:
         df_sorted = df
 
+    # =========================
+    # 仅用于写入 Excel 的中文列名映射（不改你的合并逻辑字段）
+    # =========================
+    col_cn_map = {
+        # club
+        "club_name": "社团名称",
+        "teacher_advisor": "指导老师",
+        "club_president": "社长",
+        "total_quota": "招生名额",
+        "remaining_quota": "剩余名额",
+        "reserved_quota": "已预留名额",
+        "has_major_limit": "是否有专业名额限制",
+        # student
+        "student_student_id": "学生学号",
+        "student_name": "姓名",
+        "student_major_name": "专业",
+        "student_department": "学院",
+        "student_class_name": "班级",
+    }
+
+    output = io.BytesIO()
     with pd.ExcelWriter(output, engine="xlsxwriter") as writer:
         sheet_name = "社团报名情况"
-        df_sorted.to_excel(writer, index=False, sheet_name=sheet_name)
+
+        # 写入前把列名换成中文；列顺序不变，所以合并列索引仍然正确
+        df_to_write = df_sorted.rename(columns=col_cn_map)
+
+        df_to_write.to_excel(writer, index=False, sheet_name=sheet_name)
 
         worksheet = writer.sheets[sheet_name]
-        first_data_row = 1  # 第0行是表头
+        first_data_row = 1  # 0行为表头，数据从1开始
 
-        # 2) 计算 club 部分列在 df_sorted 中的真实列索引（从0开始对应Excel列）
-        if "club_name" in df_sorted.columns and len(df_sorted) > 0:
-            club_idxs = [
-                df_sorted.columns.get_loc(c)
-                for c in club_columns
-                if c in df_sorted.columns
-            ]
+        # club 部分列在 Excel 中的索引（基于原 df_sorted 列顺序）
+        club_idxs = [df_sorted.columns.get_loc(c) for c in existing_club_columns]
 
-            # 建议：先把 NaN/INF 全处理掉，降低出错概率
-            df_sorted = df_sorted.replace([np.inf, -np.inf], np.nan).fillna("")
-
-            # 3) 生成连续分组：同 club_name 的行连续时才会合并
+        if (
+            "club_name" in df_sorted.columns
+            and len(df_sorted) > 0
+            and len(club_idxs) > 0
+        ):
             norm_name = df_sorted["club_name"].fillna("").astype(str)
             group_id = (norm_name != norm_name.shift(1)).cumsum()
 
@@ -97,14 +117,18 @@ def export_clubs_data_to_excel(
                 start_i = g.index.min()
                 end_i = g.index.max()
 
-                # 合并 club 部分所有列（包括 club_name）
+                # 用组内第一个单元格的值作为合并内容
                 for col_idx in club_idxs:
+                    val = g.iloc[0, col_idx]
+                    if pd.isna(val):
+                        val = ""
+
                     worksheet.merge_range(
                         first_data_row + start_i,
                         col_idx,
                         first_data_row + end_i,
                         col_idx,
-                        g.iloc[0, col_idx],
+                        val,
                     )
 
     output.seek(0)

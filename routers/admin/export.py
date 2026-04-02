@@ -13,6 +13,8 @@ from sqlalchemy.orm import Session
 from sqlalchemy import text, select
 
 from schemas import ResponseSchema
+from fastapi.responses import StreamingResponse
+from urllib.parse import quote
 
 from auth import (
     get_current_student,
@@ -36,19 +38,21 @@ from database import get_db
 router = APIRouter(prefix="/admin", tags=["管理员接口"])
 
 
-@router.post("/export/all", response_model=ResponseSchema, summary="导出所有数据")
+@router.post("/export/all", summary="导出所有数据", response_model=None)
 def export_all_data(
     db: Session = Depends(get_db),
 ):
     data = get_clubs_with_major_restrictions_with_students(db)
-
     excel_buffer = export_clubs_data_to_excel(data)
-    with open("社团报名详情.xlsx", "wb") as f:
-        f.write(excel_buffer.getbuffer())
-    print("Excel文件 '社团报名详情.xlsx' 已生成！")
+    excel_buffer.seek(0)
 
-    return ResponseSchema(
-        code=200,
-        message="数据导出成功",
-        data=data,
+    filename = "社团报名详情.xlsx"
+    filename_quoted = quote(filename)  # URL 编码
+
+    headers = {"Content-Disposition": f"attachment; filename*=UTF-8''{filename_quoted}"}
+
+    return StreamingResponse(
+        excel_buffer,
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers=headers,
     )
