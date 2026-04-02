@@ -51,23 +51,46 @@ REQUIRED_CLUB_COLS = {
 }
 
 
-# 读取Excel文件并转换为DataFrame
+# ✅ 修复后的 read_excel 函数
 def read_excel(upload: UploadFile) -> pd.DataFrame:
+    print(
+        f"读取上传的文件: filename={upload.filename}, content_type={upload.content_type}"
+    )
+
+    # ⭐ 关键修复：立即读取整个文件到内存
     raw = upload.file.read()
+
+    # ⭐ 创建独立的 BytesIO 副本（这样每个请求都有自己的独立副本）
+    file_copy = io.BytesIO(raw)
+
     if not raw:
         raise HTTPException(400, "上传文件为空")
-    df = pd.read_excel(io.BytesIO(raw))
-    df.columns = [str(c).strip() for c in df.columns]
+
+    # 使用独立副本读取 Excel
+    df = pd.read_excel(file_copy)
+
     return df
 
 
 # 去除字符串列的空格，并把 ""/nan 转 None
 def trim_df(df: pd.DataFrame) -> pd.DataFrame:
-    # 去空格、把 ""/nan 转 None
+    """
+    清理 DataFrame：去除空格，统一处理空值
+
+    注意：这个函数会原地修改 df，如果需要保留原 df，先复制
+    """
+    df = df.copy()  # ✅ 创建副本，不修改原 df
+
     for c in df.columns:
         if df[c].dtype == "object":
+            # 转字符串、去空格
             df[c] = df[c].astype(str).str.strip()
+            # 统一把空字符串、"nan" 等转为 None
             df.loc[df[c].isin(["", "nan", "None", "NaT"]), c] = None
+
+    # 再统一替换 NaN
+    df = df.where(pd.notna(df), None)
+
     return df
 
 
@@ -277,12 +300,14 @@ def import_clubs(
     file: UploadFile = File(..., description="Excel文件"),
     db: Session = Depends(get_db),
 ):
+
     start_time = pd.Timestamp.now()
 
     df = trim_df(read_excel(file))
     df = df.replace({np.nan: None})  # 把空值统一成 pd.NA，方便后续处理
 
     missing_cols = REQUIRED_CLUB_COLS - set(df.columns)
+
     if missing_cols:
         raise HTTPException(400, f"缺少必填列: {', '.join(sorted(missing_cols))}")
 

@@ -115,14 +115,24 @@ def get_clubs_with_major_restrictions_with_students(
     club_students_map = defaultdict(list)
     # ✅ 只查一次
     students_all = (
-        db.query(models.Students).filter(models.Students.has_selected == True).all()
+        db.query(models.Students)
+        .filter(
+            (models.Students.has_selected == True)
+            | (models.Students.is_reserved == True)
+        )
+        .all()
     )
 
     club_students_map = defaultdict(list)
     for s in students_all:
-        club_students_map[s.selected_club_name].append(
-            {**{k: v for k, v in s.__dict__.items() if not k.startswith("_")}}
-        )
+        if s.selected_club_name:
+            club_students_map[s.selected_club_name].append(
+                {**{k: v for k, v in s.__dict__.items() if not k.startswith("_")}}
+            )
+        elif s.reserved_club_name:
+            club_students_map[s.reserved_club_name].append(
+                {**{k: v for k, v in s.__dict__.items() if not k.startswith("_")}}
+            )
 
     club_list_with_students = [
         {
