@@ -56,3 +56,34 @@ def create_admin_account(
     return ResponseSchema(
         code=200, message="管理员账号创建成功", data={"username": username}
     )
+
+
+@router.post("/create_test", response_model=ResponseSchema, summary="创建临时测试账号")
+def create_user_account(
+    db: Session = Depends(get_db),
+):
+    student_id = "test123"
+    name = "test"
+    class_name = "电商2523"
+    major_name = "电子商务（2）"
+    department = "商务管理学院"
+    is_reserved = 0
+    is_pwd_changed = 1
+
+    student = db.get(models.Students, student_id)
+    if not student:
+        # 新增学生，生成初始密码哈希
+        db.add(
+            models.Students(
+                student_id=student_id,
+                name=name,
+                major_name=major_name,
+                class_name=class_name,
+                department=department,
+                is_reserved=is_reserved,
+                is_pwd_changed=is_pwd_changed,
+                password_hash=hash_password(name),
+            )
+        )
+
+    return ResponseSchema(code=200, message="测试账号创建成功", data=None)
