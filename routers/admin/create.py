@@ -73,17 +73,22 @@ def create_user_account(
     student = db.get(models.Students, student_id)
     if not student:
         # 新增学生，生成初始密码哈希
-        db.add(
-            models.Students(
-                student_id=student_id,
-                name=name,
-                major_name=major_name,
-                class_name=class_name,
-                department=department,
-                is_reserved=is_reserved,
-                is_pwd_changed=is_pwd_changed,
-                password_hash=hash_password(name),
+        try:
+            db.add(
+                models.Students(
+                    student_id=student_id,
+                    name=name,
+                    major_name=major_name,
+                    class_name=class_name,
+                    department=department,
+                    is_reserved=is_reserved,
+                    is_pwd_changed=is_pwd_changed,
+                    password_hash=hash_password(name),
+                )
             )
-        )
+            db.commit()
+        except Exception as e:
+            db.rollback()
+            raise HTTPException(status_code=500, detail=f"数据库错误: {str(e)}")
 
     return ResponseSchema(code=200, message="测试账号创建成功", data=None)
