@@ -62,39 +62,45 @@ def create_admin_account(
 def create_user_account(
     db: Session = Depends(get_db),
 ):
-    student_id = "test123"
-    name = "test"
-    class_name = "跨境2502"
-    major_name = "跨境电子商务"
-    department = "商务管理学院"
-    is_reserved = 0
-    is_pwd_changed = 1
+    for i in range(10):
+        student_id = "test" + str(i)
+        name = "test"
+        if i < 5:
+            class_name = "跨境2502"
+            major_name = "跨境电子商务"
+            department = "商务管理学院"
+        else:
+            class_name = "会计2526"
+            major_name = "大数据与会计（2）"
+            department = "商务管理学院"
+        is_reserved = 0
+        is_pwd_changed = 1
 
-    student = db.get(models.Students, student_id)
-    if not student:
-        # 新增学生，生成初始密码哈希
-        db.add(
-            models.Students(
-                student_id=student_id,
-                name=name,
-                major_name=major_name,
-                class_name=class_name,
-                department=department,
-                is_reserved=is_reserved,
-                is_pwd_changed=is_pwd_changed,
-                password_hash=hash_password(name),
+        student = db.get(models.Students, student_id)
+        if not student:
+            # 新增学生，生成初始密码哈希
+            db.add(
+                models.Students(
+                    student_id=student_id,
+                    name=name,
+                    major_name=major_name,
+                    class_name=class_name,
+                    department=department,
+                    is_reserved=is_reserved,
+                    is_pwd_changed=is_pwd_changed,
+                    password_hash=hash_password(name),
+                )
             )
-        )
-        db.commit()
-    else:
-        # 学生已存在，更新信息和密码哈希
-        student.name = name
-        student.major_name = major_name
-        student.class_name = class_name
-        student.department = department
-        student.is_reserved = is_reserved
-        student.is_pwd_changed = is_pwd_changed
-        student.password_hash = hash_password(name)
-        db.commit()
+            db.commit()
+        else:
+            # 学生已存在，更新信息和密码哈希
+            student.name = name
+            student.major_name = major_name
+            student.class_name = class_name
+            student.department = department
+            student.is_reserved = is_reserved
+            student.is_pwd_changed = is_pwd_changed
+            student.password_hash = hash_password(name)
+            db.commit()
 
     return ResponseSchema(code=200, message="测试账号创建成功", data=None)
