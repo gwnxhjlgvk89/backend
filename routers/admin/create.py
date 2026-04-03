@@ -64,8 +64,8 @@ def create_user_account(
 ):
     student_id = "test123"
     name = "test"
-    class_name = "电商2523"
-    major_name = "电子商务（2）"
+    class_name = "跨境2502"
+    major_name = "跨境电子商务"
     department = "商务管理学院"
     is_reserved = 0
     is_pwd_changed = 1
