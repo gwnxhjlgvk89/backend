@@ -178,6 +178,20 @@ async def select_club(
     student: models.Students = Depends(get_current_student),
     db: Session = Depends(get_db),
 ):
+
+    # ✅ 新增：时间校验 - 本周四12点前不开放
+    now = datetime.now()
+    # weekday(): 周一=0, 周二=1, ..., 周四=3, ..., 周日=6
+    current_weekday = now.weekday()
+    current_hour = now.hour
+
+    # 如果还没到周四，或者是周四但还没到12点，则拒绝
+    if current_weekday < 3 or (current_weekday == 3 and current_hour < 12):
+        return JSONResponse(
+            status_code=403,
+            content={"code": 403, "message": "选社开放时间为周四12:00-13:20，敬请期待"},
+        )
+
     if student.has_selected:
         raise HTTPException(status_code=400, detail="你已经选择了社团，不能重复选择")
     if student.is_reserved:
