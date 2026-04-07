@@ -38,7 +38,7 @@ from database import get_db
 router = APIRouter(prefix="/admin", tags=["管理员接口"])
 
 
-@router.post("/export/all", summary="导出所有数据", response_model=None)
+@router.get("/export/all", summary="导出所有数据", response_model=None)
 def export_all_data(
     db: Session = Depends(get_db),
 ):

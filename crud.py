@@ -156,3 +156,14 @@ def get_students(db: Session):
     ]
 
     return student_list
+
+
+def get_majors(db: Session):
+    majors = db.query(models.Majors).all()
+
+    major_list = [
+        {**{k: v for k, v in m.__dict__.items() if not k.startswith("_")}}
+        for m in majors
+    ]
+
+    return major_list

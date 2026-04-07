@@ -104,3 +104,37 @@ def create_user_account(
             db.commit()
 
     return ResponseSchema(code=200, message="测试账号创建成功", data=None)
+
+
+@router.post("/create/club", response_model=ResponseSchema, summary="创建社团")
+def create_club(
+    club_data: dict,
+    db: Session = Depends(get_db),
+):
+    if not club_data.get("club_name"):
+        raise HTTPException(status_code=400, detail="社团名称不能为空")
+    if db.query(models.Clubs).filter_by(club_name=club_data["club_name"]).first():
+        raise HTTPException(status_code=400, detail="社团名称已存在")
+    # 这里 club_data 是一个字典，包含社团的各个字段
+    # 你需要根据你的 models.Clubs 模型来提取这些字段
+    new_club = models.Clubs(
+        club_name=club_data.get("club_name"),
+        super_club=club_data.get("super_club"),
+        teacher_advisor=club_data.get("teacher_advisor"),
+        club_president=club_data.get("club_president"),
+        description=club_data.get("description"),
+        description_detail=club_data.get("description_detail"),
+        cover_image=club_data.get("cover_image"),
+        activity_position=club_data.get("activity_position"),
+        activity_time=club_data.get("activity_time"),
+        foundation_year=club_data.get("foundation_year"),
+        total_quota=club_data.get("total_quota"),
+        reserved_quota=club_data.get("reserved_quota"),
+        remaining_quota=club_data.get("remaining_quota"),  # 初始剩余名额等于总名额
+        club_status=club_data.get("club_status"),
+        has_major_limit=club_data.get("has_major_limit"),
+    )
+    db.add(new_club)
+    db.commit()
+
+    return ResponseSchema(code=200, message="社团创建成功", data=None)
