@@ -222,6 +222,9 @@ def import_students(
                     department = r["department"]
                     is_reserved = int(r["is_reserved"])
                     reserved_club_name = r["reserved_club_name"]
+                    has_selected = int(r.get("has_selected", 0))  # 可选列，默认为0
+                    selected_club_name = r.get("selected_club_name")
+                    reserved_club_name = r["reserved_club_name"]
 
                     if not student_id or not name or not major_name or not class_name:
                         raise ValueError(
@@ -249,6 +252,8 @@ def import_students(
                                 department=department,
                                 is_reserved=is_reserved,
                                 reserved_club_name=reserved_club_name,
+                                has_selected=has_selected,
+                                selected_club_name=selected_club_name,
                                 password_hash=hash_password(name),
                             )
                         )
@@ -261,6 +266,8 @@ def import_students(
                         student.department = department
                         student.is_reserved = is_reserved
                         student.reserved_club_name = reserved_club_name
+                        student.has_selected = has_selected
+                        student.selected_club_name = selected_club_name
                         student.password_hash = hash_password(name)
                         updated += 1
                 except Exception as e:
