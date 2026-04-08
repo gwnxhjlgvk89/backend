@@ -34,6 +34,7 @@ router = APIRouter(prefix="/admin", tags=["管理员创建模块"])
 def create_admin_account(
     username: str = Query(..., description="管理员用户名"),
     password: str = Query(..., description="管理员密码"),
+    role: str = Query(..., description="管理员角色: 1普通管理员，2超级管理员"),
     db: Session = Depends(get_db),
 ):
     # 检查用户名是否已存在
@@ -49,6 +50,7 @@ def create_admin_account(
         password_hash=hash_password(password),
         is_active=1,
         last_login_at=None,
+        role=role,
     )
     db.add(new_admin)
     db.commit()

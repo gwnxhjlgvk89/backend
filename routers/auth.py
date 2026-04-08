@@ -69,6 +69,7 @@ def login(body: LoginRequestSchema, db: Session = Depends(get_db)):
                 token_type="Bearer",
                 identity="admin",
                 admin={
+                    "role": admin.role,
                     "username": admin.username,
                     "real_name": admin.real_name,
                     "is_active": bool(admin.is_active),
