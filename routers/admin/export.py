@@ -42,6 +42,7 @@ router = APIRouter(prefix="/admin", tags=["管理员接口"])
 def export_all_data(
     db: Session = Depends(get_db),
 ):
+
     data = get_clubs_with_major_restrictions_with_students(db)
     excel_buffer = export_clubs_data_to_excel(data)
     excel_buffer.seek(0)
