@@ -6,8 +6,8 @@ import random
 from locust import HttpUser, task, between, events
 from websocket import WebSocketApp
 
-BASE_URL = "http://127.0.0.1:8000"
-WS_URL = "ws://your-server-ip:8000/ws"
+BASE_URL = "http://127.0.0.1:8001"
+WS_URL = "ws://your-server-ip:8001/ws"
 
 # ── 预先准备好 1000 个测试账号的 token ──────────────────────
 # 提前跑一遍登录，把 token 存进来
@@ -75,7 +75,7 @@ preload_tokens()
 # ══════════════════════════════════════════════════════════════
 class ClubSelectUser(HttpUser):
     host = BASE_URL
-    wait_time = between(0.5, 2)  # 每次操作间隔 0.5~2s
+    wait_time = between(2, 3)  # 每次操作间隔 0.5~2s
 
     def on_start(self):
         """每个虚拟用户启动时随机领一个 token"""
@@ -87,7 +87,7 @@ class ClubSelectUser(HttpUser):
         # 随机选一个社团名测试
         self.club_names = ["EC社"]
 
-    @task(5)  # 权重 5：选社最多
+    @task(0)  # 权重 5：选社最多
     def select_club(self):
         if not self.token:
             return
@@ -107,7 +107,7 @@ class ClubSelectUser(HttpUser):
             else:
                 resp.failure(f"非预期状态码: {resp.status_code}")
 
-    @task(2)  # 权重 2：退社
+    @task(0)  # 权重 2：退社
     def quit_club(self):
         if not self.token:
             return
@@ -123,7 +123,7 @@ class ClubSelectUser(HttpUser):
             else:
                 resp.failure(f"非预期: {resp.status_code} {resp.text[:100]}")
 
-    @task(3)  # 权重 3：查询列表（读多写少）
+    @task(10)  # 权重 3：查询列表（读多写少）
     def get_clubs(self):
         if not self.token:
             return

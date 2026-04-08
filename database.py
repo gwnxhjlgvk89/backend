@@ -12,8 +12,8 @@ engine = create_engine(
     DATABASE_URL,
     pool_size=100,  # 核心连接数，从20提升到100
     max_overflow=200,  # 溢出连接数，从40提升到200（峰值最多300个连接）
-    pool_timeout=60,  # 等待连接超时时间，从30s改为60s
-    pool_recycle=1800,  # 连接存活30分钟后自动回收，防止MySQL断开
+    pool_timeout=30,  # 等待连接超时时间，从30s改为60s
+    pool_recycle=300,  # 连接存活30分钟后自动回收，防止MySQL断开
     pool_pre_ping=True,  # 每次使用前检测连接是否存活
 )
 

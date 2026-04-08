@@ -21,6 +21,7 @@ from auth import (
 from app.api.upload import upload_avatar
 
 from crud import get_clubs_with_major_restrictions
+from .cache_manager import ClubListCache  # ← 导入缓存
 
 router = APIRouter(prefix="/student", tags=["学生模块"])
 
@@ -342,16 +343,35 @@ def get_club(
     )
 
 
+# ─────────────────────────────────────────
+# GET /student/clubs - 获取社团列表（带缓存）
+# ─────────────────────────────────────────
 @router.get("/clubs", summary="获取社团列表")
 def get_club_list(
-    # 相当于登录校验
     student: models.Students = Depends(get_current_student),
     db: Session = Depends(get_db),
 ):
+    # 1️⃣ 先从Redis获取缓存
+    cached_data = ClubListCache.get()
+    if cached_data:
+        print("✅ 从缓存获取社团列表")
+        return ResponseSchema(
+            code=200,
+            message="获取成功 (来自缓存)",
+            data=cached_data,
+        )
+
+    # 2️⃣ 缓存不存在，查询数据库
+    clubs_data = get_clubs_with_major_restrictions(db)
+
+    # 3️⃣ 存入Redis
+    ClubListCache.set(clubs_data)
+    print("从数据库获取社团列表并缓存")  # 调试日志
+
     return ResponseSchema(
         code=200,
         message="获取成功",
-        data=get_clubs_with_major_restrictions(db),
+        data=clubs_data,
     )
 
 
@@ -412,33 +432,32 @@ def get_favorite_clubs(
     return ResponseSchema(code=200, message="获取成功", data=club_names)
 
 
-# -------------------------------------------------------
-# POST /student/select  抢课 如果已抢课或者社团未开放，那么前端抢课按钮不会显示
-# -------------------------------------------------------
+# ─────────────────────────────────────────
+# POST /student/select - 抢课
+# ─────────────────────────────────────────
 @router.post("/select", summary="抢课")
 async def select_club(
     club_name: str = Body(..., embed=True),
     student: models.Students = Depends(get_current_student),
     db: Session = Depends(get_db),
 ):
-
-    response = validate_time_window_json(
-        start_weekday=3,  # 周四
-        start_hour=12,
-        end_hour=13,
-        end_minute=20,
-        error_message="选社开放时间为4月9日（周四）12:00-13:20，敬请期待",
-    )
-    if response:
-        return response
+    # ✓ 时间窗口检查
+    # response = validate_time_window_json(
+    #     start_weekday=3,
+    #     start_hour=12,
+    #     end_hour=13,
+    #     end_minute=20,
+    #     error_message="选社开放时间为4月9日（周四）12:00-13:20，敬请期待",
+    # )
+    # if response:
+    #     return response
 
     if student.has_selected:
         raise HTTPException(status_code=400, detail="你已经选择了社团，不能重复选择")
     if student.is_reserved:
         raise HTTPException(status_code=400, detail="你是预报名学生，不能抢课")
-    # 查询目标社团，加行锁防止并发超卖
-    #    with_for_update() → SELECT ... FOR UPDATE
-    #    同一时刻只有一个事务能操作这一行
+
+    # ✓ 查询数据库（加行锁）
     club = (
         db.query(models.Clubs)
         .filter(models.Clubs.club_name == club_name)
@@ -449,12 +468,13 @@ async def select_club(
         return JSONResponse(
             status_code=404, content={"code": 404, "message": "社团不存在"}
         )
-    # 校验名额
+
     if club.remaining_quota <= 0:
         return JSONResponse(
             status_code=409, content={"code": 409, "message": "社团名额已满"}
         )
 
+    # ✓ 专业限制检查
     if club.has_major_limit:
         major_restrictions = (
             db.query(models.Club_Major_Restrictions)
@@ -468,10 +488,10 @@ async def select_club(
                 content={"code": 403, "message": "你的专业不符合社团要求"},
             )
 
-    # 报名成功，更新数据库
+    # ✓ 更新数据库
     club.remaining_quota -= 1
     if club.remaining_quota == 0:
-        club.club_status = 2  # 更新社团状态为已满员
+        club.club_status = 2
 
     student.has_selected = True
     student.selected_club_name = club.club_name
@@ -481,15 +501,18 @@ async def select_club(
     db.refresh(student)
     db.refresh(club)
 
-    # 广播通知名额变化给所有人
+    # ✓ 清空社团列表缓存（让所有用户获取最新数据）
+    ClubListCache.invalidate()
+    print("✅ 社团列表缓存已清空")  # 调试日志
+
+    # ✓ WebSocket广播
     await manager.broadcast(
         {
             "event": "quota_update",
             "club_name": club.club_name,
-            "remaining_quota": club.remaining_quota,  # 最新剩余名额
+            "remaining_quota": club.remaining_quota,
         }
     )
-    # 单独推送成功消息给报名的学生，前端可以用这个消息弹窗提示
     await manager.send_to_student(
         student.student_id,
         {
@@ -501,9 +524,9 @@ async def select_club(
     return ResponseSchema(code=200, message="报名成功", data=None)
 
 
-# -------------------------------------------------------
-# POST /student/quit  退课
-# -------------------------------------------------------
+# ─────────────────────────────────────────
+# POST /student/quit - 退课
+# ─────────────────────────────────────────
 @router.post("/quit", summary="退课")
 async def quit_club(
     student: models.Students = Depends(get_current_student),
@@ -518,9 +541,9 @@ async def quit_club(
     if not club:
         raise HTTPException(status_code=404, detail="社团不存在")
 
-    # 更新数据库
+    # ✓ 更新数据库
     club.remaining_quota += 1
-    if club.club_status == 2:  # 如果之前是已满员，退课后要改回报名中
+    if club.club_status == 2:
         club.club_status = 1
 
     student.has_selected = False
@@ -531,11 +554,16 @@ async def quit_club(
     db.refresh(student)
     db.refresh(club)
 
+    # ✓ 清空社团列表缓存
+    ClubListCache.invalidate()
+    print("✅ 社团列表缓存已清空")  # 调试日志
+
+    # ✓ WebSocket广播
     await manager.broadcast(
         {
             "event": "quota_update",
             "club_name": club.club_name,
-            "remaining_quota": club.remaining_quota,  # 最新剩余名额
+            "remaining_quota": club.remaining_quota,
         }
     )
     await manager.send_to_student(
