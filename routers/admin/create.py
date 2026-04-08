@@ -140,3 +140,93 @@ def create_club(
     db.commit()
 
     return ResponseSchema(code=200, message="社团创建成功", data=None)
+
+
+@router.post("/create/student", response_model=ResponseSchema, summary="创建学生账号")
+def create_student(
+    student_data: dict,
+    db: Session = Depends(get_db),
+):
+    required_fields = ["student_id", "name", "major_name", "class_name", "department"]
+    for field in required_fields:
+        if not student_data.get(field):
+            raise HTTPException(status_code=400, detail=f"{field} 不能为空")
+
+    if (
+        db.query(models.Students)
+        .filter_by(student_id=student_data["student_id"])
+        .first()
+    ):
+        raise HTTPException(status_code=400, detail="学生ID已存在")
+
+    # 如果是新增major
+    new_major = (
+        db.query(models.Majors)
+        .filter_by(major_name=student_data.get("major_name"))
+        .first()
+    )
+    if not new_major:
+        new_major = models.Majors(
+            major_name=student_data.get("major_name"),
+            department=student_data.get("department"),
+        )
+        db.add(new_major)
+        # Ensure majors row exists before inserting classes row referencing it.
+        db.flush()
+
+    # 如果是新增class
+    new_class = (
+        db.query(models.Classes)
+        .filter_by(
+            class_name=student_data.get("class_name"),
+        )
+        .first()
+    )
+    if not new_class:
+        new_class = models.Classes(
+            class_name=student_data.get("class_name"),
+            major_name=student_data.get("major_name"),
+        )
+        db.add(new_class)
+
+    if student_data.get("has_selected"):
+        club = (
+            db.query(models.Clubs)
+            .filter_by(club_name=student_data.get("selected_club_name"))
+            .first()
+        )
+        if club:
+            if club.remaining_quota <= 0:
+                raise HTTPException(status_code=400, detail="社团名额已满")
+            club.remaining_quota -= 1
+    if student_data.get("is_reserved"):
+        club = (
+            db.query(models.Clubs)
+            .filter_by(club_name=student_data.get("reserved_club_name"))
+            .first()
+        )
+        if club:
+            if club.remaining_quota <= 0:
+                raise HTTPException(status_code=400, detail="社团名额已满")
+            club.remaining_quota -= 1
+
+    new_student = models.Students(
+        student_id=student_data.get("student_id"),
+        name=student_data.get("name"),
+        major_name=student_data.get("major_name"),
+        class_name=student_data.get("class_name"),
+        department=student_data.get("department"),
+        is_reserved=student_data.get("is_reserved", 0),
+        reserved_club_name=student_data.get("reserved_club_name"),
+        has_selected=student_data.get("has_selected", 0),
+        selected_club_name=student_data.get("selected_club_name"),
+        is_pwd_changed=0,
+        password_hash=hash_password(student_data.get("name")),  # 初始密码为姓名
+        email=student_data.get("email"),
+        phone=student_data.get("phone"),
+    )
+
+    db.add(new_student)
+    db.commit()
+
+    return ResponseSchema(code=200, message="学生账号创建成功", data=None)

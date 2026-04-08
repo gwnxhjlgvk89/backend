@@ -94,6 +94,54 @@ def update_student(
     if not student:
         raise HTTPException(status_code=400, detail="学生不存在")
 
+    if student.is_reserved:
+        club = (
+            db.query(models.Clubs)
+            .filter_by(club_name=student.reserved_club_name)
+            .first()
+        )
+        if club:
+            club.remaining_quota += 1
+            club.reserved_quota -= 1
+            student.reserved_club_name = None
+            student.is_reserved = 0
+    if student.has_selected:
+        club = (
+            db.query(models.Clubs)
+            .filter_by(club_name=student.selected_club_name)
+            .first()
+        )
+        if club:
+            club.remaining_quota += 1
+            student.selected_club_name = None
+            student.has_selected = 0
+    db.commit()
+    if student_data.get("has_selected"):
+        club = (
+            db.query(models.Clubs)
+            .filter_by(club_name=student_data.get("selected_club_name"))
+            .first()
+        )
+        if club:
+            if club.remaining_quota <= 0:
+                raise HTTPException(status_code=400, detail="社团名额已满")
+            club.remaining_quota -= 1
+            student.selected_club_name = student_data.get("selected_club_name")
+            student.has_selected = 1
+    if student_data.get("is_reserved"):
+        club = (
+            db.query(models.Clubs)
+            .filter_by(club_name=student_data.get("reserved_club_name"))
+            .first()
+        )
+        if club:
+            if club.remaining_quota <= 0:
+                raise HTTPException(status_code=400, detail="社团名额已满")
+            club.remaining_quota -= 1
+            club.reserved_quota += 1
+            student.reserved_club_name = student_data.get("reserved_club_name")
+            student.is_reserved = 1
+
     for field, value in student_data.items():
         if field == "student_id":
             continue
@@ -113,6 +161,24 @@ def delete_student(
     student = db.query(models.Students).filter_by(student_id=student_id).first()
     if not student:
         raise HTTPException(status_code=400, detail="学生不存在")
+
+    if student.is_reserved:
+        club = (
+            db.query(models.Clubs)
+            .filter_by(club_name=student.reserved_club_name)
+            .first()
+        )
+        if club:
+            club.remaining_quota += 1
+            club.reserved_quota -= 1
+    if student.has_selected:
+        club = (
+            db.query(models.Clubs)
+            .filter_by(club_name=student.selected_club_name)
+            .first()
+        )
+        if club:
+            club.remaining_quota += 1
 
     db.delete(student)
     db.commit()

@@ -285,3 +285,12 @@ def get_majors(db: Session):
     ]
 
     return major_list
+
+
+def get_classes(db: Session):
+    classes = db.query(models.Classes).all()
+    class_list = [
+        {**{k: v for k, v in c.__dict__.items() if not k.startswith("_")}}
+        for c in classes
+    ]
+    return class_list

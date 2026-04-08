@@ -13,6 +13,7 @@ from crud import (
     get_club_with_major_restrictions_with_students,
     get_students,
     get_majors,
+    get_classes,
 )
 
 router = APIRouter(prefix="/admin", tags=["管理员浏览模块"])
@@ -48,4 +49,15 @@ def get_major(
         code=200,
         message="获取成功",
         data=get_majors(db=db),
+    )
+
+
+@router.get("/classes", summary="获取班级信息")
+def get_class(
+    db: Session = Depends(get_db),
+):
+    return ResponseSchema(
+        code=200,
+        message="获取成功",
+        data=get_classes(db=db),
     )
