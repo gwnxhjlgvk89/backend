@@ -78,6 +78,7 @@ app = FastAPI(
     description="先到先得，抢完即止",
     docs_url="/docs",  # Swagger UI
     version="1.0.0",
+    lifespan=lifespan,  # 注册生命周期管理
 )
 # ─────────────────────────────────────────
 # 跨域中间件（CORS）
