@@ -101,6 +101,8 @@ def update_student(
             .first()
         )
         if club:
+            if club.club_status == 2:
+                club.club_status = 1;
             club.remaining_quota += 1
             club.reserved_quota -= 1
             student.reserved_club_name = None
@@ -112,6 +114,8 @@ def update_student(
             .first()
         )
         if club:
+            if club.club_status == 2:
+                club.club_status = 1;
             club.remaining_quota += 1
             student.selected_club_name = None
             student.has_selected = 0
@@ -126,6 +130,8 @@ def update_student(
             if club.remaining_quota <= 0:
                 raise HTTPException(status_code=400, detail="社团名额已满")
             club.remaining_quota -= 1
+            if club.remaining_quota == 0:
+                club.club_status = 2
             student.selected_club_name = student_data.get("selected_club_name")
             student.has_selected = 1
     if student_data.get("is_reserved"):
@@ -139,6 +145,8 @@ def update_student(
                 raise HTTPException(status_code=400, detail="社团名额已满")
             club.remaining_quota -= 1
             club.reserved_quota += 1
+            if club.remaining_quota == 0:
+                club.club_status = 2
             student.reserved_club_name = student_data.get("reserved_club_name")
             student.is_reserved = 1
 
@@ -170,6 +178,8 @@ def delete_student(
         )
         if club:
             club.remaining_quota += 1
+            if club.club_status == 2:
+                club.club_status = 1;
             club.reserved_quota -= 1
     if student.has_selected:
         club = (
@@ -179,6 +189,8 @@ def delete_student(
         )
         if club:
             club.remaining_quota += 1
+            if club.club_status == 2:
+                club.club_status = 1;
 
     db.delete(student)
     db.commit()

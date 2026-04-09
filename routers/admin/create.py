@@ -199,6 +199,8 @@ def create_student(
             if club.remaining_quota <= 0:
                 raise HTTPException(status_code=400, detail="社团名额已满")
             club.remaining_quota -= 1
+            if club.remaining_quota == 0:
+                club.club_status = 2
     if student_data.get("is_reserved"):
         club = (
             db.query(models.Clubs)
@@ -209,6 +211,8 @@ def create_student(
             if club.remaining_quota <= 0:
                 raise HTTPException(status_code=400, detail="社团名额已满")
             club.remaining_quota -= 1
+            if club.remaining_quota == 0:
+                club.club_status = 2
 
     new_student = models.Students(
         student_id=student_data.get("student_id"),
