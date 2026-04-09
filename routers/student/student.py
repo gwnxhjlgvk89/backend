@@ -442,15 +442,15 @@ async def select_club(
     db: Session = Depends(get_db),
 ):
     # ✓ 时间窗口检查
-    # response = validate_time_window_json(
-    #     start_weekday=3,
-    #     start_hour=12,
-    #     end_hour=13,
-    #     end_minute=20,
-    #     error_message="选社开放时间为4月9日（周四）12:00-13:20，敬请期待",
-    # )
-    # if response:
-    #     return response
+    response = validate_time_window_json(
+        start_weekday=3,
+        start_hour=12,
+        end_hour=13,
+        end_minute=20,
+        error_message="选社开放时间为4月9日（周四）12:00-13:20，敬请期待",
+    )
+    if response:
+        return response
 
     if student.has_selected:
         raise HTTPException(status_code=400, detail="你已经选择了社团，不能重复选择")
