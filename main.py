@@ -19,7 +19,7 @@ background_tasks = []
 # ─────────────────────────────────────────
 async def club_cache_updater():
     """每隔20秒更新一次 Club 缓存"""
-    from routers.student import get_clubs_with_major_restrictions
+    from crud import get_clubs_with_major_restrictions
     from app.cache import ClubListCache
     from sqlalchemy import create_engine
     from sqlalchemy.orm import sessionmaker
