@@ -351,6 +351,12 @@ def get_club_list(
     student: models.Students = Depends(get_current_student),
     db: Session = Depends(get_db),
 ):
+    # 2️⃣ 缓存不存在，查询数据库
+    clubs_data = get_clubs_with_major_restrictions(db)
+
+    # 3️⃣ 存入Redis
+    ClubListCache.set(clubs_data)
+
     # 1️⃣ 先从Redis获取缓存
     cached_data = ClubListCache.get()
     if cached_data:
