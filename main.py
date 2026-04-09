@@ -28,7 +28,7 @@ async def club_cache_updater():
     logger.info("🔥 club_cache_updater：任务函数开始执行（未sleep前）")
     try:
         from crud import get_clubs_with_major_restrictions
-        from app.cache import ClubListCache
+        from routers.student.cache_manager import ClubListCache
         from sqlalchemy import create_engine
         from sqlalchemy.orm import sessionmaker
 
