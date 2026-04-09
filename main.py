@@ -25,60 +25,43 @@ background_tasks = []
 # 定时更新 Club 缓存的后台任务
 # ─────────────────────────────────────────
 async def club_cache_updater():
-    """每隔20秒更新一次 Club 缓存"""
-    from crud import get_clubs_with_major_restrictions
-    from app.cache import ClubListCache
-    from sqlalchemy import create_engine
-    from sqlalchemy.orm import sessionmaker
-    
-    DATABASE_URL = "mysql+pymysql://root:GG1214@localhost:3306/club_selection?charset=utf8mb4"
-    
+    logger.info("🔥 club_cache_updater：任务函数开始执行（未sleep前）")
     try:
-        engine = create_engine(DATABASE_URL, pool_pre_ping=True)
+        from crud import get_clubs_with_major_restrictions
+        from app.cache import ClubListCache
+        from sqlalchemy import create_engine
+        from sqlalchemy.orm import sessionmaker
+
+        DATABASE_URL = "mysql+pymysql://root:GG1214@localhost:3306/club_selection?charset=utf8mb4"
+
+        engine = create_engine(
+            DATABASE_URL,
+            pool_pre_ping=True,
+        )
         SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-        logger.info("✅ 数据库连接池初始化成功")
-    except Exception as e:
-        logger.error(f"❌ 数据库连接失败: {e}")
-        return
-    
-    # ⭐ 首次启动立即执行一次
-    logger.info("🚀 首次启动，立即执行一次缓存更新...")
-    try:
-        db = SessionLocal()
-        clubs_data = get_clubs_with_major_restrictions(db)
-        ClubListCache.set(clubs_data)
-        logger.info(f"✅ 首次缓存更新成功，共 {len(clubs_data)} 个社团")
-        db.close()
-    except Exception as e:
-        logger.error(f"❌ 首次缓存更新失败: {e}", exc_info=True)
-    
-    # 定期更新
-    counter = 0
-    while True:
-        try:
-            await asyncio.sleep(20)  # 每隔20秒
+
+        logger.info("✅ club_cache_updater：数据库/SessionLocal 初始化完成")
+
+        counter = 0
+        while True:
+            await asyncio.sleep(20)
             counter += 1
-            
-            current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-            logger.info(f"[{current_time}] 🔄 开始第 {counter} 次定时更新Club缓存...")
-            
+
+            logger.info(f"🔄 第 {counter} 次：开始更新 Club 缓存...")
             db = SessionLocal()
-            
-            # 查询最新数据
-            clubs_data = get_clubs_with_major_restrictions(db)
-            
-            # 更新缓存
-            ClubListCache.set(clubs_data)
-            
-            logger.info(f"[{current_time}] ✅ 第 {counter} 次缓存更新成功，共 {len(clubs_data)} 个社团")
-            db.close()
-            
-        except asyncio.CancelledError:
-            logger.info("🛑 定时器任务已取消")
-            break
-        except Exception as e:
-            logger.error(f"❌ 第 {counter} 次缓存更新失败: {e}", exc_info=True)
-            # 继续下一次，不中断
+            try:
+                clubs_data = get_clubs_with_major_restrictions(db)
+                ClubListCache.set(clubs_data)
+                logger.info(f"✅ 第 {counter} 次：更新成功，共 {len(clubs_data)} 个社团")
+            finally:
+                db.close()
+                logger.info(f"ℹ️ 第 {counter} 次：db.close() 已执行")
+
+    except asyncio.CancelledError:
+        logger.info("🛑 club_cache_updater：收到取消信号")
+        raise
+    except Exception as e:
+        logger.exception(f"❌ club_cache_updater：未捕获异常：{e}")
 
 # ─────────────────────────────────────────
 # 生命周期管理
