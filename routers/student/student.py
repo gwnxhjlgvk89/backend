@@ -538,6 +538,16 @@ async def quit_club(
     student: models.Students = Depends(get_current_student),
     db: Session = Depends(get_db),
 ):
+    # ✓ 时间窗口检查
+    response = validate_time_window_json(
+        start_weekday=3,
+        start_hour=12,
+        end_hour=13,
+        end_minute=20,
+        error_message="选社开放时间为4月9日（周四）12:00-13:20，敬请期待",
+    )
+    if response:
+        return response
     club = (
         db.query(models.Clubs)
         .filter(models.Clubs.club_name == student.selected_club_name)
