@@ -95,6 +95,7 @@ def update_student(
         raise HTTPException(status_code=400, detail="学生不存在")
 
     if student.is_reserved:
+        print(f"学生所在社团为: {student.reserved_club_name}")
         club = (
             db.query(models.Clubs)
             .filter_by(club_name=student.reserved_club_name)
