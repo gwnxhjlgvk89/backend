@@ -359,12 +359,17 @@ def get_club_list(
 
     # 1️⃣ 先从Redis获取缓存
     cached_data = ClubListCache.get()
+
+    return_data = []
     if cached_data:
+        for club in cached_data:
+            if club.club_status == 1:
+                return_data.append(club)
         print("✅ 从缓存获取社团列表")
         return ResponseSchema(
             code=200,
             message="获取成功 (来自缓存)",
-            data=cached_data,
+            data=return_data,
         )
 
     # 2️⃣ 缓存不存在，查询数据库
