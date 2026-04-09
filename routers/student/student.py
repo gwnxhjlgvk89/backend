@@ -451,11 +451,11 @@ async def select_club(
         # ✓ 时间窗口检查
         response = validate_time_window_json(
             start_weekday=3,
-            start_hour=20,
+            start_hour=19,
             start_minute=30,
-            end_hour=21,
+            end_hour=20,
             end_minute=30,
-            error_message="二次选社开放时间为4月9日（周四）20:30-21:30，该次选社不允许退社",
+            error_message="二次选社开放时间为4月9日（周四）19:30-20:30，该次选社不允许退社",
         )
         if response:
             return response
@@ -544,11 +544,11 @@ async def quit_club(
         # ✓ 时间窗口检查
         response = validate_time_window_json(
             start_weekday=3,
-            start_hour=20,
+            start_hour=19,
             start_minute=30,
-            end_hour=21,
+            end_hour=20,
             end_minute=30,
-            error_message="二次选社开放时间为4月9日（周四）20:30-21:30，该次选社不允许退社",
+            error_message="二次选社开放时间为4月9日（周四）19:30-20:30，该次选社不允许退社",
         )
         if response:
             return response
