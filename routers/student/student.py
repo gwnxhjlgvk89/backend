@@ -363,7 +363,7 @@ def get_club_list(
     return_data = []
     if cached_data:
         for club in cached_data:
-            if club.club_status == 1:
+            if club["club_status"] == 1:
                 return_data.append(club)
         print("✅ 从缓存获取社团列表")
         return ResponseSchema(
