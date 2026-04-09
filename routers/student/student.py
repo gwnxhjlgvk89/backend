@@ -451,10 +451,11 @@ async def select_club(
         # ✓ 时间窗口检查
         response = validate_time_window_json(
             start_weekday=3,
-            start_hour=12,
-            end_hour=13,
-            end_minute=20,
-            error_message="选社开放时间为4月9日（周四）12:00-13:20，敬请期待",
+            start_hour=20,
+            start_minute=30,
+            end_hour=21,
+            end_minute=30,
+            error_message="二次选社开放时间为4月9日（周四）20:30-21:30，该次选社不允许退社",
         )
         if response:
             return response
@@ -543,13 +544,16 @@ async def quit_club(
         # ✓ 时间窗口检查
         response = validate_time_window_json(
             start_weekday=3,
-            start_hour=12,
-            end_hour=13,
-            end_minute=20,
-            error_message="选社开放时间为4月9日（周四）12:00-13:20，敬请期待",
+            start_hour=20,
+            start_minute=30,
+            end_hour=21,
+            end_minute=30,
+            error_message="二次选社开放时间为4月9日（周四）20:30-21:30，该次选社不允许退社",
         )
         if response:
             return response
+    if student.has_selected or student.is_reserved:
+        return HTTPException(status_code=400, detail="本次选社不允许退社")
     club = (
         db.query(models.Clubs)
         .filter(models.Clubs.club_name == student.selected_club_name)
