@@ -362,14 +362,14 @@ def get_club_list(
 
     return_data = []
     if cached_data:
-        for club in cached_data:
-            if club["club_status"] == 1:
-                return_data.append(club)
+        # for club in cached_data:
+        #     if club["club_status"] == 1:
+        #         return_data.append(club)
         print("✅ 从缓存获取社团列表")
         return ResponseSchema(
             code=200,
             message="获取成功 (来自缓存)",
-            data=return_data,
+            data=cached_data,
         )
 
     # 2️⃣ 缓存不存在，查询数据库
