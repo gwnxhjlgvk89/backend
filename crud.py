@@ -238,7 +238,11 @@ def get_clubs_with_major_restrictions_with_students(db, clubs: list = None):
     club_students_map = defaultdict(list)
     for s in students_all:
         # 优先使用 selected_club_name，否则使用 reserved_club_name
-        club_name = s.selected_club_name or s.reserved_club_name
+        if s.has_selected:
+            club_name = s.selected_club_name
+        elif s.is_reserved:
+            club_name = s.reserved_club_name
+        # club_name = s.selected_club_name or s.reserved_club_name
         if club_name:
             # 使用基础名称作为 key，忽略末尾是否有"社"字
             base_name = get_base_club_name(club_name)
