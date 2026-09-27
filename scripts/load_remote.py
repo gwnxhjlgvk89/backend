@@ -171,24 +171,34 @@ async def main(args):
                         for item in quota_events:
                             received_events += 1
                             created = item.get("enqueued_at") or event.get("enqueued_at")
-                            if created:
+                            if created or event.get("t"):
                                 notification.append(
                                     max(
                                         0,
                                         time.time()
                                         + clock_offset
-                                        - datetime.fromisoformat(created.replace("Z", "+00:00")).timestamp(),
+                                        - (
+                                            event["t"] / 1000
+                                            if event.get("t")
+                                            else datetime.fromisoformat(
+                                                created.replace("Z", "+00:00")
+                                            ).timestamp()
+                                        ),
                                     )
                                 )
-                        if event.get("published_at"):
+                        if event.get("published_at") or event.get("p"):
                             transport_lag.append(
                                 max(
                                     0,
                                     time.time()
                                     + clock_offset
-                                    - datetime.fromisoformat(
-                                        event["published_at"].replace("Z", "+00:00")
-                                    ).timestamp(),
+                                    - (
+                                        event["p"] / 1000
+                                        if event.get("p")
+                                        else datetime.fromisoformat(
+                                            event["published_at"].replace("Z", "+00:00")
+                                        ).timestamp()
+                                    ),
                                 )
                             )
                     elif message.type == aiohttp.WSMsgType.ERROR:

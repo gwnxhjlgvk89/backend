@@ -10,7 +10,7 @@ def make_engine():
         s.database_url,
         pool_size=s.pool_size,
         max_overflow=s.pool_overflow,
-        pool_timeout=2,
+        pool_timeout=3,
         pool_recycle=300,
         pool_pre_ping=True,
         hide_parameters=True,

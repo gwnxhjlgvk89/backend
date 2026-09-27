@@ -3,6 +3,8 @@ import json
 import logging
 import signal
 import hashlib
+import time
+from datetime import datetime, timezone
 
 from redis.asyncio import Redis
 from sqlalchemy import select
@@ -47,8 +49,13 @@ async def deliver(factory, redis):
                     "event": "quota_delta",
                     "rows": [[p[k] for k in ("club_id", "remaining", "version")] for p in quotas],
                     "event_id": max(p["event_id"] for p in quotas),
-                    "enqueued_at": min(p["enqueued_at"] for p in quotas),
-                    "published_at": iso(utcnow()),
+                    "t": int(
+                        datetime.fromisoformat(
+                            min(p["enqueued_at"] for p in quotas).replace("Z", "+00:00")
+                        ).timestamp()
+                        * 1000
+                    ),
+                    "p": int(utcnow().replace(tzinfo=timezone.utc).timestamp() * 1000),
                 },
                 separators=(",", ":"),
             ),
@@ -89,11 +96,12 @@ async def main():
 
         async def notifications():
             while not stopped.is_set():
+                started = time.monotonic()
                 try:
                     await deliver(factory, redis)
                 except Exception as exc:
                     logger.warning("outbox_retry type=%s", type(exc).__name__)
-                await asyncio.sleep(0.25)
+                await asyncio.sleep(max(0.01, 0.25 - (time.monotonic() - started)))
 
         task = asyncio.create_task(notifications())
         try:
