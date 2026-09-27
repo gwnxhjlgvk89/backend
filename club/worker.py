@@ -18,7 +18,7 @@ from club.services import iso
 logger = logging.getLogger("club.worker")
 
 
-async def deliver(factory, redis):
+async def deliver(factory, redis, *, publish_quotas=True):
     async with factory() as db:
         rows = list(
             (
@@ -27,6 +27,10 @@ async def deliver(factory, redis):
                 )
             ).all()
         )
+    if not publish_quotas:
+        # Leave quota events pending in MySQL until the next broadcast window;
+        # personal/session events continue on the faster 250ms loop.
+        rows = [row for row in rows if row.payload["event"] != "quota"]
     if not rows:
         return
     coalesced = {}
@@ -96,10 +100,14 @@ async def main():
                 job.state = "queued"
 
         async def notifications():
+            last_quota_attempt = 0.0
             while not stopped.is_set():
                 started = time.monotonic()
                 try:
-                    await deliver(factory, redis)
+                    publish_quotas = started - last_quota_attempt >= 1.0
+                    await deliver(factory, redis, publish_quotas=publish_quotas)
+                    if publish_quotas:
+                        last_quota_attempt = started
                 except Exception as exc:
                     logger.warning("outbox_retry type=%s", type(exc).__name__)
                 await asyncio.sleep(max(0.01, 0.25 - (time.monotonic() - started)))

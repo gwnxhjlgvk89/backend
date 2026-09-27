@@ -238,9 +238,17 @@ async def test_outbox_batches_quota_and_retries_without_losing_events(env):
         )
     pipe.reset_mock()
     pipe.execute = AsyncMock()
+    await deliver(app.state.sessions, redis, publish_quotas=False)
+    messages = [json.loads(call.args[1]) for call in pipe.publish.call_args_list]
+    assert len(messages) == 1 and messages[0]["event"] == "enrollment"
+    async with app.state.sessions() as db:
+        assert (
+            await db.scalar(select(func.count()).select_from(Outbox).where(Outbox.delivered.is_(False))) == 42
+        )
+    pipe.reset_mock()
     await deliver(app.state.sessions, redis)
     messages = [json.loads(call.args[1]) for call in pipe.publish.call_args_list]
-    assert len(messages) == 2
+    assert len(messages) == 1
     batch = next(m for m in messages if m["event"] == "quota_delta")
     assert batch["rows"] == [[i, 10, 1] for i in range(1, 43)]
     async with app.state.sessions() as db:
