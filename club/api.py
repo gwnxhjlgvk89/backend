@@ -15,22 +15,37 @@ from redis.asyncio import Redis
 from redis.exceptions import RedisError
 from sqlalchemy import delete, select, text, update
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
-from prometheus_client import Counter, Histogram, generate_latest
+from prometheus_client import Counter, Histogram
 
 from club.config import settings
+from club.metrics import render, CONNECTIONS, LOOP_LAG
 from club.db import make_engine, sessions
 from club.errors import DomainError, fail
 from club.models import Activity, Club, Favorite, User, utcnow
 from club.realtime import Hub
 from club.schemas import Contact, EnrollmentInput, Login, PasswordChange
-from club.security import current_user, hash_password, issue_ticket, public_user, rate_limit, student, token, verify_password
+from club.security import (
+    current_user,
+    enrollment_identity,
+    hash_password,
+    issue_ticket,
+    public_user,
+    rate_limit,
+    student,
+    token,
+    verify_password,
+)
 from club.services import activity_data, club_data, enrollment_data, event, iso, mutate_enrollment
 
 install()
 logger = logging.getLogger("club")
 REQUESTS = Counter("club_http_requests", "HTTP responses", ["route", "method", "status"])
-LATENCY = Histogram("club_http_seconds", "HTTP latency", ["route", "method"],
-                    buckets=(.01, .025, .05, .1, .3, .5, 1, 2, 5, 10))
+LATENCY = Histogram(
+    "club_http_seconds",
+    "HTTP latency",
+    ["route", "method"],
+    buckets=(0.01, 0.025, 0.05, 0.1, 0.3, 0.5, 1, 2, 5, 10),
+)
 
 
 @asynccontextmanager
@@ -38,16 +53,33 @@ async def lifespan(app):
     s = settings()
     app.state.engine = make_engine()
     app.state.sessions = sessions(app.state.engine)
-    app.state.redis = Redis.from_url(s.redis_url, decode_responses=True, socket_timeout=2,
-                                     socket_connect_timeout=2, max_connections=100)
+    app.state.redis = Redis.from_url(
+        s.redis_url, decode_responses=True, socket_timeout=2, socket_connect_timeout=2, max_connections=100
+    )
     app.state.hub = Hub()
     # Pub/Sub is deliberately idle between events; command socket timeouts must
     # not force a subscription reconnect every two seconds.
-    subscriber_redis = Redis.from_url(s.redis_url, decode_responses=True, socket_timeout=None,
-                                     socket_connect_timeout=2, max_connections=2,
-                                     health_check_interval=20)
+    subscriber_redis = Redis.from_url(
+        s.redis_url,
+        decode_responses=True,
+        socket_timeout=None,
+        socket_connect_timeout=2,
+        max_connections=2,
+        health_check_interval=20,
+    )
     task = asyncio.create_task(app.state.hub.subscriber(subscriber_redis))
+
+    async def monitor_loop():
+        while True:
+            started = time.monotonic()
+            await asyncio.sleep(1)
+            LOOP_LAG.set(max(0, time.monotonic() - started - 1))
+            CONNECTIONS.set(len(app.state.hub.connections))
+
+    monitor = asyncio.create_task(monitor_loop())
     yield
+    monitor.cancel()
+    await asyncio.gather(monitor, return_exceptions=True)
     task.cancel()
     await asyncio.gather(task, return_exceptions=True)
     await app.state.redis.aclose()
@@ -55,8 +87,13 @@ async def lifespan(app):
     await app.state.engine.dispose()
 
 
-app = FastAPI(title="社团填报系统 v2", version="2.0.0", lifespan=lifespan,
-              docs_url="/api/v1/docs", openapi_url="/api/v1/openapi.json")
+app = FastAPI(
+    title="社团填报系统 v2",
+    version="2.0.0",
+    lifespan=lifespan,
+    docs_url="/api/v1/docs",
+    openapi_url="/api/v1/openapi.json",
+)
 
 
 @app.middleware("http")
@@ -69,9 +106,19 @@ async def observe(request, call_next):
     REQUESTS.labels(route, request.method, response.status_code).inc()
     LATENCY.labels(route, request.method).observe(elapsed)
     response.headers["X-Request-ID"] = request.state.request_id
+    response.headers["Server-Timing"] = f"app;dur={elapsed * 1000:.2f}"
     response.headers["Cache-Control"] = "no-store"
-    logger.info(json.dumps({"request_id": request.state.request_id, "route": route,
-                           "method": request.method, "status": response.status_code, "ms": round(elapsed * 1000)}))
+    logger.info(
+        json.dumps(
+            {
+                "request_id": request.state.request_id,
+                "route": route,
+                "method": request.method,
+                "status": response.status_code,
+                "ms": round(elapsed * 1000),
+            }
+        )
+    )
     return response
 
 
@@ -80,8 +127,16 @@ def ok(data=None):
 
 
 def error_response(request, status, code, message):
-    return JSONResponse(status_code=status, content={"error": {"code": code, "message": message,
-                         "request_id": getattr(request.state, "request_id", "")}})
+    return JSONResponse(
+        status_code=status,
+        content={
+            "error": {
+                "code": code,
+                "message": message,
+                "request_id": getattr(request.state, "request_id", ""),
+            }
+        },
+    )
 
 
 @app.exception_handler(DomainError)
@@ -109,7 +164,7 @@ async def unavailable(request, exc):
 
 @app.get("/health/live")
 async def live():
-    return {"status": "ok"}
+    return {"status": "ok", "environment": settings().club_env}
 
 
 @app.get("/health/ready")
@@ -126,7 +181,7 @@ async def ready(request: Request):
 async def metrics(request: Request):
     if request.client.host not in {"127.0.0.1", "::1", "testclient"}:
         fail(403, "PRIVATE_ENDPOINT", "此接口仅供本机监控")
-    return Response(generate_latest(), media_type="text/plain; version=0.0.4")
+    return Response(render(), media_type="text/plain; version=0.0.4")
 
 
 @app.post("/api/v1/auth/login")
@@ -212,10 +267,20 @@ async def bootstrap(request: Request, user=Depends(current_user)):
         if not a:
             fail(503, "NOT_INITIALIZED", "活动尚未初始化")
         mine = await enrollment_data(db, user.id)
-        favorites = list((await db.scalars(select(Favorite.club_id).where(Favorite.student_id == user.id))).all())
-    return ok({"user": public_user(user), "activity": activity_data(a), "server_time": iso(utcnow()),
-               "enrollment": mine, "favorites": favorites, "clubs": await clubs_cached(request),
-               "quotas": await quota_snapshot(request)})
+        favorites = list(
+            (await db.scalars(select(Favorite.club_id).where(Favorite.student_id == user.id))).all()
+        )
+    return ok(
+        {
+            "user": public_user(user),
+            "activity": activity_data(a),
+            "server_time": iso(utcnow()),
+            "enrollment": mine,
+            "favorites": favorites,
+            "clubs": await clubs_cached(request),
+            "quotas": await quota_snapshot(request),
+        }
+    )
 
 
 @app.get("/api/v1/clubs/quotas")
@@ -257,16 +322,28 @@ async def enrollment(request: Request, user=Depends(student)):
 
 
 @app.post("/api/v1/enrollment")
-async def select_club(body: EnrollmentInput, request: Request, user=Depends(student), idempotency_key: str = Header()):
+async def select_club(
+    body: EnrollmentInput,
+    request: Request,
+    user=Depends(enrollment_identity),
+    idempotency_key: str = Header(),
+):
     await rate_limit(request, "enrollment", user.id, 6, 10)
-    return ok(await mutate_enrollment(request.app.state.sessions, user.id, user.token_version,
-                                     idempotency_key, body.club_id))
+    return ok(
+        await mutate_enrollment(
+            request.app.state.sessions, user.id, user.token_version, idempotency_key, body.club_id
+        )
+    )
 
 
 @app.delete("/api/v1/enrollment")
-async def cancel(request: Request, user=Depends(student), idempotency_key: str = Header()):
+async def cancel(request: Request, user=Depends(enrollment_identity), idempotency_key: str = Header()):
     await rate_limit(request, "enrollment", user.id, 6, 10)
-    return ok(await mutate_enrollment(request.app.state.sessions, user.id, user.token_version, idempotency_key, cancel=True))
+    return ok(
+        await mutate_enrollment(
+            request.app.state.sessions, user.id, user.token_version, idempotency_key, cancel=True
+        )
+    )
 
 
 @app.put("/api/v1/profile")

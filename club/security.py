@@ -1,6 +1,7 @@
 import asyncio
 import hashlib
 import secrets
+from types import SimpleNamespace
 from datetime import datetime, timedelta, timezone
 
 import bcrypt
@@ -32,15 +33,28 @@ async def verify_password(value: str, hashed: str):
 
 def token(user: User):
     now = datetime.now(timezone.utc)
-    return jwt.encode({"sub": str(user.id), "ver": user.token_version, "iat": now,
-                       "exp": now + timedelta(minutes=settings().token_minutes), "aud": "club-v2"},
-                      settings().jwt_secret, algorithm="HS256")
+    return jwt.encode(
+        {
+            "sub": str(user.id),
+            "ver": user.token_version,
+            "iat": now,
+            "exp": now + timedelta(minutes=settings().token_minutes),
+            "aud": "club-v2",
+        },
+        settings().jwt_secret,
+        algorithm="HS256",
+    )
 
 
 def claims(value):
     try:
-        return jwt.decode(value, settings().jwt_secret, algorithms=["HS256"], audience="club-v2",
-                          options={"require": ["sub", "ver", "iat", "exp"]})
+        return jwt.decode(
+            value,
+            settings().jwt_secret,
+            algorithms=["HS256"],
+            audience="club-v2",
+            options={"require": ["sub", "ver", "iat", "exp"]},
+        )
     except jwt.InvalidTokenError:
         fail(401, "SESSION_EXPIRED", "登录已失效，请重新登录")
 
@@ -54,6 +68,15 @@ async def current_user(request: Request, credentials: HTTPAuthorizationCredentia
         if not user or not user.active or user.token_version != data["ver"]:
             fail(401, "SESSION_EXPIRED", "登录已失效，请重新登录")
         return user
+
+
+async def enrollment_identity(credentials: HTTPAuthorizationCredentials | None = Depends(bearer)):
+    # Enrollment validates the account under its transaction lock. Avoid a
+    # redundant checkout/read/rollback immediately before that authoritative read.
+    if not credentials:
+        fail(401, "LOGIN_REQUIRED", "请先登录")
+    data = claims(credentials.credentials)
+    return SimpleNamespace(id=int(data["sub"]), token_version=data["ver"])
 
 
 async def student(user=Depends(current_user)):
@@ -85,8 +108,9 @@ return n
 async def rate_limit(request, scope, identity, limit, seconds):
     key = hashlib.sha256(str(identity).encode()).hexdigest()
     try:
-        n = await request.app.state.redis.eval(LIMIT_SCRIPT, 1,
-            f"{settings().redis_prefix}:limit:{scope}:{key}", seconds)
+        n = await request.app.state.redis.eval(
+            LIMIT_SCRIPT, 1, f"{settings().redis_prefix}:limit:{scope}:{key}", seconds
+        )
     except RedisError:
         fail(503, "TEMPORARILY_UNAVAILABLE", "服务暂时繁忙，请稍后确认结果")
     if n > limit:
@@ -95,11 +119,24 @@ async def rate_limit(request, scope, identity, limit, seconds):
 
 async def issue_ticket(request, user):
     ticket = secrets.token_urlsafe(32)
-    await request.app.state.redis.set(f"{settings().redis_prefix}:ticket:{ticket}",
-                                      token(user), ex=30)
+    await request.app.state.redis.set(f"{settings().redis_prefix}:ticket:{ticket}", token(user), ex=30)
     return ticket
 
 
 def public_user(u):
-    return {k: getattr(u, k) for k in ("id", "username", "name", "role", "major", "class_name",
-                                      "active", "must_change_password", "avatar", "phone", "email")}
+    return {
+        k: getattr(u, k)
+        for k in (
+            "id",
+            "username",
+            "name",
+            "role",
+            "major",
+            "class_name",
+            "active",
+            "must_change_password",
+            "avatar",
+            "phone",
+            "email",
+        )
+    }

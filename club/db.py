@@ -1,13 +1,22 @@
 from sqlalchemy import event
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 from club.config import settings
+from club.metrics import before_cursor, after_cursor
 
 
 def make_engine():
     s = settings()
-    engine = create_async_engine(s.database_url, pool_size=s.pool_size, max_overflow=s.pool_overflow,
-                                 pool_timeout=2, pool_recycle=300, pool_pre_ping=True,
-                                 isolation_level="READ COMMITTED", connect_args={"connect_timeout": 5})
+    engine = create_async_engine(
+        s.database_url,
+        pool_size=s.pool_size,
+        max_overflow=s.pool_overflow,
+        pool_timeout=2,
+        pool_recycle=300,
+        pool_pre_ping=True,
+        hide_parameters=True,
+        isolation_level="READ COMMITTED",
+        connect_args={"connect_timeout": 5},
+    )
 
     @event.listens_for(engine.sync_engine, "connect")
     def limits(connection, _):
@@ -16,6 +25,8 @@ def make_engine():
         cursor.execute("SET SESSION time_zone='+00:00'")
         cursor.close()
 
+    event.listen(engine.sync_engine, "before_cursor_execute", before_cursor)
+    event.listen(engine.sync_engine, "after_cursor_execute", after_cursor)
     return engine
 
 

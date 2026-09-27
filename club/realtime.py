@@ -1,6 +1,7 @@
 import asyncio
 import json
 import logging
+import os
 from collections import deque
 
 from fastapi import WebSocket
@@ -17,9 +18,22 @@ logger = logging.getLogger(__name__)
 
 class Hub:
     def __init__(self):
-        self.connections = {}  # websocket -> (user id, bounded queue)
+        self.connections = {}  # websocket -> (user id, version, bounded queue)
+        self.by_user = {}
         self.seen = set()
         self.recent = deque()
+
+    def add(self, ws, uid, ver, queue):
+        self.connections[ws] = (uid, ver, queue)
+        self.by_user.setdefault(uid, set()).add(ws)
+
+    def remove(self, ws):
+        item = self.connections.pop(ws, None)
+        if item:
+            uid = item[0]
+            self.by_user[uid].discard(ws)
+            if not self.by_user[uid]:
+                del self.by_user[uid]
 
     def dispatch(self, message):
         eid = message.get("event_id")
@@ -30,7 +44,10 @@ class Hub:
             self.recent.append(eid)
             if len(self.recent) > 10000:
                 self.seen.remove(self.recent.popleft())
-        for ws, (uid, ver, queue) in list(self.connections.items()):
+        user_id = message.get("user_id")
+        targets = list(self.by_user.get(user_id, ())) if user_id is not None else list(self.connections)
+        for ws in targets:
+            uid, ver, queue = self.connections[ws]
             if message.get("event") == "session_revoked" and message.get("version", ver + 1) <= ver:
                 continue
             if message.get("user_id") not in (None, uid):
@@ -38,7 +55,7 @@ class Hub:
             try:
                 queue.put_nowait(message)
             except asyncio.QueueFull:
-                self.connections.pop(ws, None)
+                self.remove(ws)
                 asyncio.create_task(ws.close(code=1013, reason="resync required"))
 
     async def subscriber(self, redis):
@@ -76,7 +93,7 @@ class Hub:
             return
         await ws.accept()
         queue = asyncio.Queue(maxsize=16)
-        self.connections[ws] = (uid, data["ver"], queue)
+        self.add(ws, uid, data["ver"], queue)
 
         async def send():
             while True:
@@ -88,7 +105,9 @@ class Hub:
 
         sender = asyncio.create_task(send())
         try:
-            await ws.send_json({"event": "resync"})
+            await ws.send_json(
+                {"event": "resync", **({"worker_id": os.getpid()} if settings().club_env == "test" else {})}
+            )
             while True:
                 payload = await asyncio.wait_for(ws.receive_text(), timeout=45)
                 if len(payload) > 256:
@@ -106,7 +125,7 @@ class Hub:
         except Exception:
             pass
         finally:
-            self.connections.pop(ws, None)
+            self.remove(ws)
             sender.cancel()
             await asyncio.gather(sender, return_exceptions=True)
             try:

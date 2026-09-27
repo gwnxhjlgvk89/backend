@@ -21,8 +21,9 @@ def upload_path(job_id):
 
 
 def upload_cipher():
-    return Fernet(base64.urlsafe_b64encode(hashlib.sha256(
-        (settings().jwt_secret + ":import-upload").encode()).digest()))
+    return Fernet(
+        base64.urlsafe_b64encode(hashlib.sha256((settings().jwt_secret + ":import-upload").encode()).digest())
+    )
 
 
 def persist_upload(job_id, content):
@@ -84,7 +85,13 @@ async def run_one(factory):
         a = await db.get(Activity, 1, with_for_update={"read": True})
         if a and a.state == "published" and a.starts_at <= utcnow() < a.ends_at:
             return
-        job = await db.scalar(select(Job).where(Job.state == "queued").order_by(Job.created_at).limit(1).with_for_update(skip_locked=True))
+        job = await db.scalar(
+            select(Job)
+            .where(Job.state == "queued")
+            .order_by(Job.created_at)
+            .limit(1)
+            .with_for_update(skip_locked=True)
+        )
         if not job:
             return
         job_id, kind, payload = job.id, job.kind, job.payload
@@ -92,6 +99,7 @@ async def run_one(factory):
     try:
         if kind == "import_preview":
             from club.security import hash_password
+
             path = upload_path(job_id)
             content = await asyncio.to_thread(path.read_bytes)
             rows = await asyncio.to_thread(parse_students, upload_cipher().decrypt(content))
@@ -99,7 +107,11 @@ async def run_one(factory):
                 row["password_hash"] = await hash_password(row.pop("password"))
             async with factory() as db, db.begin():
                 await mutable_activity(db)
-                existing = set(await db.scalars(select(User.username).where(User.username.in_([r["username"] for r in rows]))))
+                existing = set(
+                    await db.scalars(
+                        select(User.username).where(User.username.in_([r["username"] for r in rows]))
+                    )
+                )
                 if existing:
                     fail(409, "DUPLICATE_STUDENTS", "文件包含已有账号，请移除后重新导入")
                 clubs = {c.id: c for c in await db.scalars(select(Club))}
@@ -108,32 +120,62 @@ async def run_one(factory):
                     cid = row["reserved_club_id"]
                     if cid:
                         c = clubs.get(cid)
-                        if not c or not c.active or (c.allowed_majors and row["major"] not in c.allowed_majors):
+                        if (
+                            not c
+                            or not c.active
+                            or (c.allowed_majors and row["major"] not in c.allowed_majors)
+                        ):
                             fail(409, "INVALID_RESERVATION", "预报名社团不存在、未开放或不符合专业要求")
                         reservations[cid] = reservations.get(cid, 0) + 1
                         if reservations[cid] > c.remaining:
                             fail(409, "RESERVATION_FULL", "预报名人数超过剩余名额")
                 j = await db.get(Job, job_id)
                 j.state, j.payload = "preview", {"rows": rows}
-                j.result = {"rows": len(rows), "preview": [{k: r[k] for k in ("username", "name", "major", "class_name")} for r in rows[:20]]}
+                j.result = {
+                    "rows": len(rows),
+                    "preview": [
+                        {k: r[k] for k in ("username", "name", "major", "class_name")} for r in rows[:20]
+                    ],
+                }
             path.unlink(missing_ok=True)
         elif kind == "import_students":
             from club.admin import save_student
+
             async with factory() as db, db.begin():
                 await mutable_activity(db)
                 for row in payload["rows"]:
                     body = StudentInput.model_validate({k: v for k, v in row.items() if k != "password_hash"})
                     await save_student(db, body, row["password_hash"])
-                db.add(Audit(actor_id=job.actor_id, action="import.apply", target=job_id, summary={"rows": len(payload["rows"])}))
+                db.add(
+                    Audit(
+                        actor_id=job.actor_id,
+                        action="import.apply",
+                        target=job_id,
+                        summary={"rows": len(payload["rows"])},
+                    )
+                )
                 result = {"rows": len(payload["rows"])}
                 j = await db.get(Job, job_id)
                 j.state, j.result, j.payload = "done", result, {}
         elif kind == "export_students":
             async with factory() as db, db.begin():
                 await mutable_activity(db)
-                rows = (await db.execute(select(User.username, User.name, User.major, User.class_name, Club.name, Enrollment.source)
-                    .outerjoin(Enrollment, Enrollment.student_id == User.id).outerjoin(Club, Club.id == Enrollment.club_id)
-                    .where(User.role == "student").order_by(User.id))).all()
+                rows = (
+                    await db.execute(
+                        select(
+                            User.username,
+                            User.name,
+                            User.major,
+                            User.class_name,
+                            Club.name,
+                            Enrollment.source,
+                        )
+                        .outerjoin(Enrollment, Enrollment.student_id == User.id)
+                        .outerjoin(Club, Club.id == Enrollment.club_id)
+                        .where(User.role == "student")
+                        .order_by(User.id)
+                    )
+                ).all()
             path = settings().storage_dir / "private" / f"{job_id}.xlsx"
             await asyncio.to_thread(write_export, path, rows)
             async with factory() as db, db.begin():
@@ -143,8 +185,13 @@ async def run_one(factory):
             raise ValueError("unknown job kind")
     except Exception as exc:
         from club.errors import DomainError
+
         upload_path(job_id).unlink(missing_ok=True)
         async with factory() as db, db.begin():
             j = await db.get(Job, job_id)
-            message = exc.message if isinstance(exc, DomainError) else "任务失败，数据未部分导入，请检查文件或活动状态"
+            message = (
+                exc.message
+                if isinstance(exc, DomainError)
+                else "任务失败，数据未部分导入，请检查文件或活动状态"
+            )
             j.state, j.result, j.payload = "failed", {"message": message, "type": type(exc).__name__}, {}

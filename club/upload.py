@@ -13,6 +13,7 @@ from club.models import User
 from club.security import rate_limit, student
 
 router = APIRouter()
+upload_slots = asyncio.Semaphore(4)
 
 
 def normalize(content):
@@ -38,9 +39,14 @@ def save_image(content, name):
         return f"{s.public_url}/api/v1/media/{name}"
     import boto3
     from botocore.config import Config
-    client = boto3.client("s3", endpoint_url=s.r2_endpoint, aws_access_key_id=s.r2_access_key,
-                          aws_secret_access_key=s.r2_secret_key,
-                          config=Config(connect_timeout=3, read_timeout=5, retries={"max_attempts": 2}))
+
+    client = boto3.client(
+        "s3",
+        endpoint_url=s.r2_endpoint,
+        aws_access_key_id=s.r2_access_key,
+        aws_secret_access_key=s.r2_secret_key,
+        config=Config(connect_timeout=3, read_timeout=5, retries={"max_attempts": 2}),
+    )
     client.put_object(Bucket=s.r2_bucket, Key=f"avatars/{name}", Body=content, ContentType="image/jpeg")
     return f"{s.r2_public_url}/avatars/{name}"
 
@@ -51,8 +57,9 @@ async def upload(request: Request, file: UploadFile = File(), user=Depends(stude
     raw = await file.read(2 * 1024 * 1024 + 1)
     if len(raw) > 2 * 1024 * 1024:
         fail(413, "FILE_TOO_LARGE", "头像不能超过2MB")
-    content = await asyncio.to_thread(normalize, raw)
-    url = await asyncio.to_thread(save_image, content, uuid.uuid4().hex + ".jpg")
+    async with upload_slots:
+        content = await asyncio.to_thread(normalize, raw)
+        url = await asyncio.to_thread(save_image, content, uuid.uuid4().hex + ".jpg")
     async with request.app.state.sessions() as db, db.begin():
         await db.execute(update(User).where(User.id == user.id).values(avatar=url))
     return {"data": {"avatar": url}}

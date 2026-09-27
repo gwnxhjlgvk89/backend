@@ -7,7 +7,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
-    model_config = SettingsConfigDict(env_file=".env", extra="ignore")
+    model_config = SettingsConfigDict(env_file=".env", extra="ignore", hide_input_in_errors=True)
     club_env: str = "development"
     database_url: str
     redis_url: str
@@ -40,11 +40,15 @@ class Settings(BaseSettings):
             if self.storage_backend != "local":
                 raise ValueError("Development/test must use local file storage")
         else:
-            if "local-development" in self.jwt_secret or not self.public_url.startswith("https://"):
+            if any(
+                v in self.jwt_secret for v in ("local-development", "REPLACE", "synthetic")
+            ) or not self.public_url.startswith("https://"):
                 raise ValueError("Production requires an independent secret and HTTPS")
         if self.storage_backend not in {"local", "r2"}:
             raise ValueError("Unsupported storage backend")
-        if self.storage_backend == "r2" and not all((self.r2_endpoint, self.r2_access_key, self.r2_secret_key, self.r2_bucket, self.r2_public_url)):
+        if self.storage_backend == "r2" and not all(
+            (self.r2_endpoint, self.r2_access_key, self.r2_secret_key, self.r2_bucket, self.r2_public_url)
+        ):
             raise ValueError("R2 configuration incomplete")
         return self
 
