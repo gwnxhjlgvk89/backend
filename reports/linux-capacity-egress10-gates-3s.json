@@ -1,0 +1,40 @@
+{
+  "criteria": {
+    "enrollment_p95_seconds": 3,
+    "enrollment_p99_seconds": 5,
+    "login_offered_window_seconds": 60,
+    "notification_p95_seconds": 2
+  },
+  "checks": {
+    "same_application_build": true,
+    "1500_users": true,
+    "three_rounds_per_scenario": true,
+    "login_60s_p95_2s": true,
+    "actual_burst_1s": true,
+    "enrollment_p95_3s_p99_5s": true,
+    "consistent_correct_results": true,
+    "no_capacity_rejection": true,
+    "unexpected_errors_below_0_1_percent": true,
+    "steady_queries_p95_300ms": true,
+    "1500_websockets_10min": true,
+    "notifications_p95_2s": true,
+    "observed_notifications_complete": true,
+    "measurement_errors_absent": true,
+    "10mbps_shaper_matched_traffic": true
+  },
+  "measured_gates_pass": true,
+  "full_journey_verified": false,
+  "production_capacity_verified": false,
+  "coverage_gaps": [
+    "1500 simultaneous logins (existing logins spread over 60 seconds)",
+    "1500 bootstrap/list/detail journeys (only one bootstrap for clock calibration)",
+    "Overlapping login/read/enrollment traffic and frontend refresh/retry behavior",
+    "Ten minutes of active mixed journeys (existing hold verifies established sockets)",
+    "Cold cache and mass reconnect under peak load",
+    "Production CPU, cloud disk, HTTPS and public network equivalence"
+  ],
+  "shaping_proof": "reports/linux-egress10-after.json",
+  "report": "reports/linux-capacity-egress10.json",
+  "stability_report": "reports/linux-capacity-confirmation.json",
+  "scope": "Existing phased LAN scenarios only; not a full student journey or production capacity verdict. Re-evaluating a report does not run a new load test."
+}

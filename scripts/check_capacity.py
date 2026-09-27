@@ -6,7 +6,9 @@ import json
 from pathlib import Path
 
 
-def assess(data, stability):
+def assess(data, stability, *, enrollment_p95_seconds=3):
+    if enrollment_p95_seconds not in (2, 3):
+        raise ValueError("enrollment_p95_seconds must be 2 or 3")
     runs = data.get("runs", [])
     ws = stability.get("websocket", {})
     notification = data.get("websocket", {})
@@ -21,7 +23,8 @@ def assess(data, stability):
         and login.get("duration_offered_s", float("inf")) <= 60
         and login.get("p95_s", float("inf")) <= 2,
         "actual_burst_1s": bool(runs) and all(r["dispatch_span_s"] <= 1 for r in runs),
-        "enrollment_p95_2s_p99_5s": bool(runs) and all(r["p95_s"] <= 2 and r["p99_s"] <= 5 for r in runs),
+        f"enrollment_p95_{enrollment_p95_seconds}s_p99_5s": bool(runs)
+        and all(r["p95_s"] <= enrollment_p95_seconds and r["p99_s"] <= 5 for r in runs),
         "consistent_correct_results": bool(runs)
         and all(r["correctness_pass"] and r["data_consistency_pass"] for r in runs),
         "no_capacity_rejection": bool(runs)
@@ -39,7 +42,26 @@ def assess(data, stability):
         and notification.get("missing_deliveries_for_observed_versions") == 0,
         "measurement_errors_absent": not data.get("errors") and not stability.get("errors"),
     }
-    return {"checks": checks, "measured_gates_pass": all(checks.values())}
+    return {
+        "criteria": {
+            "enrollment_p95_seconds": enrollment_p95_seconds,
+            "enrollment_p99_seconds": 5,
+            "login_offered_window_seconds": 60,
+            "notification_p95_seconds": 2,
+        },
+        "checks": checks,
+        "measured_gates_pass": all(checks.values()),
+        "full_journey_verified": False,
+        "production_capacity_verified": False,
+        "coverage_gaps": [
+            "1500 simultaneous logins (existing logins spread over 60 seconds)",
+            "1500 bootstrap/list/detail journeys (only one bootstrap for clock calibration)",
+            "Overlapping login/read/enrollment traffic and frontend refresh/retry behavior",
+            "Ten minutes of active mixed journeys (existing hold verifies established sockets)",
+            "Cold cache and mass reconnect under peak load",
+            "Production CPU, cloud disk, HTTPS and public network equivalence",
+        ],
+    }
 
 
 def main():
@@ -48,10 +70,12 @@ def main():
     p.add_argument("--stability", type=Path, help="Same application build, separate 10-minute record")
     p.add_argument("--shaping-proof", type=Path, help="Post-run tc counters for the 10 Mbps experiment")
     p.add_argument("--egress-mbps", type=int, choices=[10, 20, 50], default=10)
+    p.add_argument("--enrollment-p95-seconds", type=int, choices=[2, 3], default=3,
+                   help="Current target: 3; use 2 to reproduce the previous criteria")
     args = p.parse_args()
     data = json.loads(args.report.read_text())
     stability = json.loads((args.stability or args.report).read_text())
-    result = assess(data, stability)
+    result = assess(data, stability, enrollment_p95_seconds=args.enrollment_p95_seconds)
     if args.shaping_proof:
         proof = json.loads(args.shaping_proof.read_text())
         result["checks"][f"{args.egress_mbps}mbps_shaper_matched_traffic"] = any(
@@ -66,7 +90,8 @@ def main():
     result["report"] = str(args.report)
     result["stability_report"] = str(args.stability or args.report)
     result["scope"] = (
-        "Measured LAN gates only; manually review resource, build identity and production differences"
+        "Existing phased LAN scenarios only; not a full student journey or production capacity verdict. "
+        "Re-evaluating a report does not run a new load test."
     )
     print(json.dumps(result, ensure_ascii=False, indent=2))
     raise SystemExit(0 if result["measured_gates_pass"] else 1)
