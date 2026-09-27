@@ -16,6 +16,14 @@ from club.security import claims
 logger = logging.getLogger(__name__)
 
 
+class PreparedMessage(dict):
+    """Share one encoded payload across all recipients in this process."""
+
+    def __init__(self, message):
+        super().__init__(message)
+        self.encoded = json.dumps(message, ensure_ascii=False, separators=(",", ":"))
+
+
 class Hub:
     def __init__(self):
         self.connections = {}  # websocket -> (user id, version, bounded queue)
@@ -45,6 +53,7 @@ class Hub:
             if len(self.recent) > 10000:
                 self.seen.remove(self.recent.popleft())
         user_id = message.get("user_id")
+        message = PreparedMessage(message)
         targets = list(self.by_user.get(user_id, ())) if user_id is not None else list(self.connections)
         for ws in targets:
             uid, ver, queue = self.connections[ws]
@@ -101,7 +110,8 @@ class Hub:
                 if message.get("event") == "session_revoked":
                     await ws.close(code=1008)
                     return
-                await asyncio.wait_for(ws.send_json(message), timeout=3)
+                encoded = message.encoded if isinstance(message, PreparedMessage) else json.dumps(message)
+                await asyncio.wait_for(ws.send_text(encoded), timeout=3)
 
         sender = asyncio.create_task(send())
         try:
@@ -122,8 +132,8 @@ class Hub:
                             await ws.close(code=1008)
                             break
                     queue.put_nowait({"event": "pong"})
-        except Exception:
-            pass
+        except Exception as exc:
+            logger.info(json.dumps({"event": "ws_receive_closed", "cause": type(exc).__name__}))
         finally:
             self.remove(ws)
             sender.cancel()

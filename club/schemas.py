@@ -1,5 +1,5 @@
 from datetime import datetime, timezone
-from typing import Literal
+from typing import Generic, Literal, TypeVar
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
@@ -112,7 +112,6 @@ class ActivityState(Input):
 
 
 # Explicit public output contracts. ORM columns never define the API surface.
-from typing import Generic, TypeVar
 
 T = TypeVar("T")
 

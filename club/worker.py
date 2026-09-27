@@ -10,7 +10,7 @@ from sqlalchemy import select
 from club.config import settings
 from club.db import make_engine, sessions
 from club.jobs import run_one
-from club.models import Job, Outbox
+from club.models import Job, Outbox, utcnow
 from club.services import iso
 
 logger = logging.getLogger("club.worker")
@@ -42,7 +42,16 @@ async def deliver(factory, redis):
         # client's queue before its sender gets a chance to run.
         pipe.publish(
             f"{settings().redis_prefix}:events",
-            json.dumps({"event": "quotas", "items": quotas, "event_id": max(p["event_id"] for p in quotas)}),
+            json.dumps(
+                {
+                    "event": "quotas",
+                    "items": [{k: p[k] for k in ("club_id", "remaining", "version")} for p in quotas],
+                    "event_id": max(p["event_id"] for p in quotas),
+                    "enqueued_at": min(p["enqueued_at"] for p in quotas),
+                    "published_at": iso(utcnow()),
+                },
+                separators=(",", ":"),
+            ),
         )
     for payload in coalesced.values():
         if payload["event"] == "quota":

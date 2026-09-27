@@ -195,6 +195,20 @@ async def test_hub_deduplicates_events_and_preserves_new_session():
     assert queue.qsize() == 2
 
 
+async def test_broadcast_encodes_once_for_all_recipients():
+    import json
+
+    hub = Hub()
+    queues = [asyncio.Queue(16) for _ in range(1500)]
+    for i, queue in enumerate(queues):
+        hub.add(AsyncMock(), i, 1, queue)
+    event = {"event": "quotas", "items": [{"club_id": 1, "version": 4, "remaining": 9}]}
+    hub.dispatch(event)
+    messages = [queue.get_nowait() for queue in queues]
+    assert all(message is messages[0] for message in messages)
+    assert json.loads(messages[0].encoded) == event
+
+
 async def test_outbox_batches_quota_and_retries_without_losing_events(env):
     import json
     from unittest.mock import MagicMock
