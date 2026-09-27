@@ -1,0 +1,24 @@
+{
+  "checks": {
+    "same_application_build": true,
+    "1500_users": true,
+    "three_rounds_per_scenario": true,
+    "login_60s_p95_2s": true,
+    "actual_burst_1s": true,
+    "enrollment_p95_2s_p99_5s": true,
+    "consistent_correct_results": true,
+    "no_capacity_rejection": true,
+    "unexpected_errors_below_0_1_percent": true,
+    "steady_queries_p95_300ms": true,
+    "1500_websockets_10min": true,
+    "notifications_p95_2s": true,
+    "observed_notifications_complete": true,
+    "measurement_errors_absent": true,
+    "10mbps_shaper_matched_traffic": false
+  },
+  "measured_gates_pass": false,
+  "shaping_proof": "reports/linux-egress-10mbps-after.json",
+  "report": "reports/linux-capacity-10mbps.json",
+  "stability_report": "reports/linux-capacity-confirmation.json",
+  "scope": "Measured LAN gates only; manually review resource, build identity and production differences"
+}

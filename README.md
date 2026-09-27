@@ -16,12 +16,14 @@ cp .env.example .env
 .venv/bin/python -m club.worker
 ```
 
+上述配置复制用于首次初始化；已有 `.env` 时先核对环境，不要直接覆盖。
+
 本地依赖需要 MySQL 8.4、Redis（macOS Homebrew 安装）。数据库端口 13306、Redis 16379，数据保存在 `.local`。`seed` 仅允许非生产空库，生成 1500 个合成学生和 42 个社团。
 测试账号 `student0001`～`student1500`、`admin`，合成密码 `ClubDemo2026!`。仅限本地测试，不能用于生产。
 
 ```sh
 .venv/bin/python -m pytest -q
-.venv/bin/ruff check club tests scripts --ignore E402
+.venv/bin/ruff check club tests scripts deploy
 .venv/bin/python -m club.cli check
 .venv/bin/python scripts/local.py stop
 ```
@@ -35,3 +37,7 @@ cp .env.example .env
 旧业务代码、自动写库测试脚本、真实名单和日志已从当前源码移除。Git 历史未改写，历史中的密钥不能因此视为已撤销。新版对旧接口统一返回 HTTP 426，提示更新；不得部署旧 `main.py`。
 
 迁移采用独立 `v2_*` 表，不自动删除旧数据。正式环境的迁移、重置、发布均需维护窗口、已验证备份和人工确认。详见 `docs/IMPLEMENTATION.md`。
+
+交付状态见 [docs/DELIVERY.md](docs/DELIVERY.md)，隔离Linux环境见 [deploy/README.md](deploy/README.md)。28项后端回归已通过；容量结论以最终报告为准，真机验收由用户要求暂缓。
+
+管理员说明：[docs/ADMIN.md](docs/ADMIN.md)；接口：[docs/API.md](docs/API.md)；迁移与回滚：[docs/OPERATIONS.md](docs/OPERATIONS.md)。

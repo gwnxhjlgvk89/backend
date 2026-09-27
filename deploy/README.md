@@ -32,7 +32,7 @@ Ubuntu测试机安装Podman / podman-compose / uidmap / slirp4netns / aardvark-d
 
 通知延迟的精确核对使用合成测试库的 `(club_id,version)` 对应出站事件时间与客户端收到时间匹配；批次最早入队时间作为保守上界单列，不能混同为每条名额变更的实际延迟。该核对CLI只读取测试库，不增加生产消息里的学生资料或冗余时间字段。
 
-`python scripts/check_capacity.py reports/linux-capacity-confirmation.json --stability reports/linux-capacity-final.json` 可只读汇总门槛，失败时退出码1。使用独立稳定性报告前须确认同一应用源码指纹；资源、公网和真机边界仍须人工核对。
+`python scripts/check_capacity.py reports/linux-capacity-confirmation.json` 可只读汇总门槛，失败时退出码1。使用独立稳定性报告前须确认同一应用源码指纹；资源、公网和真机边界仍须人工核对。
 
 ## 独立出口带宽验证
 
