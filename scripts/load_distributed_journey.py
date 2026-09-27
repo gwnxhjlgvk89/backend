@@ -162,6 +162,8 @@ async def main(args):
                 ]
                 if args.ca_cert:
                     command += ["--ca-cert", args.ca_cert]
+                if args.first_password_change:
+                    command += ["--first-password-change"]
                 children.append(await asyncio.create_subprocess_exec(*command, stdout=log, stderr=log))
                 offset += count
             async with asyncio.timeout(180):
@@ -288,7 +290,10 @@ if __name__ == "__main__":
     parser.add_argument("--rounds", type=int, default=1)
     parser.add_argument("--hold-seconds", type=int, default=30)
     parser.add_argument("--report", required=True)
+    parser.add_argument("--first-password-change", action="store_true")
     args = parser.parse_args()
     if args.rounds < 1 or args.hold_seconds < 10:
         parser.error("rounds>=1 and hold-seconds>=10 required")
+    if args.first_password_change and (args.mode != "login" or args.rounds != 1 or args.users > 1500):
+        parser.error("first-password-change requires one login round and at most 1500 students")
     asyncio.run(main(args))

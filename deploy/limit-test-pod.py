@@ -5,7 +5,7 @@ import json
 import subprocess
 
 parser = argparse.ArgumentParser()
-parser.add_argument("--cpus", type=int, choices=[4, 6, 8, 12, 16], default=4)
+parser.add_argument("--cpus", type=int, choices=[4, 6, 8, 12, 16, 24], default=4)
 args = parser.parse_args()
 
 names = ["club-capacity-test_" + s + "_1" for s in ("mysql", "redis", "api", "worker", "nginx")]

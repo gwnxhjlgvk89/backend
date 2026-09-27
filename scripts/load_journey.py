@@ -489,6 +489,21 @@ async def run(args):
                     if status != 200:
                         return False
                     tokens[i] = data["token"]
+                    if args.first_password_change:
+                        if not data["user"]["must_change_password"]:
+                            outcomes["first_password_change_not_required"] += 1
+                            return False
+                        changed_status, changed = await request(
+                            i,
+                            "first_password_change",
+                            "POST",
+                            "/auth/password",
+                            {"old_password": "SyntheticLoad2026!", "new_password": "SyntheticChanged2026!"},
+                        )
+                        if changed_status != 200 or changed["user"]["must_change_password"]:
+                            outcomes["first_password_change_failed"] += 1
+                            return False
+                        tokens[i] = changed["token"]
                     return True
 
                 async def enter(i):
@@ -793,6 +808,7 @@ if __name__ == "__main__":
     parser.add_argument("--control-dir", help="Internal coordinated driver barrier; never skips TEST guards")
     parser.add_argument("--user-offset", type=int, default=0)
     parser.add_argument("--seed", type=int, default=1214)
+    parser.add_argument("--first-password-change", action="store_true")
     parser.add_argument("--report", required=True)
     arguments = parser.parse_args()
     if (
@@ -803,6 +819,14 @@ if __name__ == "__main__":
         or arguments.hold_seconds < 10
         or not 0 < arguments.burst_seconds <= 1
         or arguments.open_after < 2
+        or (
+            arguments.first_password_change
+            and (
+                arguments.mode != "login"
+                or arguments.rounds != 1
+                or arguments.users + arguments.user_offset > 1500
+            )
+        )
     ):
         parser.error("positive rounds, hold>=10, burst in (0,1], open-after>=2 required")
     asyncio.run(run(arguments))

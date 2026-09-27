@@ -66,6 +66,8 @@ async def main(args):
             command += ["--processes", str(args.processes)]
         if args.ca_cert:
             command += ["--ca-cert", args.ca_cert]
+        if args.first_password_change:
+            command += ["--first-password-change"]
         child = await asyncio.create_subprocess_exec(*command)
         code = await child.wait()
         if code:
@@ -89,7 +91,7 @@ if __name__ == "__main__":
     p.add_argument("--report", required=True)
     p.add_argument("--ssh", default="gg1214@192.168.100.130")
     p.add_argument("--control", default="/private/tmp/club-test-ssh")
-    p.add_argument("--cpus", type=int, choices=[4, 6, 8, 12, 16], default=4)
+    p.add_argument("--cpus", type=int, choices=[4, 6, 8, 12, 16, 24], default=4)
     p.add_argument("--mbps", type=int, choices=[10, 20, 50], default=10)
     p.add_argument("--processes", type=int, choices=[1, 2, 3, 4], default=1)
     p.add_argument("--users", type=int, choices=[30, 1500, 3000], default=1500)
@@ -101,4 +103,5 @@ if __name__ == "__main__":
     p.add_argument("--cache", choices=["cold", "warm"], default="cold")
     p.add_argument("--rounds", type=int, default=1)
     p.add_argument("--hold-seconds", type=int, default=30)
+    p.add_argument("--first-password-change", action="store_true")
     asyncio.run(main(p.parse_args()))
