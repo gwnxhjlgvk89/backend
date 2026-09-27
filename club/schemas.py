@@ -7,6 +7,13 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator, model_valida
 class Input(BaseModel):
     model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
 
+    @field_validator("password", "new_password", "old_password", check_fields=False)
+    @classmethod
+    def bounded_password(cls, v):
+        if v is not None and len(v.encode()) > 72:
+            raise ValueError("密码编码后不能超过72字节")
+        return v
+
 
 class Login(Input):
     username: str = Field(min_length=1, max_length=64)
@@ -68,6 +75,11 @@ class AdminInput(Input):
     name: str = Field(min_length=1, max_length=64)
     password: str = Field(min_length=10, max_length=72)
     role: Literal["admin", "super_admin"] = "admin"
+
+
+class AdminRoleInput(Input):
+    role: Literal["admin", "super_admin"]
+    active: bool = True
 
 
 class ActivityInput(Input):

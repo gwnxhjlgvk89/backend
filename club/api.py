@@ -1,3 +1,4 @@
+from club.logging import install
 from club.admin import router as admin_router
 from club.upload import router as upload_router
 import asyncio
@@ -25,6 +26,7 @@ from club.schemas import Contact, EnrollmentInput, Login, PasswordChange
 from club.security import current_user, hash_password, issue_ticket, public_user, rate_limit, student, token, verify_password
 from club.services import activity_data, club_data, enrollment_data, event, iso, mutate_enrollment
 
+install()
 logger = logging.getLogger("club")
 REQUESTS = Counter("club_http_requests", "HTTP responses", ["route", "method", "status"])
 LATENCY = Histogram("club_http_seconds", "HTTP latency", ["route", "method"],
@@ -39,11 +41,17 @@ async def lifespan(app):
     app.state.redis = Redis.from_url(s.redis_url, decode_responses=True, socket_timeout=2,
                                      socket_connect_timeout=2, max_connections=100)
     app.state.hub = Hub()
-    task = asyncio.create_task(app.state.hub.subscriber(app.state.redis))
+    # Pub/Sub is deliberately idle between events; command socket timeouts must
+    # not force a subscription reconnect every two seconds.
+    subscriber_redis = Redis.from_url(s.redis_url, decode_responses=True, socket_timeout=None,
+                                     socket_connect_timeout=2, max_connections=2,
+                                     health_check_interval=20)
+    task = asyncio.create_task(app.state.hub.subscriber(subscriber_redis))
     yield
     task.cancel()
     await asyncio.gather(task, return_exceptions=True)
     await app.state.redis.aclose()
+    await subscriber_redis.aclose()
     await app.state.engine.dispose()
 
 
@@ -128,11 +136,12 @@ async def login(body: Login, request: Request):
         u = await db.scalar(select(User).where(User.username == body.username))
         if not u or not u.active or not await verify_password(body.password, u.password_hash):
             fail(401, "INVALID_CREDENTIALS", "账号或密码错误")
+        verified_hash = u.password_hash
         # Serialize concurrent logins; returned token always has the committed version.
         await db.rollback()
         async with db.begin():
             u = await db.scalar(select(User).where(User.username == body.username).with_for_update())
-            if not u or not u.active:
+            if not u or not u.active or u.password_hash != verified_hash:
                 fail(401, "INVALID_CREDENTIALS", "账号或密码错误")
             u.token_version += 1
             event(db, {"event": "session_revoked", "user_id": u.id, "version": u.token_version})
@@ -142,8 +151,11 @@ async def login(body: Login, request: Request):
 @app.post("/api/v1/auth/logout")
 async def logout(request: Request, user=Depends(current_user)):
     async with request.app.state.sessions() as db, db.begin():
-        await db.execute(update(User).where(User.id == user.id).values(token_version=User.token_version + 1))
-        event(db, {"event": "session_revoked", "user_id": user.id})
+        u = await db.get(User, user.id, with_for_update=True)
+        if not u or u.token_version != user.token_version:
+            fail(401, "SESSION_EXPIRED", "登录已失效")
+        u.token_version += 1
+        event(db, {"event": "session_revoked", "user_id": u.id, "version": u.token_version})
     return ok()
 
 
@@ -257,7 +269,7 @@ async def cancel(request: Request, user=Depends(student), idempotency_key: str =
     return ok(await mutate_enrollment(request.app.state.sessions, user.id, user.token_version, idempotency_key, cancel=True))
 
 
-@app.patch("/api/v1/profile")
+@app.put("/api/v1/profile")
 async def contact(body: Contact, request: Request, user=Depends(student)):
     async with request.app.state.sessions() as db, db.begin():
         await db.execute(update(User).where(User.id == user.id).values(**body.model_dump()))
@@ -275,4 +287,6 @@ app.include_router(upload_router, prefix="/api/v1")
 
 @app.api_route("/{legacy:path}", methods=["GET", "POST", "PUT", "PATCH", "DELETE"])
 async def legacy_route(legacy: str):
+    if legacy.startswith("api/v1/"):
+        fail(404, "NOT_FOUND", "接口不存在")
     fail(426, "UPGRADE_REQUIRED", "请关闭并重新进入小程序，更新到最新版本")

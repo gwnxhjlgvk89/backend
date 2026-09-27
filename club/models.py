@@ -1,6 +1,7 @@
 from datetime import datetime, timezone
 
-from sqlalchemy import Boolean, CheckConstraint, DateTime, ForeignKey, Integer, JSON, String, Text, UniqueConstraint
+from sqlalchemy import Boolean, CheckConstraint, ForeignKey, Integer, JSON, String, Text, UniqueConstraint
+from sqlalchemy.dialects.mysql import DATETIME
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
 
@@ -50,9 +51,9 @@ class Activity(Base):
     __tablename__ = "v2_activity"
     id: Mapped[int] = mapped_column(primary_key=True, default=1)
     name: Mapped[str] = mapped_column(String(128), default="本届社团招新")
-    starts_at: Mapped[datetime | None] = mapped_column(DateTime)
-    ends_at: Mapped[datetime | None] = mapped_column(DateTime)
-    cancel_until: Mapped[datetime | None] = mapped_column(DateTime)
+    starts_at: Mapped[datetime | None] = mapped_column(DATETIME(fsp=6))
+    ends_at: Mapped[datetime | None] = mapped_column(DATETIME(fsp=6))
+    cancel_until: Mapped[datetime | None] = mapped_column(DATETIME(fsp=6))
     allow_cancel: Mapped[bool] = mapped_column(Boolean, default=False)
     state: Mapped[str] = mapped_column(String(16), default="draft")
     version: Mapped[int] = mapped_column(default=1)
@@ -63,7 +64,7 @@ class Enrollment(Base):
     student_id: Mapped[int] = mapped_column(ForeignKey("v2_users.id"), primary_key=True)
     club_id: Mapped[int] = mapped_column(ForeignKey("v2_clubs.id"), index=True)
     source: Mapped[str] = mapped_column(String(16), default="normal")
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
+    created_at: Mapped[datetime] = mapped_column(DATETIME(fsp=6), default=utcnow)
 
 
 class Favorite(Base):
@@ -80,7 +81,7 @@ class Idempotency(Base):
     key: Mapped[str] = mapped_column(String(64))
     fingerprint: Mapped[str] = mapped_column(String(128))
     response: Mapped[dict] = mapped_column(JSON)
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
+    created_at: Mapped[datetime] = mapped_column(DATETIME(fsp=6), default=utcnow)
 
 
 class Outbox(Base):
@@ -88,7 +89,7 @@ class Outbox(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     payload: Mapped[dict] = mapped_column(JSON)
     delivered: Mapped[bool] = mapped_column(Boolean, default=False, index=True)
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
+    created_at: Mapped[datetime] = mapped_column(DATETIME(fsp=6), default=utcnow)
 
 
 class Audit(Base):
@@ -98,7 +99,7 @@ class Audit(Base):
     action: Mapped[str] = mapped_column(String(64))
     target: Mapped[str] = mapped_column(String(128))
     summary: Mapped[dict] = mapped_column(JSON, default=dict)
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
+    created_at: Mapped[datetime] = mapped_column(DATETIME(fsp=6), default=utcnow)
 
 
 class Job(Base):
@@ -109,5 +110,5 @@ class Job(Base):
     state: Mapped[str] = mapped_column(String(24), default="queued", index=True)
     payload: Mapped[dict] = mapped_column(JSON, default=dict)
     result: Mapped[dict] = mapped_column(JSON, default=dict)
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
-    updated_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow, onupdate=utcnow)
+    created_at: Mapped[datetime] = mapped_column(DATETIME(fsp=6), default=utcnow)
+    updated_at: Mapped[datetime] = mapped_column(DATETIME(fsp=6), default=utcnow, onupdate=utcnow)

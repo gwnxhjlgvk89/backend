@@ -5,7 +5,7 @@ from sqlalchemy import delete, func, or_, select, update
 
 from club.errors import fail
 from club.models import Activity, Audit, Club, Enrollment, Favorite, Idempotency, Job, User, utcnow
-from club.schemas import ActivityInput, ActivityState, AdminInput, ClubInput, StudentInput
+from club.schemas import ActivityInput, ActivityState, AdminInput, AdminRoleInput, ClubInput, StudentInput
 from club.security import admin, hash_password, public_user, super_admin
 from club.services import activity_data, club_data, consistency, event, mutable_activity
 
@@ -218,26 +218,53 @@ async def create_admin(body: AdminInput, request: Request, user=Depends(super_ad
     return {"data": public_user(u)}
 
 
+@router.get("/administrators")
+async def administrators(request: Request, user=Depends(super_admin)):
+    async with request.app.state.sessions() as db:
+        return {"data": [public_user(u) for u in await db.scalars(
+            select(User).where(User.role.in_(["admin", "super_admin"])).order_by(User.id))]}
+
+
+@router.put("/administrators/{user_id}")
+async def admin_role(user_id: int, body: AdminRoleInput, request: Request, user=Depends(super_admin)):
+    async with request.app.state.sessions() as db, db.begin():
+        # Serialize role changes and prevent removal of the last active super admin.
+        rows = list(await db.scalars(select(User).where(User.role.in_(["admin", "super_admin"]))
+                                   .order_by(User.id).with_for_update()))
+        actor = next((u for u in rows if u.id == user.id), None)
+        if not actor or not actor.active or actor.role != "super_admin" or actor.token_version != user.token_version:
+            fail(401, "SESSION_EXPIRED", "登录已失效")
+        u = next((u for u in rows if u.id == user_id), None)
+        if not u:
+            fail(404, "NOT_FOUND", "管理员不存在")
+        if u.active and u.role == "super_admin" and (not body.active or body.role != "super_admin"):
+            if sum(r.active and r.role == "super_admin" for r in rows) <= 1:
+                fail(409, "LAST_SUPER_ADMIN", "必须保留一名启用的超级管理员")
+        u.role, u.active = body.role, body.active
+        u.token_version += 1
+        event(db, {"event": "session_revoked", "user_id": u.id, "version": u.token_version})
+        audit(db, user, "admin.role", u.id, body.model_dump())
+    return {"data": public_user(u)}
+
+
 @router.post("/jobs/import")
 async def import_preview(request: Request, file: UploadFile = File(), user=Depends(admin)):
+    from club.security import rate_limit
+    await rate_limit(request, "import", user.id, 3, 60)
     content = await file.read(5 * 1024 * 1024 + 1)
     if len(content) > 5 * 1024 * 1024:
         fail(413, "FILE_TOO_LARGE", "文件不能超过5MB")
-    from club.jobs import parse_students
+    from club.jobs import persist_upload
     import asyncio
-    rows = await asyncio.to_thread(parse_students, content)
-    for row in rows:
-        row["password_hash"] = await hash_password(row.pop("password"))
+    job_id = str(uuid.uuid4())
     async with request.app.state.sessions() as db, db.begin():
         await mutable_activity(db)
-        existing = set((await db.scalars(select(User.username))).all())
-        duplicates = [r["username"] for r in rows if r["username"] in existing]
-        if duplicates:
-            fail(409, "DUPLICATE_STUDENTS", "文件包含已有账号，请移除或使用编辑功能")
-        job = Job(id=str(uuid.uuid4()), actor_id=user.id, kind="import_students", state="preview",
-                  payload={"rows": rows}, result={"rows": len(rows), "preview": [{k: r[k] for k in ("username", "name", "major", "class_name")} for r in rows[:20]]})
+    await asyncio.to_thread(persist_upload, job_id, content)
+    async with request.app.state.sessions() as db, db.begin():
+        await mutable_activity(db)
+        job = Job(id=job_id, actor_id=user.id, kind="import_preview", state="queued")
         db.add(job)
-    return {"data": {"id": job.id, "state": job.state, **job.result}}
+    return {"data": {"id": job.id, "state": job.state}}
 
 
 @router.post("/jobs/{job_id}/confirm")
@@ -250,6 +277,7 @@ async def confirm_job(job_id: str, request: Request, user=Depends(admin)):
         if job.state != "preview":
             fail(409, "JOB_ALREADY_CONFIRMED", "任务已确认或结束")
         job.state = "queued"
+        job.kind = "import_students"
         audit(db, user, "import.confirm", job.id)
     return {"data": {"id": job.id, "state": job.state}}
 
@@ -271,6 +299,13 @@ async def job_status(job_id: str, request: Request, user=Depends(admin)):
         if not job or job.actor_id != user.id:
             fail(404, "NOT_FOUND", "任务不存在")
         return {"data": {"id": job.id, "state": job.state, "result": job.result}}
+
+
+@router.get("/jobs")
+async def job_list(request: Request, user=Depends(admin)):
+    async with request.app.state.sessions() as db:
+        return {"data": [{"id": j.id, "state": j.state, "result": j.result} for j in await db.scalars(
+            select(Job).where(Job.actor_id == user.id).order_by(Job.created_at.desc()).limit(30))]}
 
 
 @router.get("/jobs/{job_id}/download")

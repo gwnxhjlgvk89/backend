@@ -1,6 +1,10 @@
 import asyncio
 from io import BytesIO
 import zipfile
+import base64
+import hashlib
+
+from cryptography.fernet import Fernet
 
 from openpyxl import Workbook, load_workbook
 from sqlalchemy import select
@@ -10,6 +14,23 @@ from club.errors import fail
 from club.models import Activity, Audit, Club, Enrollment, Job, User, utcnow
 from club.schemas import StudentInput
 from club.services import mutable_activity
+
+
+def upload_path(job_id):
+    return settings().storage_dir / "private" / f"{job_id}.encrypted"
+
+
+def upload_cipher():
+    return Fernet(base64.urlsafe_b64encode(hashlib.sha256(
+        (settings().jwt_secret + ":import-upload").encode()).digest()))
+
+
+def persist_upload(job_id, content):
+    path = upload_path(job_id)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with path.open("xb") as f:
+        path.chmod(0o600)
+        f.write(upload_cipher().encrypt(content))
 
 
 def parse_students(content):
@@ -69,7 +90,34 @@ async def run_one(factory):
         job_id, kind, payload = job.id, job.kind, job.payload
         job.state = "running"
     try:
-        if kind == "import_students":
+        if kind == "import_preview":
+            from club.security import hash_password
+            path = upload_path(job_id)
+            content = await asyncio.to_thread(path.read_bytes)
+            rows = await asyncio.to_thread(parse_students, upload_cipher().decrypt(content))
+            for row in rows:
+                row["password_hash"] = await hash_password(row.pop("password"))
+            async with factory() as db, db.begin():
+                await mutable_activity(db)
+                existing = set(await db.scalars(select(User.username).where(User.username.in_([r["username"] for r in rows]))))
+                if existing:
+                    fail(409, "DUPLICATE_STUDENTS", "文件包含已有账号，请移除后重新导入")
+                clubs = {c.id: c for c in await db.scalars(select(Club))}
+                reservations = {}
+                for row in rows:
+                    cid = row["reserved_club_id"]
+                    if cid:
+                        c = clubs.get(cid)
+                        if not c or not c.active or (c.allowed_majors and row["major"] not in c.allowed_majors):
+                            fail(409, "INVALID_RESERVATION", "预报名社团不存在、未开放或不符合专业要求")
+                        reservations[cid] = reservations.get(cid, 0) + 1
+                        if reservations[cid] > c.remaining:
+                            fail(409, "RESERVATION_FULL", "预报名人数超过剩余名额")
+                j = await db.get(Job, job_id)
+                j.state, j.payload = "preview", {"rows": rows}
+                j.result = {"rows": len(rows), "preview": [{k: r[k] for k in ("username", "name", "major", "class_name")} for r in rows[:20]]}
+            path.unlink(missing_ok=True)
+        elif kind == "import_students":
             from club.admin import save_student
             async with factory() as db, db.begin():
                 await mutable_activity(db)
@@ -94,6 +142,9 @@ async def run_one(factory):
         else:
             raise ValueError("unknown job kind")
     except Exception as exc:
+        from club.errors import DomainError
+        upload_path(job_id).unlink(missing_ok=True)
         async with factory() as db, db.begin():
             j = await db.get(Job, job_id)
-            j.state, j.result, j.payload = "failed", {"message": "任务失败，数据未部分导入，请检查文件或活动状态", "type": type(exc).__name__}, {}
+            message = exc.message if isinstance(exc, DomainError) else "任务失败，数据未部分导入，请检查文件或活动状态"
+            j.state, j.result, j.payload = "failed", {"message": message, "type": type(exc).__name__}, {}

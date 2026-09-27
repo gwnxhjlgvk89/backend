@@ -1,8 +1,10 @@
 import asyncio
 import json
 import logging
+from collections import deque
 
 from fastapi import WebSocket
+from starlette.websockets import WebSocketDisconnect
 from redis.exceptions import RedisError
 
 from club.config import settings
@@ -16,8 +18,18 @@ logger = logging.getLogger(__name__)
 class Hub:
     def __init__(self):
         self.connections = {}  # websocket -> (user id, bounded queue)
+        self.seen = set()
+        self.recent = deque()
 
     def dispatch(self, message):
+        eid = message.get("event_id")
+        if eid is not None:
+            if eid in self.seen:
+                return
+            self.seen.add(eid)
+            self.recent.append(eid)
+            if len(self.recent) > 10000:
+                self.seen.remove(self.recent.popleft())
         for ws, (uid, ver, queue) in list(self.connections.items()):
             if message.get("event") == "session_revoked" and message.get("version", ver + 1) <= ver:
                 continue
@@ -83,6 +95,13 @@ class Hub:
                     break
                 claims(raw)  # enforce token expiry for long-lived connections
                 if json.loads(payload).get("event") == "ping":
+                    # Pub/Sub may miss revocations during reconnects. Heartbeats
+                    # also validate the authoritative account version.
+                    async with ws.app.state.sessions() as db:
+                        u = await db.get(User, uid)
+                        if not u or not u.active or u.token_version != data["ver"]:
+                            await ws.close(code=1008)
+                            break
                     queue.put_nowait({"event": "pong"})
         except Exception:
             pass
@@ -92,5 +111,5 @@ class Hub:
             await asyncio.gather(sender, return_exceptions=True)
             try:
                 await ws.close()
-            except RuntimeError:
+            except (RuntimeError, WebSocketDisconnect):
                 pass
