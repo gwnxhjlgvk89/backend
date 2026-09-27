@@ -4,10 +4,12 @@ Only the fixed synthetic fixture CLI resets test data; never a public test API.
 
 import argparse
 import asyncio
+from array import array
 from collections import Counter
 from datetime import datetime, timezone
 import json
 from pathlib import Path
+import shlex
 import time
 
 import aiohttp
@@ -54,6 +56,7 @@ async def main(args):
         "test_only": True,
         "users": args.users,
         "target_ws_hold_seconds": args.hold_seconds,
+        "offered_burst_seconds": args.burst_seconds,
         "runs": [],
         "resources": [],
         "errors": [],
@@ -72,8 +75,9 @@ async def main(args):
     workers = set()
     notification = []
     transport_lag = []
-    arrivals = []
+    arrivals = {}
     quota_times = {}
+    ws_bytes_by_second = Counter()
     received_events = 0
     ws_failures = 0
     lag = []
@@ -89,6 +93,10 @@ async def main(args):
         r = await client.get("/health/live")
         if r.status != 200 or (await r.json()).get("environment") != "test":
             raise RuntimeError("Refusing a service not explicitly marked TEST")
+        source_check = "from pathlib import Path; import hashlib; f=sorted(Path('club').glob('*.py')); print(hashlib.sha256(b''.join(p.name.encode()+bytes([0])+p.read_bytes() for p in f)).hexdigest())"
+        report["application_sha256"] = (
+            await ssh(args, "podman exec club-capacity-test_api_1 python -c " + shlex.quote(source_check))
+        ).strip()
         await fixture(args, "check")
 
         async def monitor():
@@ -160,55 +168,47 @@ async def main(args):
             try:
                 async for message in ws:
                     if message.type == aiohttp.WSMsgType.TEXT:
+                        ws_bytes_by_second[int(time.monotonic())] += len(message.data.encode("utf-8"))
                         event = json.loads(message.data)
                         if "worker_id" in event:
                             workers.add(event["worker_id"])
-                        quota_events = (
-                            [
-                                {"club_id": r[0], "remaining": r[1], "version": r[2]}
-                                for r in event.get("rows", [])
-                            ]
-                            if event.get("event") == "quota_delta"
-                            else event.get("items", [])
-                            if event.get("event") == "quotas"
-                            else [event]
-                            if event.get("event") == "quota"
-                            else []
-                        )
-                        for item in quota_events:
-                            received_events += 1
-                            arrivals.append(((item["club_id"], item["version"]), time.time() + clock_offset))
-                            created = item.get("enqueued_at") or event.get("enqueued_at")
-                            if created or event.get("t"):
-                                notification.append(
-                                    max(
-                                        0,
-                                        time.time()
-                                        + clock_offset
-                                        - (
-                                            event["t"] / 1000
-                                            if event.get("t")
-                                            else datetime.fromisoformat(
-                                                created.replace("Z", "+00:00")
-                                            ).timestamp()
-                                        ),
-                                    )
-                                )
-                        if event.get("published_at") or event.get("p"):
-                            transport_lag.append(
-                                max(
-                                    0,
-                                    time.time()
-                                    + clock_offset
-                                    - (
-                                        event["p"] / 1000
-                                        if event.get("p")
-                                        else datetime.fromisoformat(
-                                            event["published_at"].replace("Z", "+00:00")
-                                        ).timestamp()
-                                    ),
-                                )
+                        received_at = time.time() + clock_offset
+                        if event.get("event") == "quota_delta":
+                            quota_events = event.get("rows", [])
+                        else:
+                            objects = (
+                                event.get("items", [])
+                                if event.get("event") == "quotas"
+                                else [event]
+                                if event.get("event") == "quota"
+                                else []
                             )
+                            quota_events = [(r["club_id"], r["remaining"], r["version"]) for r in objects]
+                        received_events += len(quota_events)
+                        # One receipt timestamp per frame; packed arrays avoid millions
+                        # of duplicate tuple/dict objects stalling the load generator.
+                        for cid, _, version in quota_events:
+                            key = (cid, version)
+                            if key not in arrivals:
+                                arrivals[key] = array("d")
+                            arrivals[key].append(received_at)
+                        created = event.get("enqueued_at")
+                        if quota_events and (created or event.get("t")):
+                            stamp = (
+                                event["t"] / 1000
+                                if event.get("t")
+                                else datetime.fromisoformat(created.replace("Z", "+00:00")).timestamp()
+                            )
+                            notification.extend([max(0, received_at - stamp)] * len(quota_events))
+                        if event.get("published_at") or event.get("p"):
+                            stamp = (
+                                event["p"] / 1000
+                                if event.get("p")
+                                else datetime.fromisoformat(
+                                    event["published_at"].replace("Z", "+00:00")
+                                ).timestamp()
+                            )
+                            transport_lag.append(max(0, received_at - stamp))
                     elif message.type == aiohttp.WSMsgType.ERROR:
                         break
             except Exception as exc:
@@ -270,7 +270,9 @@ async def main(args):
                             query_probes.append((0, time.perf_counter() - started))
 
                     async def enroll(i, tok):
-                        await asyncio.sleep(i * 0.95 / args.users)
+                        await asyncio.sleep(
+                            max(0, released + 0.1 + i * args.burst_seconds / args.users - time.perf_counter())
+                        )
                         started = time.perf_counter()
                         server_seconds = 0
                         try:
@@ -347,17 +349,20 @@ async def main(args):
 
             def exact_notification():
                 delays = [
-                    max(0, received - quota_times[key]) for key, received in arrivals if key in quota_times
+                    max(0, received - quota_times[key])
+                    for key, times in arrivals.items()
+                    if key in quota_times
+                    for received in times
                 ]
-                delivery_counts = Counter(key for key, _ in arrivals)
+                delivery_counts = {key: len(times) for key, times in arrivals.items()}
                 return {
                     "notification_p95_s": p(delays, 0.95),
                     "notification_timing_matched": len(delays),
-                    "notification_timing_missing": len(arrivals) - len(delays),
+                    "notification_timing_missing": received_events - len(delays),
                     "observed_quota_versions": len(delivery_counts),
                     "min_deliveries_per_observed_version": min(delivery_counts.values(), default=0),
                     "missing_deliveries_for_observed_versions": max(
-                        0, len(delivery_counts) * len(sockets) - len(arrivals)
+                        0, len(delivery_counts) * len(sockets) - received_events
                     ),
                 }
 
@@ -380,6 +385,11 @@ async def main(args):
                 "unexpected_closes": ws_failures,
                 "api_workers_observed": len(workers),
                 "quota_deliveries": received_events,
+                "payload_bytes_received": sum(ws_bytes_by_second.values()),
+                # Application payload only; TCP/TLS/HTTP overhead is excluded.
+                "peak_one_second_payload_mbps": round(
+                    max(ws_bytes_by_second.values(), default=0) * 8 / 1e6, 3
+                ),
                 "batch_oldest_notification_p95_s": p(notification, 0.95),
                 **exact_notification(),
                 "publish_to_client_p95_s": p(transport_lag, 0.95),
@@ -405,6 +415,7 @@ if __name__ == "__main__":
     parser.add_argument("--control", default="/private/tmp/club-test-ssh")
     parser.add_argument("--users", type=int, choices=[1500, 3000], default=1500)
     parser.add_argument("--rounds", type=int, default=3)
+    parser.add_argument("--burst-seconds", type=float, default=0.85)
     parser.add_argument("--hold-seconds", type=int, default=600)
     parser.add_argument("--report", default="reports/linux-capacity.json")
     asyncio.run(main(parser.parse_args()))
