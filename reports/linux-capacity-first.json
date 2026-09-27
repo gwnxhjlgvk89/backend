@@ -1,0 +1,1399 @@
+{
+  "environment": "http://192.168.100.130:18081",
+  "test_only": true,
+  "users": 1500,
+  "target_ws_hold_seconds": 1800,
+  "runs": [
+    {
+      "scenario": "last_seat",
+      "round": 1,
+      "statuses": {
+        "200:OK": 1,
+        "409:CLUB_FULL": 1499
+      },
+      "p95_s": 1.8616,
+      "p99_s": 2.1614,
+      "server_p95_s": 1.5815,
+      "dispatch_span_s": 0.9994,
+      "unexpected_error_rate": 0.0,
+      "db": {
+        "enrollments": 1,
+        "inconsistencies": [],
+        "mysql": {
+          "Innodb_buffer_pool_wait_free": "0",
+          "Innodb_row_lock_time": "47751",
+          "Innodb_row_lock_waits": "1497",
+          "Max_used_connections": "33",
+          "Threads_connected": "24"
+        }
+      },
+      "expected_enrollments": 1,
+      "correctness_pass": true
+    },
+    {
+      "scenario": "last_seat",
+      "round": 2,
+      "statuses": {
+        "200:OK": 1,
+        "409:CLUB_FULL": 1499
+      },
+      "p95_s": 1.7246,
+      "p99_s": 2.1724,
+      "server_p95_s": 1.1356,
+      "dispatch_span_s": 1.0021,
+      "unexpected_error_rate": 0.0,
+      "db": {
+        "enrollments": 1,
+        "inconsistencies": [],
+        "mysql": {
+          "Innodb_buffer_pool_wait_free": "0",
+          "Innodb_row_lock_time": "84912",
+          "Innodb_row_lock_waits": "2992",
+          "Max_used_connections": "33",
+          "Threads_connected": "24"
+        }
+      },
+      "expected_enrollments": 1,
+      "correctness_pass": true
+    },
+    {
+      "scenario": "last_seat",
+      "round": 3,
+      "statuses": {
+        "200:OK": 1,
+        "409:CLUB_FULL": 1499
+      },
+      "p95_s": 1.6269,
+      "p99_s": 1.7779,
+      "server_p95_s": 1.3797,
+      "dispatch_span_s": 0.9993,
+      "unexpected_error_rate": 0.0,
+      "db": {
+        "enrollments": 1,
+        "inconsistencies": [],
+        "mysql": {
+          "Innodb_buffer_pool_wait_free": "0",
+          "Innodb_row_lock_time": "130416",
+          "Innodb_row_lock_waits": "4490",
+          "Max_used_connections": "33",
+          "Threads_connected": "24"
+        }
+      },
+      "expected_enrollments": 1,
+      "correctness_pass": true
+    },
+    {
+      "scenario": "uniform",
+      "round": 1,
+      "statuses": {
+        "200:OK": 1500
+      },
+      "p95_s": 2.5577,
+      "p99_s": 2.758,
+      "server_p95_s": 0.9649,
+      "dispatch_span_s": 0.9998,
+      "unexpected_error_rate": 0.0,
+      "db": {
+        "enrollments": 1500,
+        "inconsistencies": [],
+        "mysql": {
+          "Innodb_buffer_pool_wait_free": "0",
+          "Innodb_row_lock_time": "134543",
+          "Innodb_row_lock_waits": "4759",
+          "Max_used_connections": "34",
+          "Threads_connected": "24"
+        }
+      },
+      "expected_enrollments": 1500,
+      "correctness_pass": true
+    },
+    {
+      "scenario": "uniform",
+      "round": 2,
+      "statuses": {
+        "200:OK": 1462,
+        "503:TEMPORARILY_UNAVAILABLE": 38
+      },
+      "p95_s": 2.1022,
+      "p99_s": 2.2761,
+      "server_p95_s": 1.8115,
+      "dispatch_span_s": 0.9993,
+      "unexpected_error_rate": 0.025333333333333333,
+      "db": {
+        "enrollments": 1462,
+        "inconsistencies": [],
+        "mysql": {
+          "Innodb_buffer_pool_wait_free": "0",
+          "Innodb_row_lock_time": "137886",
+          "Innodb_row_lock_waits": "4985",
+          "Max_used_connections": "34",
+          "Threads_connected": "24"
+        }
+      },
+      "expected_enrollments": 1500,
+      "correctness_pass": false
+    },
+    {
+      "scenario": "uniform",
+      "round": 3,
+      "statuses": {
+        "200:OK": 1473,
+        "503:TEMPORARILY_UNAVAILABLE": 27
+      },
+      "p95_s": 2.169,
+      "p99_s": 2.3662,
+      "server_p95_s": 1.7806,
+      "dispatch_span_s": 0.9993,
+      "unexpected_error_rate": 0.018,
+      "db": {
+        "enrollments": 1473,
+        "inconsistencies": [],
+        "mysql": {
+          "Innodb_buffer_pool_wait_free": "0",
+          "Innodb_row_lock_time": "141449",
+          "Innodb_row_lock_waits": "5244",
+          "Max_used_connections": "34",
+          "Threads_connected": "24"
+        }
+      },
+      "expected_enrollments": 1500,
+      "correctness_pass": false
+    },
+    {
+      "scenario": "hot_club",
+      "round": 1,
+      "statuses": {
+        "200:OK": 100,
+        "409:CLUB_FULL": 1399,
+        "503:TEMPORARILY_UNAVAILABLE": 1
+      },
+      "p95_s": 1.2307,
+      "p99_s": 1.9363,
+      "server_p95_s": 1.1253,
+      "dispatch_span_s": 0.9994,
+      "unexpected_error_rate": 0.0006666666666666666,
+      "db": {
+        "enrollments": 100,
+        "inconsistencies": [],
+        "mysql": {
+          "Innodb_buffer_pool_wait_free": "0",
+          "Innodb_row_lock_time": "193614",
+          "Innodb_row_lock_waits": "6742",
+          "Max_used_connections": "34",
+          "Threads_connected": "24"
+        }
+      },
+      "expected_enrollments": 100,
+      "correctness_pass": true
+    },
+    {
+      "scenario": "hot_club",
+      "round": 2,
+      "statuses": {
+        "200:OK": 100,
+        "409:CLUB_FULL": 1400
+      },
+      "p95_s": 1.8902,
+      "p99_s": 2.0616,
+      "server_p95_s": 1.2626,
+      "dispatch_span_s": 0.9994,
+      "unexpected_error_rate": 0.0,
+      "db": {
+        "enrollments": 100,
+        "inconsistencies": [],
+        "mysql": {
+          "Innodb_buffer_pool_wait_free": "0",
+          "Innodb_row_lock_time": "243877",
+          "Innodb_row_lock_waits": "8241",
+          "Max_used_connections": "34",
+          "Threads_connected": "24"
+        }
+      },
+      "expected_enrollments": 100,
+      "correctness_pass": true
+    },
+    {
+      "scenario": "hot_club",
+      "round": 3,
+      "statuses": {
+        "200:OK": 100,
+        "409:CLUB_FULL": 1399,
+        "503:TEMPORARILY_UNAVAILABLE": 1
+      },
+      "p95_s": 1.8452,
+      "p99_s": 1.9803,
+      "server_p95_s": 1.7959,
+      "dispatch_span_s": 0.9994,
+      "unexpected_error_rate": 0.0006666666666666666,
+      "db": {
+        "enrollments": 100,
+        "inconsistencies": [],
+        "mysql": {
+          "Innodb_buffer_pool_wait_free": "0",
+          "Innodb_row_lock_time": "295540",
+          "Innodb_row_lock_waits": "9739",
+          "Max_used_connections": "34",
+          "Threads_connected": "24"
+        }
+      },
+      "expected_enrollments": 100,
+      "correctness_pass": true
+    }
+  ],
+  "resources": [
+    {
+      "at": "2026-09-27T13:08:57.592604+00:00",
+      "test_containers": [
+        {
+          "id": "2ab8e914002c",
+          "name": "club-capacity-test_mysql_1",
+          "cpu_time": "1.756645s",
+          "cpu_percent": "1.60%",
+          "avg_cpu": "1.60%",
+          "mem_usage": "456.1MB / 1.468GB",
+          "mem_percent": "31.07%",
+          "net_io": "357.7kB / 368.1kB",
+          "block_io": "0B / 0B",
+          "pids": "42"
+        },
+        {
+          "id": "92dd030f0da3",
+          "name": "club-capacity-test_redis_1",
+          "cpu_time": "261.864ms",
+          "cpu_percent": "0.24%",
+          "avg_cpu": "0.24%",
+          "mem_usage": "6.758MB / 201.3MB",
+          "mem_percent": "3.36%",
+          "net_io": "7.684kB / 2.146kB",
+          "block_io": "0B / 0B",
+          "pids": "6"
+        },
+        {
+          "id": "d46e825cb93a",
+          "name": "club-capacity-test_api_1",
+          "cpu_time": "4.856027s",
+          "cpu_percent": "4.68%",
+          "avg_cpu": "4.68%",
+          "mem_usage": "181.4MB / 943.7MB",
+          "mem_percent": "19.22%",
+          "net_io": "15.71kB / 11.65kB",
+          "block_io": "0B / 0B",
+          "pids": "16"
+        },
+        {
+          "id": "6f975fe63a13",
+          "name": "club-capacity-test_worker_1",
+          "cpu_time": "1.876069s",
+          "cpu_percent": "1.81%",
+          "avg_cpu": "1.81%",
+          "mem_usage": "64.38MB / 268.4MB",
+          "mem_percent": "23.98%",
+          "net_io": "362.4kB / 347.4kB",
+          "block_io": "0B / 0B",
+          "pids": "2"
+        },
+        {
+          "id": "dd44557e0e92",
+          "name": "club-capacity-test_nginx_1",
+          "cpu_time": "18.448ms",
+          "cpu_percent": "0.02%",
+          "avg_cpu": "0.02%",
+          "mem_usage": "6.595MB / 67.11MB",
+          "mem_percent": "9.83%",
+          "net_io": "4.132kB / 2.649kB",
+          "block_io": "0B / 0B",
+          "pids": "2"
+        }
+      ],
+      "generator_cpu_percent": 41.1,
+      "generator_memory": 61.5
+    },
+    {
+      "at": "2026-09-27T13:09:07.660744+00:00",
+      "test_containers": [
+        {
+          "id": "2ab8e914002c",
+          "name": "club-capacity-test_mysql_1",
+          "cpu_time": "2.138495s",
+          "cpu_percent": "1.78%",
+          "avg_cpu": "1.78%",
+          "mem_usage": "459.1MB / 1.468GB",
+          "mem_percent": "31.28%",
+          "net_io": "892.3kB / 1.145MB",
+          "block_io": "0B / 0B",
+          "pids": "48"
+        },
+        {
+          "id": "92dd030f0da3",
+          "name": "club-capacity-test_redis_1",
+          "cpu_time": "294.292ms",
+          "cpu_percent": "0.25%",
+          "avg_cpu": "0.25%",
+          "mem_usage": "6.427MB / 201.3MB",
+          "mem_percent": "3.19%",
+          "net_io": "151.1kB / 112.9kB",
+          "block_io": "0B / 0B",
+          "pids": "6"
+        },
+        {
+          "id": "d46e825cb93a",
+          "name": "club-capacity-test_api_1",
+          "cpu_time": "16.971174s",
+          "cpu_percent": "14.92%",
+          "avg_cpu": "14.92%",
+          "mem_usage": "181.4MB / 943.7MB",
+          "mem_percent": "19.23%",
+          "net_io": "1.009MB / 826.7kB",
+          "block_io": "0B / 0B",
+          "pids": "20"
+        },
+        {
+          "id": "6f975fe63a13",
+          "name": "club-capacity-test_worker_1",
+          "cpu_time": "1.965966s",
+          "cpu_percent": "1.73%",
+          "avg_cpu": "1.73%",
+          "mem_usage": "64.59MB / 268.4MB",
+          "mem_percent": "24.06%",
+          "net_io": "440.2kB / 450.2kB",
+          "block_io": "0B / 0B",
+          "pids": "2"
+        },
+        {
+          "id": "dd44557e0e92",
+          "name": "club-capacity-test_nginx_1",
+          "cpu_time": "59.485ms",
+          "cpu_percent": "0.05%",
+          "avg_cpu": "0.05%",
+          "mem_usage": "6.722MB / 67.11MB",
+          "mem_percent": "10.02%",
+          "net_io": "242.9kB / 184.3kB",
+          "block_io": "0B / 0B",
+          "pids": "2"
+        }
+      ],
+      "generator_cpu_percent": 35.4,
+      "generator_memory": 61.5
+    },
+    {
+      "at": "2026-09-27T13:09:17.730393+00:00",
+      "test_containers": [
+        {
+          "id": "2ab8e914002c",
+          "name": "club-capacity-test_mysql_1",
+          "cpu_time": "2.511558s",
+          "cpu_percent": "1.93%",
+          "avg_cpu": "1.93%",
+          "mem_usage": "461.5MB / 1.468GB",
+          "mem_percent": "31.43%",
+          "net_io": "1.434MB / 1.918MB",
+          "block_io": "0B / 0B",
+          "pids": "48"
+        },
+        {
+          "id": "92dd030f0da3",
+          "name": "club-capacity-test_redis_1",
+          "cpu_time": "323.348ms",
+          "cpu_percent": "0.25%",
+          "avg_cpu": "0.25%",
+          "mem_usage": "9.306MB / 201.3MB",
+          "mem_percent": "4.62%",
+          "net_io": "294.5kB / 225.6kB",
+          "block_io": "0B / 0B",
+          "pids": "6"
+        },
+        {
+          "id": "d46e825cb93a",
+          "name": "club-capacity-test_api_1",
+          "cpu_time": "29.099315s",
+          "cpu_percent": "23.50%",
+          "avg_cpu": "23.50%",
+          "mem_usage": "182.9MB / 943.7MB",
+          "mem_percent": "19.38%",
+          "net_io": "1.998MB / 1.647MB",
+          "block_io": "0B / 0B",
+          "pids": "20"
+        },
+        {
+          "id": "6f975fe63a13",
+          "name": "club-capacity-test_worker_1",
+          "cpu_time": "2.053747s",
+          "cpu_percent": "1.66%",
+          "avg_cpu": "1.66%",
+          "mem_usage": "65.43MB / 268.4MB",
+          "mem_percent": "24.37%",
+          "net_io": "518.3kB / 553.2kB",
+          "block_io": "0B / 0B",
+          "pids": "2"
+        },
+        {
+          "id": "dd44557e0e92",
+          "name": "club-capacity-test_nginx_1",
+          "cpu_time": "100.552ms",
+          "cpu_percent": "0.08%",
+          "avg_cpu": "0.08%",
+          "mem_usage": "9.449MB / 67.11MB",
+          "mem_percent": "14.08%",
+          "net_io": "481.6kB / 365.6kB",
+          "block_io": "0B / 0B",
+          "pids": "2"
+        }
+      ],
+      "generator_cpu_percent": 39.6,
+      "generator_memory": 61.2
+    },
+    {
+      "at": "2026-09-27T13:09:27.793666+00:00",
+      "test_containers": [
+        {
+          "id": "2ab8e914002c",
+          "name": "club-capacity-test_mysql_1",
+          "cpu_time": "2.917466s",
+          "cpu_percent": "2.08%",
+          "avg_cpu": "2.08%",
+          "mem_usage": "460.8MB / 1.468GB",
+          "mem_percent": "31.39%",
+          "net_io": "1.973MB / 2.69MB",
+          "block_io": "0B / 0B",
+          "pids": "48"
+        },
+        {
+          "id": "92dd030f0da3",
+          "name": "club-capacity-test_redis_1",
+          "cpu_time": "355.73ms",
+          "cpu_percent": "0.25%",
+          "avg_cpu": "0.25%",
+          "mem_usage": "8.327MB / 201.3MB",
+          "mem_percent": "4.14%",
+          "net_io": "436.1kB / 335.9kB",
+          "block_io": "0B / 0B",
+          "pids": "6"
+        },
+        {
+          "id": "d46e825cb93a",
+          "name": "club-capacity-test_api_1",
+          "cpu_time": "41.202971s",
+          "cpu_percent": "30.77%",
+          "avg_cpu": "30.77%",
+          "mem_usage": "184.1MB / 943.7MB",
+          "mem_percent": "19.51%",
+          "net_io": "2.986MB / 2.465MB",
+          "block_io": "0B / 0B",
+          "pids": "20"
+        },
+        {
+          "id": "6f975fe63a13",
+          "name": "club-capacity-test_worker_1",
+          "cpu_time": "2.142173s",
+          "cpu_percent": "1.60%",
+          "avg_cpu": "1.60%",
+          "mem_usage": "64.93MB / 268.4MB",
+          "mem_percent": "24.19%",
+          "net_io": "594.9kB / 654.5kB",
+          "block_io": "0B / 0B",
+          "pids": "2"
+        },
+        {
+          "id": "dd44557e0e92",
+          "name": "club-capacity-test_nginx_1",
+          "cpu_time": "137.765ms",
+          "cpu_percent": "0.10%",
+          "avg_cpu": "0.10%",
+          "mem_usage": "8.454MB / 67.11MB",
+          "mem_percent": "12.60%",
+          "net_io": "720.7kB / 547.3kB",
+          "block_io": "0B / 0B",
+          "pids": "2"
+        }
+      ],
+      "generator_cpu_percent": 33.4,
+      "generator_memory": 61.3
+    },
+    {
+      "at": "2026-09-27T13:09:37.936877+00:00",
+      "test_containers": [
+        {
+          "id": "2ab8e914002c",
+          "name": "club-capacity-test_mysql_1",
+          "cpu_time": "3.322714s",
+          "cpu_percent": "2.21%",
+          "avg_cpu": "2.21%",
+          "mem_usage": "460MB / 1.468GB",
+          "mem_percent": "31.34%",
+          "net_io": "2.511MB / 3.463MB",
+          "block_io": "0B / 0B",
+          "pids": "48"
+        },
+        {
+          "id": "92dd030f0da3",
+          "name": "club-capacity-test_redis_1",
+          "cpu_time": "389.361ms",
+          "cpu_percent": "0.26%",
+          "avg_cpu": "0.26%",
+          "mem_usage": "7.41MB / 201.3MB",
+          "mem_percent": "3.68%",
+          "net_io": "579.7kB / 448.4kB",
+          "block_io": "0B / 0B",
+          "pids": "6"
+        },
+        {
+          "id": "d46e825cb93a",
+          "name": "club-capacity-test_api_1",
+          "cpu_time": "53.421271s",
+          "cpu_percent": "37.09%",
+          "avg_cpu": "37.09%",
+          "mem_usage": "183MB / 943.7MB",
+          "mem_percent": "19.39%",
+          "net_io": "3.975MB / 3.282MB",
+          "block_io": "0B / 0B",
+          "pids": "20"
+        },
+        {
+          "id": "6f975fe63a13",
+          "name": "club-capacity-test_worker_1",
+          "cpu_time": "2.232105s",
+          "cpu_percent": "1.55%",
+          "avg_cpu": "1.55%",
+          "mem_usage": "64.55MB / 268.4MB",
+          "mem_percent": "24.05%",
+          "net_io": "672.9kB / 757.6kB",
+          "block_io": "0B / 0B",
+          "pids": "2"
+        },
+        {
+          "id": "dd44557e0e92",
+          "name": "club-capacity-test_nginx_1",
+          "cpu_time": "173.949ms",
+          "cpu_percent": "0.12%",
+          "avg_cpu": "0.12%",
+          "mem_usage": "8.249MB / 67.11MB",
+          "mem_percent": "12.29%",
+          "net_io": "959.1kB / 729.2kB",
+          "block_io": "0B / 0B",
+          "pids": "2"
+        }
+      ],
+      "generator_cpu_percent": 35.9,
+      "generator_memory": 61.2
+    },
+    {
+      "at": "2026-09-27T13:09:47.998724+00:00",
+      "test_containers": [
+        {
+          "id": "2ab8e914002c",
+          "name": "club-capacity-test_mysql_1",
+          "cpu_time": "3.708666s",
+          "cpu_percent": "2.31%",
+          "avg_cpu": "2.31%",
+          "mem_usage": "461.6MB / 1.468GB",
+          "mem_percent": "31.44%",
+          "net_io": "3.058MB / 4.241MB",
+          "block_io": "0B / 0B",
+          "pids": "48"
+        },
+        {
+          "id": "92dd030f0da3",
+          "name": "club-capacity-test_redis_1",
+          "cpu_time": "418.675ms",
+          "cpu_percent": "0.26%",
+          "avg_cpu": "0.26%",
+          "mem_usage": "9.13MB / 201.3MB",
+          "mem_percent": "4.53%",
+          "net_io": "723kB / 561.3kB",
+          "block_io": "0B / 0B",
+          "pids": "6"
+        },
+        {
+          "id": "d46e825cb93a",
+          "name": "club-capacity-test_api_1",
+          "cpu_time": "1m5.574111s",
+          "cpu_percent": "42.56%",
+          "avg_cpu": "42.56%",
+          "mem_usage": "183.9MB / 943.7MB",
+          "mem_percent": "19.49%",
+          "net_io": "4.97MB / 4.109MB",
+          "block_io": "0B / 0B",
+          "pids": "20"
+        },
+        {
+          "id": "6f975fe63a13",
+          "name": "club-capacity-test_worker_1",
+          "cpu_time": "2.320066s",
+          "cpu_percent": "1.51%",
+          "avg_cpu": "1.51%",
+          "mem_usage": "64.95MB / 268.4MB",
+          "mem_percent": "24.20%",
+          "net_io": "751.2kB / 861.6kB",
+          "block_io": "0B / 0B",
+          "pids": "2"
+        },
+        {
+          "id": "dd44557e0e92",
+          "name": "club-capacity-test_nginx_1",
+          "cpu_time": "209.106ms",
+          "cpu_percent": "0.14%",
+          "avg_cpu": "0.14%",
+          "mem_usage": "9.56MB / 67.11MB",
+          "mem_percent": "14.25%",
+          "net_io": "1.2MB / 911.4kB",
+          "block_io": "0B / 0B",
+          "pids": "2"
+        }
+      ],
+      "generator_cpu_percent": 32.4,
+      "generator_memory": 61.3
+    },
+    {
+      "at": "2026-09-27T13:09:58.070397+00:00",
+      "test_containers": [
+        {
+          "id": "2ab8e914002c",
+          "name": "club-capacity-test_mysql_1",
+          "cpu_time": "4.194199s",
+          "cpu_percent": "2.46%",
+          "avg_cpu": "2.46%",
+          "mem_usage": "500.6MB / 1.468GB",
+          "mem_percent": "34.10%",
+          "net_io": "3.858MB / 5.427MB",
+          "block_io": "0B / 0B",
+          "pids": "60"
+        },
+        {
+          "id": "92dd030f0da3",
+          "name": "club-capacity-test_redis_1",
+          "cpu_time": "464.317ms",
+          "cpu_percent": "0.27%",
+          "avg_cpu": "0.27%",
+          "mem_usage": "8.536MB / 201.3MB",
+          "mem_percent": "4.24%",
+          "net_io": "998kB / 732kB",
+          "block_io": "0B / 0B",
+          "pids": "6"
+        },
+        {
+          "id": "d46e825cb93a",
+          "name": "club-capacity-test_api_1",
+          "cpu_time": "1m17.515112s",
+          "cpu_percent": "47.22%",
+          "avg_cpu": "47.22%",
+          "mem_usage": "191.7MB / 943.7MB",
+          "mem_percent": "20.31%",
+          "net_io": "6.651MB / 5.484MB",
+          "block_io": "0B / 0B",
+          "pids": "20"
+        },
+        {
+          "id": "6f975fe63a13",
+          "name": "club-capacity-test_worker_1",
+          "cpu_time": "2.409935s",
+          "cpu_percent": "1.47%",
+          "avg_cpu": "1.47%",
+          "mem_usage": "65.05MB / 268.4MB",
+          "mem_percent": "24.23%",
+          "net_io": "828.2kB / 962.7kB",
+          "block_io": "0B / 0B",
+          "pids": "2"
+        },
+        {
+          "id": "dd44557e0e92",
+          "name": "club-capacity-test_nginx_1",
+          "cpu_time": "276.093ms",
+          "cpu_percent": "0.17%",
+          "avg_cpu": "0.17%",
+          "mem_usage": "13.95MB / 67.11MB",
+          "mem_percent": "20.79%",
+          "net_io": "1.598MB / 1.309MB",
+          "block_io": "0B / 0B",
+          "pids": "2"
+        }
+      ],
+      "generator_cpu_percent": 59.9,
+      "generator_memory": 61.4
+    },
+    {
+      "at": "2026-09-27T13:10:08.131963+00:00",
+      "test_containers": [
+        {
+          "id": "2ab8e914002c",
+          "name": "club-capacity-test_mysql_1",
+          "cpu_time": "5.528508s",
+          "cpu_percent": "3.07%",
+          "avg_cpu": "3.07%",
+          "mem_usage": "506.2MB / 1.468GB",
+          "mem_percent": "34.48%",
+          "net_io": "9.545MB / 15.25MB",
+          "block_io": "0B / 0B",
+          "pids": "69"
+        },
+        {
+          "id": "92dd030f0da3",
+          "name": "club-capacity-test_redis_1",
+          "cpu_time": "673.873ms",
+          "cpu_percent": "0.37%",
+          "avg_cpu": "0.37%",
+          "mem_usage": "7.193MB / 201.3MB",
+          "mem_percent": "3.57%",
+          "net_io": "2.603MB / 1.393MB",
+          "block_io": "0B / 0B",
+          "pids": "6"
+        },
+        {
+          "id": "d46e825cb93a",
+          "name": "club-capacity-test_api_1",
+          "cpu_time": "1m28.061394s",
+          "cpu_percent": "50.54%",
+          "avg_cpu": "50.54%",
+          "mem_usage": "319.4MB / 943.7MB",
+          "mem_percent": "33.84%",
+          "net_io": "20.52MB / 15.47MB",
+          "block_io": "0B / 0B",
+          "pids": "20"
+        },
+        {
+          "id": "6f975fe63a13",
+          "name": "club-capacity-test_worker_1",
+          "cpu_time": "2.475849s",
+          "cpu_percent": "1.42%",
+          "avg_cpu": "1.42%",
+          "mem_usage": "65.03MB / 268.4MB",
+          "mem_percent": "24.22%",
+          "net_io": "864.8kB / 998.4kB",
+          "block_io": "0B / 0B",
+          "pids": "2"
+        },
+        {
+          "id": "dd44557e0e92",
+          "name": "club-capacity-test_nginx_1",
+          "cpu_time": "753.355ms",
+          "cpu_percent": "0.43%",
+          "avg_cpu": "0.43%",
+          "mem_usage": "49.18MB / 67.11MB",
+          "mem_percent": "73.28%",
+          "net_io": "4.321MB / 4.721MB",
+          "block_io": "0B / 0B",
+          "pids": "2"
+        }
+      ],
+      "generator_cpu_percent": 37.7,
+      "generator_memory": 61.5
+    },
+    {
+      "at": "2026-09-27T13:10:18.259234+00:00",
+      "test_containers": [
+        {
+          "id": "2ab8e914002c",
+          "name": "club-capacity-test_mysql_1",
+          "cpu_time": "6.327273s",
+          "cpu_percent": "3.32%",
+          "avg_cpu": "3.32%",
+          "mem_usage": "507.7MB / 1.468GB",
+          "mem_percent": "34.58%",
+          "net_io": "12.84MB / 21.24MB",
+          "block_io": "0B / 0B",
+          "pids": "69"
+        },
+        {
+          "id": "92dd030f0da3",
+          "name": "club-capacity-test_redis_1",
+          "cpu_time": "783.878ms",
+          "cpu_percent": "0.41%",
+          "avg_cpu": "0.41%",
+          "mem_usage": "7.442MB / 201.3MB",
+          "mem_percent": "3.70%",
+          "net_io": "3.388MB / 1.789MB",
+          "block_io": "0B / 0B",
+          "pids": "6"
+        },
+        {
+          "id": "d46e825cb93a",
+          "name": "club-capacity-test_api_1",
+          "cpu_time": "1m35.616974s",
+          "cpu_percent": "51.88%",
+          "avg_cpu": "51.88%",
+          "mem_usage": "380.3MB / 943.7MB",
+          "mem_percent": "40.30%",
+          "net_io": "28.37MB / 20.86MB",
+          "block_io": "0B / 0B",
+          "pids": "21"
+        },
+        {
+          "id": "6f975fe63a13",
+          "name": "club-capacity-test_worker_1",
+          "cpu_time": "2.536817s",
+          "cpu_percent": "1.38%",
+          "avg_cpu": "1.38%",
+          "mem_usage": "65.06MB / 268.4MB",
+          "mem_percent": "24.24%",
+          "net_io": "901.2kB / 1.034MB",
+          "block_io": "0B / 0B",
+          "pids": "2"
+        },
+        {
+          "id": "dd44557e0e92",
+          "name": "club-capacity-test_nginx_1",
+          "cpu_time": "955.781ms",
+          "cpu_percent": "0.52%",
+          "avg_cpu": "0.52%",
+          "mem_usage": "51.52MB / 67.11MB",
+          "mem_percent": "76.78%",
+          "net_io": "5.653MB / 6.222MB",
+          "block_io": "0B / 0B",
+          "pids": "2"
+        }
+      ],
+      "generator_cpu_percent": 33.2,
+      "generator_memory": 61.5
+    },
+    {
+      "at": "2026-09-27T13:10:28.327488+00:00",
+      "test_containers": [
+        {
+          "id": "2ab8e914002c",
+          "name": "club-capacity-test_mysql_1",
+          "cpu_time": "8.116609s",
+          "cpu_percent": "4.05%",
+          "avg_cpu": "4.05%",
+          "mem_usage": "516.1MB / 1.468GB",
+          "mem_percent": "35.15%",
+          "net_io": "19.41MB / 32.07MB",
+          "block_io": "0B / 0B",
+          "pids": "70"
+        },
+        {
+          "id": "92dd030f0da3",
+          "name": "club-capacity-test_redis_1",
+          "cpu_time": "952.967ms",
+          "cpu_percent": "0.48%",
+          "avg_cpu": "0.48%",
+          "mem_usage": "7.729MB / 201.3MB",
+          "mem_percent": "3.84%",
+          "net_io": "4.81MB / 2.762MB",
+          "block_io": "0B / 0B",
+          "pids": "6"
+        },
+        {
+          "id": "d46e825cb93a",
+          "name": "club-capacity-test_api_1",
+          "cpu_time": "1m46.502851s",
+          "cpu_percent": "54.78%",
+          "avg_cpu": "54.78%",
+          "mem_usage": "324.5MB / 943.7MB",
+          "mem_percent": "34.38%",
+          "net_io": "42.78MB / 31.05MB",
+          "block_io": "0B / 0B",
+          "pids": "20"
+        },
+        {
+          "id": "6f975fe63a13",
+          "name": "club-capacity-test_worker_1",
+          "cpu_time": "2.628387s",
+          "cpu_percent": "1.35%",
+          "avg_cpu": "1.35%",
+          "mem_usage": "65.23MB / 268.4MB",
+          "mem_percent": "24.30%",
+          "net_io": "1.05MB / 1.204MB",
+          "block_io": "0B / 0B",
+          "pids": "2"
+        },
+        {
+          "id": "dd44557e0e92",
+          "name": "club-capacity-test_nginx_1",
+          "cpu_time": "1.361147s",
+          "cpu_percent": "0.70%",
+          "avg_cpu": "0.70%",
+          "mem_usage": "66.9MB / 67.11MB",
+          "mem_percent": "99.69%",
+          "net_io": "8.021MB / 8.95MB",
+          "block_io": "0B / 0B",
+          "pids": "2"
+        }
+      ],
+      "generator_cpu_percent": 37.2,
+      "generator_memory": 61.4
+    },
+    {
+      "at": "2026-09-27T13:10:38.397899+00:00",
+      "test_containers": [
+        {
+          "id": "2ab8e914002c",
+          "name": "club-capacity-test_mysql_1",
+          "cpu_time": "10.806634s",
+          "cpu_percent": "5.13%",
+          "avg_cpu": "5.13%",
+          "mem_usage": "523.2MB / 1.468GB",
+          "mem_percent": "35.64%",
+          "net_io": "26.29MB / 41.5MB",
+          "block_io": "0B / 0B",
+          "pids": "70"
+        },
+        {
+          "id": "92dd030f0da3",
+          "name": "club-capacity-test_redis_1",
+          "cpu_time": "1.120942s",
+          "cpu_percent": "0.53%",
+          "avg_cpu": "0.53%",
+          "mem_usage": "9.363MB / 201.3MB",
+          "mem_percent": "4.65%",
+          "net_io": "6.307MB / 4.096MB",
+          "block_io": "0B / 0B",
+          "pids": "6"
+        },
+        {
+          "id": "d46e825cb93a",
+          "name": "club-capacity-test_api_1",
+          "cpu_time": "1m57.188745s",
+          "cpu_percent": "57.31%",
+          "avg_cpu": "57.31%",
+          "mem_usage": "321.6MB / 943.7MB",
+          "mem_percent": "34.08%",
+          "net_io": "55.35MB / 40.57MB",
+          "block_io": "0B / 0B",
+          "pids": "20"
+        },
+        {
+          "id": "6f975fe63a13",
+          "name": "club-capacity-test_worker_1",
+          "cpu_time": "2.78098s",
+          "cpu_percent": "1.36%",
+          "avg_cpu": "1.36%",
+          "mem_usage": "66.25MB / 268.4MB",
+          "mem_percent": "24.68%",
+          "net_io": "1.473MB / 1.707MB",
+          "block_io": "0B / 0B",
+          "pids": "2"
+        },
+        {
+          "id": "dd44557e0e92",
+          "name": "club-capacity-test_nginx_1",
+          "cpu_time": "1.651635s",
+          "cpu_percent": "0.81%",
+          "avg_cpu": "0.81%",
+          "mem_usage": "24.54MB / 67.11MB",
+          "mem_percent": "36.56%",
+          "net_io": "9.657MB / 11.17MB",
+          "block_io": "0B / 0B",
+          "pids": "2"
+        }
+      ],
+      "generator_cpu_percent": 37.0,
+      "generator_memory": 61.3
+    },
+    {
+      "at": "2026-09-27T13:10:48.463246+00:00",
+      "test_containers": [
+        {
+          "id": "2ab8e914002c",
+          "name": "club-capacity-test_mysql_1",
+          "cpu_time": "13.10484s",
+          "cpu_percent": "5.94%",
+          "avg_cpu": "5.94%",
+          "mem_usage": "524.6MB / 1.468GB",
+          "mem_percent": "35.73%",
+          "net_io": "32.16MB / 49.59MB",
+          "block_io": "0B / 0B",
+          "pids": "69"
+        },
+        {
+          "id": "92dd030f0da3",
+          "name": "club-capacity-test_redis_1",
+          "cpu_time": "1.24897s",
+          "cpu_percent": "0.57%",
+          "avg_cpu": "0.57%",
+          "mem_usage": "6.955MB / 201.3MB",
+          "mem_percent": "3.45%",
+          "net_io": "7.451MB / 5.24MB",
+          "block_io": "0B / 0B",
+          "pids": "6"
+        },
+        {
+          "id": "d46e825cb93a",
+          "name": "club-capacity-test_api_1",
+          "cpu_time": "2m7.37014s",
+          "cpu_percent": "59.36%",
+          "avg_cpu": "59.36%",
+          "mem_usage": "317.8MB / 943.7MB",
+          "mem_percent": "33.68%",
+          "net_io": "65.65MB / 48.42MB",
+          "block_io": "0B / 0B",
+          "pids": "20"
+        },
+        {
+          "id": "6f975fe63a13",
+          "name": "club-capacity-test_worker_1",
+          "cpu_time": "2.9457s",
+          "cpu_percent": "1.37%",
+          "avg_cpu": "1.37%",
+          "mem_usage": "65.34MB / 268.4MB",
+          "mem_percent": "24.34%",
+          "net_io": "1.861MB / 2.145MB",
+          "block_io": "0B / 0B",
+          "pids": "2"
+        },
+        {
+          "id": "dd44557e0e92",
+          "name": "club-capacity-test_nginx_1",
+          "cpu_time": "1.837949s",
+          "cpu_percent": "0.86%",
+          "avg_cpu": "0.86%",
+          "mem_usage": "12.32MB / 67.11MB",
+          "mem_percent": "18.35%",
+          "net_io": "10.92MB / 12.64MB",
+          "block_io": "0B / 0B",
+          "pids": "2"
+        }
+      ],
+      "generator_cpu_percent": 36.0,
+      "generator_memory": 61.4
+    },
+    {
+      "at": "2026-09-27T13:10:58.529123+00:00",
+      "test_containers": [
+        {
+          "id": "2ab8e914002c",
+          "name": "club-capacity-test_mysql_1",
+          "cpu_time": "14.064775s",
+          "cpu_percent": "6.10%",
+          "avg_cpu": "6.10%",
+          "mem_usage": "527.7MB / 1.468GB",
+          "mem_percent": "35.94%",
+          "net_io": "35.55MB / 55.63MB",
+          "block_io": "0B / 0B",
+          "pids": "69"
+        },
+        {
+          "id": "92dd030f0da3",
+          "name": "club-capacity-test_redis_1",
+          "cpu_time": "1.354068s",
+          "cpu_percent": "0.59%",
+          "avg_cpu": "0.59%",
+          "mem_usage": "7.152MB / 201.3MB",
+          "mem_percent": "3.55%",
+          "net_io": "8.242MB / 5.658MB",
+          "block_io": "0B / 0B",
+          "pids": "6"
+        },
+        {
+          "id": "d46e825cb93a",
+          "name": "club-capacity-test_api_1",
+          "cpu_time": "2m14.275935s",
+          "cpu_percent": "59.78%",
+          "avg_cpu": "59.78%",
+          "mem_usage": "342.9MB / 943.7MB",
+          "mem_percent": "36.34%",
+          "net_io": "73.43MB / 53.58MB",
+          "block_io": "0B / 0B",
+          "pids": "21"
+        },
+        {
+          "id": "6f975fe63a13",
+          "name": "club-capacity-test_worker_1",
+          "cpu_time": "3.01871s",
+          "cpu_percent": "1.34%",
+          "avg_cpu": "1.34%",
+          "mem_usage": "65.69MB / 268.4MB",
+          "mem_percent": "24.47%",
+          "net_io": "1.917MB / 2.199MB",
+          "block_io": "0B / 0B",
+          "pids": "2"
+        },
+        {
+          "id": "dd44557e0e92",
+          "name": "club-capacity-test_nginx_1",
+          "cpu_time": "2.007802s",
+          "cpu_percent": "0.90%",
+          "avg_cpu": "0.90%",
+          "mem_usage": "12.55MB / 67.11MB",
+          "mem_percent": "18.71%",
+          "net_io": "11.96MB / 14.01MB",
+          "block_io": "0B / 0B",
+          "pids": "2"
+        }
+      ],
+      "generator_cpu_percent": 40.5,
+      "generator_memory": 61.7
+    },
+    {
+      "at": "2026-09-27T13:11:08.655397+00:00",
+      "test_containers": [
+        {
+          "id": "2ab8e914002c",
+          "name": "club-capacity-test_mysql_1",
+          "cpu_time": "15.090751s",
+          "cpu_percent": "6.27%",
+          "avg_cpu": "6.27%",
+          "mem_usage": "531.4MB / 1.468GB",
+          "mem_percent": "36.20%",
+          "net_io": "39.33MB / 62.23MB",
+          "block_io": "0B / 0B",
+          "pids": "70"
+        },
+        {
+          "id": "92dd030f0da3",
+          "name": "club-capacity-test_redis_1",
+          "cpu_time": "1.53027s",
+          "cpu_percent": "0.64%",
+          "avg_cpu": "0.64%",
+          "mem_usage": "8.29MB / 201.3MB",
+          "mem_percent": "4.12%",
+          "net_io": "9.668MB / 6.442MB",
+          "block_io": "0B / 0B",
+          "pids": "6"
+        },
+        {
+          "id": "d46e825cb93a",
+          "name": "club-capacity-test_api_1",
+          "cpu_time": "2m22.987367s",
+          "cpu_percent": "60.91%",
+          "avg_cpu": "60.91%",
+          "mem_usage": "329.6MB / 943.7MB",
+          "mem_percent": "34.92%",
+          "net_io": "82.91MB / 59.97MB",
+          "block_io": "0B / 0B",
+          "pids": "20"
+        },
+        {
+          "id": "6f975fe63a13",
+          "name": "club-capacity-test_worker_1",
+          "cpu_time": "3.096809s",
+          "cpu_percent": "1.32%",
+          "avg_cpu": "1.32%",
+          "mem_usage": "65.58MB / 268.4MB",
+          "mem_percent": "24.43%",
+          "net_io": "1.993MB / 2.271MB",
+          "block_io": "0B / 0B",
+          "pids": "2"
+        },
+        {
+          "id": "dd44557e0e92",
+          "name": "club-capacity-test_nginx_1",
+          "cpu_time": "2.30066s",
+          "cpu_percent": "0.98%",
+          "avg_cpu": "0.98%",
+          "mem_usage": "30.6MB / 67.11MB",
+          "mem_percent": "45.60%",
+          "net_io": "13.21MB / 16.17MB",
+          "block_io": "0B / 0B",
+          "pids": "2"
+        }
+      ],
+      "generator_cpu_percent": 54.2,
+      "generator_memory": 62.0
+    },
+    {
+      "at": "2026-09-27T13:11:18.718425+00:00",
+      "test_containers": [
+        {
+          "id": "2ab8e914002c",
+          "name": "club-capacity-test_mysql_1",
+          "cpu_time": "15.907447s",
+          "cpu_percent": "6.34%",
+          "avg_cpu": "6.34%",
+          "mem_usage": "529.4MB / 1.468GB",
+          "mem_percent": "36.06%",
+          "net_io": "42.62MB / 68.24MB",
+          "block_io": "0B / 0B",
+          "pids": "69"
+        },
+        {
+          "id": "92dd030f0da3",
+          "name": "club-capacity-test_redis_1",
+          "cpu_time": "1.567445s",
+          "cpu_percent": "0.62%",
+          "avg_cpu": "0.62%",
+          "mem_usage": "6.574MB / 201.3MB",
+          "mem_percent": "3.27%",
+          "net_io": "9.8MB / 6.474MB",
+          "block_io": "0B / 0B",
+          "pids": "6"
+        },
+        {
+          "id": "d46e825cb93a",
+          "name": "club-capacity-test_api_1",
+          "cpu_time": "2m27.384535s",
+          "cpu_percent": "60.20%",
+          "avg_cpu": "60.20%",
+          "mem_usage": "318MB / 943.7MB",
+          "mem_percent": "33.70%",
+          "net_io": "89.66MB / 64.66MB",
+          "block_io": "0B / 0B",
+          "pids": "20"
+        },
+        {
+          "id": "6f975fe63a13",
+          "name": "club-capacity-test_worker_1",
+          "cpu_time": "3.160166s",
+          "cpu_percent": "1.29%",
+          "avg_cpu": "1.29%",
+          "mem_usage": "65.58MB / 268.4MB",
+          "mem_percent": "24.43%",
+          "net_io": "2.03MB / 2.308MB",
+          "block_io": "0B / 0B",
+          "pids": "2"
+        },
+        {
+          "id": "dd44557e0e92",
+          "name": "club-capacity-test_nginx_1",
+          "cpu_time": "2.421398s",
+          "cpu_percent": "0.99%",
+          "avg_cpu": "0.99%",
+          "mem_usage": "12.39MB / 67.11MB",
+          "mem_percent": "18.46%",
+          "net_io": "14.51MB / 16.92MB",
+          "block_io": "0B / 0B",
+          "pids": "2"
+        }
+      ],
+      "generator_cpu_percent": 37.9,
+      "generator_memory": 61.8
+    },
+    {
+      "at": "2026-09-27T13:11:28.772172+00:00",
+      "test_containers": [
+        {
+          "id": "2ab8e914002c",
+          "name": "club-capacity-test_mysql_1",
+          "cpu_time": "16.017442s",
+          "cpu_percent": "6.14%",
+          "avg_cpu": "6.14%",
+          "mem_usage": "529.6MB / 1.468GB",
+          "mem_percent": "36.07%",
+          "net_io": "42.66MB / 68.27MB",
+          "block_io": "0B / 0B",
+          "pids": "69"
+        },
+        {
+          "id": "92dd030f0da3",
+          "name": "club-capacity-test_redis_1",
+          "cpu_time": "1.587883s",
+          "cpu_percent": "0.61%",
+          "avg_cpu": "0.61%",
+          "mem_usage": "6.3MB / 201.3MB",
+          "mem_percent": "3.13%",
+          "net_io": "9.8MB / 6.474MB",
+          "block_io": "0B / 0B",
+          "pids": "6"
+        },
+        {
+          "id": "d46e825cb93a",
+          "name": "club-capacity-test_api_1",
+          "cpu_time": "2m27.416238s",
+          "cpu_percent": "57.84%",
+          "avg_cpu": "57.84%",
+          "mem_usage": "318.3MB / 943.7MB",
+          "mem_percent": "33.73%",
+          "net_io": "89.66MB / 64.66MB",
+          "block_io": "0B / 0B",
+          "pids": "20"
+        },
+        {
+          "id": "6f975fe63a13",
+          "name": "club-capacity-test_worker_1",
+          "cpu_time": "3.223049s",
+          "cpu_percent": "1.27%",
+          "avg_cpu": "1.27%",
+          "mem_usage": "65.44MB / 268.4MB",
+          "mem_percent": "24.38%",
+          "net_io": "2.066MB / 2.342MB",
+          "block_io": "0B / 0B",
+          "pids": "2"
+        },
+        {
+          "id": "dd44557e0e92",
+          "name": "club-capacity-test_nginx_1",
+          "cpu_time": "2.421398s",
+          "cpu_percent": "0.95%",
+          "avg_cpu": "0.95%",
+          "mem_usage": "12.05MB / 67.11MB",
+          "mem_percent": "17.96%",
+          "net_io": "14.51MB / 16.92MB",
+          "block_io": "0B / 0B",
+          "pids": "2"
+        }
+      ],
+      "generator_cpu_percent": 34.0,
+      "generator_memory": 62.0
+    },
+    {
+      "at": "2026-09-27T13:11:38.841284+00:00",
+      "test_containers": [
+        {
+          "id": "2ab8e914002c",
+          "name": "club-capacity-test_mysql_1",
+          "cpu_time": "16.136784s",
+          "cpu_percent": "5.95%",
+          "avg_cpu": "5.95%",
+          "mem_usage": "529.4MB / 1.468GB",
+          "mem_percent": "36.07%",
+          "net_io": "42.69MB / 68.31MB",
+          "block_io": "0B / 0B",
+          "pids": "69"
+        },
+        {
+          "id": "92dd030f0da3",
+          "name": "club-capacity-test_redis_1",
+          "cpu_time": "1.609633s",
+          "cpu_percent": "0.59%",
+          "avg_cpu": "0.59%",
+          "mem_usage": "6.771MB / 201.3MB",
+          "mem_percent": "3.36%",
+          "net_io": "9.8MB / 6.474MB",
+          "block_io": "0B / 0B",
+          "pids": "6"
+        },
+        {
+          "id": "d46e825cb93a",
+          "name": "club-capacity-test_api_1",
+          "cpu_time": "2m27.449256s",
+          "cpu_percent": "55.66%",
+          "avg_cpu": "55.66%",
+          "mem_usage": "318MB / 943.7MB",
+          "mem_percent": "33.70%",
+          "net_io": "89.66MB / 64.66MB",
+          "block_io": "0B / 0B",
+          "pids": "20"
+        },
+        {
+          "id": "6f975fe63a13",
+          "name": "club-capacity-test_worker_1",
+          "cpu_time": "3.290059s",
+          "cpu_percent": "1.24%",
+          "avg_cpu": "1.24%",
+          "mem_usage": "65.47MB / 268.4MB",
+          "mem_percent": "24.39%",
+          "net_io": "2.102MB / 2.377MB",
+          "block_io": "0B / 0B",
+          "pids": "2"
+        },
+        {
+          "id": "dd44557e0e92",
+          "name": "club-capacity-test_nginx_1",
+          "cpu_time": "2.452405s",
+          "cpu_percent": "0.93%",
+          "avg_cpu": "0.93%",
+          "mem_usage": "5.603MB / 67.11MB",
+          "mem_percent": "8.35%",
+          "net_io": "14.51MB / 16.92MB",
+          "block_io": "0B / 0B",
+          "pids": "2"
+        }
+      ],
+      "generator_cpu_percent": 42.8,
+      "generator_memory": 63.1
+    }
+  ],
+  "errors": [],
+  "login": {
+    "statuses": {
+      "200": 1500
+    },
+    "p95_s": 0.1306,
+    "duration_offered_s": 60
+  },
+  "clock_offset_estimate_seconds": 0.1549,
+  "steady_read_p95_s": 0.0116,
+  "ws_progress": {
+    "seconds": 104,
+    "open": 0,
+    "failures": 1500
+  }
+}

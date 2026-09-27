@@ -1,0 +1,25 @@
+[Unit]
+Description=Club API v2
+After=network.target mysql.service redis-server.service
+[Service]
+User=club
+Group=club
+WorkingDirectory=/srv/club/current
+EnvironmentFile=/etc/club/production.env
+Environment=PROMETHEUS_MULTIPROC_DIR=/run/club-metrics
+RuntimeDirectory=club-metrics
+ExecStartPre=/usr/bin/find /run/club-metrics -name *.db -delete
+ExecStart=/srv/club/current/.venv/bin/uvicorn club.api:app --host 127.0.0.1 --port 8001 --workers 4 --no-access-log --timeout-graceful-shutdown 20
+Restart=on-failure
+RestartSec=3
+TimeoutStopSec=30
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/srv/club/shared /run/club-metrics
+LimitNOFILE=16384
+StandardOutput=journal
+StandardError=journal
+[Install]
+WantedBy=multi-user.target

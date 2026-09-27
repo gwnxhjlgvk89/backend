@@ -1,0 +1,77 @@
+# Isolated TEST stack. No production mounts, ports or credentials.
+# Overall rootless cgroup: 4 CPUs / 3000 MiB, no swap. Per-service memory caps sum to 2940 MiB.
+name: club-capacity-test
+services:
+  mysql:
+    image: docker.io/library/mysql:8.0.45
+    environment:
+      MYSQL_DATABASE: club_test
+      MYSQL_USER: club
+      MYSQL_PASSWORD: ${TEST_DB_PASSWORD:?required}
+      MYSQL_ROOT_PASSWORD: ${TEST_ROOT_PASSWORD:?required}
+    command: ["--max-connections=150", "--innodb-buffer-pool-size=768M", "--innodb-log-buffer-size=32M", "--innodb-flush-log-at-trx-commit=1", "--sync-binlog=1"]
+    volumes: ["mysql:/var/lib/mysql"]
+    cgroup_parent: club-capacity.slice
+    mem_limit: 1400m
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "--silent"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+  redis:
+    image: docker.io/library/redis:8.6.2-alpine
+    command: ["redis-server", "--maxmemory", "128mb", "--maxmemory-policy", "noeviction", "--appendonly", "yes"]
+    volumes: ["redis:/data"]
+    cgroup_parent: club-capacity.slice
+    mem_limit: 192m
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+  api:
+    restart: unless-stopped
+    image: localhost/club-system-test:dev
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile
+    environment: &app-env
+      CLUB_ENV: test
+      DATABASE_URL: mysql+asyncmy://club:${TEST_DB_PASSWORD:?required}@mysql:3306/club_test?charset=utf8mb4
+      REDIS_URL: redis://redis:6379/0
+      JWT_SECRET: ${TEST_JWT_SECRET:?required}
+      STORAGE_DIR: /data
+      PUBLIC_URL: http://${TEST_HOST:-127.0.0.1}:18081
+      REDIS_PREFIX: club:test
+      PROMETHEUS_MULTIPROC_DIR: /metrics
+      POOL_SIZE: 15
+      POOL_OVERFLOW: 5
+    depends_on:
+      mysql: {condition: service_healthy}
+      redis: {condition: service_healthy}
+    volumes: ["files:/data"]
+    cgroup_parent: club-capacity.slice
+    mem_limit: 900m
+  worker:
+    restart: unless-stopped
+    image: localhost/club-system-test:dev
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile
+    environment: *app-env
+    command: ["python", "-m", "club.worker"]
+    depends_on:
+      mysql: {condition: service_healthy}
+      redis: {condition: service_healthy}
+    volumes: ["files:/data"]
+    cgroup_parent: club-capacity.slice
+    mem_limit: 192m
+  nginx:
+    image: docker.io/library/nginx:1.28.2-alpine
+    volumes: ["./nginx.test.conf:/etc/nginx/conf.d/default.conf:ro", "./nginx.conf:/etc/nginx/nginx.conf:ro"]
+    ports: ["${TEST_BIND:-127.0.0.1}:18081:8080"]
+    depends_on: [api]
+    cgroup_parent: club-capacity.slice
+    mem_limit: 256m
+volumes:
+  mysql:
+  redis:
+  files:

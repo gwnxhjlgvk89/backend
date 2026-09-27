@@ -1,0 +1,72 @@
+{
+  "environment": "macOS local loopback; load generator and service share hardware; NOT production capacity acceptance",
+  "users": 1500,
+  "api_workers": 2,
+  "runs": [
+    {
+      "scenario": "last_seat",
+      "round": 1,
+      "status": {
+        "409:CLUB_FULL": 1493,
+        "200:OK": 1,
+        "503:TEMPORARILY_UNAVAILABLE": 6
+      },
+      "p50_s": 1.178,
+      "p95_s": 1.969,
+      "p99_s": 2.184,
+      "success_p95_s": 0.054,
+      "server_p95_s": 1.947,
+      "dispatch_span_s": 0.999,
+      "enrollments": 1,
+      "expected": 1,
+      "quota_consistent": true,
+      "correctness_pass": true,
+      "latency_pass": true,
+      "unexpected_error_rate": 0.004,
+      "wall_s": 2.433
+    },
+    {
+      "scenario": "uniform",
+      "round": 1,
+      "status": {
+        "200:OK": 1446,
+        "503:TEMPORARILY_UNAVAILABLE": 54
+      },
+      "p50_s": 1.775,
+      "p95_s": 2.51,
+      "p99_s": 2.773,
+      "success_p95_s": 2.511,
+      "server_p95_s": 2.504,
+      "dispatch_span_s": 0.999,
+      "enrollments": 1446,
+      "expected": 1500,
+      "quota_consistent": true,
+      "correctness_pass": false,
+      "latency_pass": false,
+      "unexpected_error_rate": 0.036,
+      "wall_s": 3.153
+    },
+    {
+      "scenario": "hot_club",
+      "round": 1,
+      "status": {
+        "200:OK": 1235,
+        "503:TEMPORARILY_UNAVAILABLE": 265
+      },
+      "p50_s": 2.403,
+      "p95_s": 3.388,
+      "p99_s": 3.511,
+      "success_p95_s": 3.42,
+      "server_p95_s": 3.387,
+      "dispatch_span_s": 0.999,
+      "enrollments": 1235,
+      "expected": 1500,
+      "quota_consistent": true,
+      "correctness_pass": false,
+      "latency_pass": false,
+      "unexpected_error_rate": 0.17666666666666667,
+      "wall_s": 4.432
+    }
+  ],
+  "steady_read_p95_s": 0.005
+}

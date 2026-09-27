@@ -1,0 +1,197 @@
+{
+  "environment": "macOS local loopback; load generator and service share hardware; NOT production capacity acceptance",
+  "users": 1500,
+  "api_workers": 2,
+  "runs": [
+    {
+      "scenario": "last_seat",
+      "round": 1,
+      "status": {
+        "409:CLUB_FULL": 1499,
+        "200:OK": 1
+      },
+      "p50_s": 0.863,
+      "p95_s": 1.553,
+      "p99_s": 1.733,
+      "success_p95_s": 0.023,
+      "server_p95_s": 1.541,
+      "dispatch_span_s": 0.999,
+      "enrollments": 1,
+      "expected": 1,
+      "quota_consistent": true,
+      "correctness_pass": true,
+      "latency_pass": true,
+      "unexpected_error_rate": 0.0,
+      "wall_s": 1.984
+    },
+    {
+      "scenario": "last_seat",
+      "round": 2,
+      "status": {
+        "200:OK": 1,
+        "409:CLUB_FULL": 1499
+      },
+      "p50_s": 0.818,
+      "p95_s": 1.38,
+      "p99_s": 1.498,
+      "success_p95_s": 0.019,
+      "server_p95_s": 1.369,
+      "dispatch_span_s": 0.999,
+      "enrollments": 1,
+      "expected": 1,
+      "quota_consistent": true,
+      "correctness_pass": true,
+      "latency_pass": true,
+      "unexpected_error_rate": 0.0,
+      "wall_s": 1.819
+    },
+    {
+      "scenario": "last_seat",
+      "round": 3,
+      "status": {
+        "200:OK": 1,
+        "409:CLUB_FULL": 1499
+      },
+      "p50_s": 0.884,
+      "p95_s": 1.377,
+      "p99_s": 1.542,
+      "success_p95_s": 0.017,
+      "server_p95_s": 1.374,
+      "dispatch_span_s": 0.999,
+      "enrollments": 1,
+      "expected": 1,
+      "quota_consistent": true,
+      "correctness_pass": true,
+      "latency_pass": true,
+      "unexpected_error_rate": 0.0,
+      "wall_s": 1.94
+    },
+    {
+      "scenario": "uniform",
+      "round": 1,
+      "status": {
+        "200:OK": 1467,
+        "503:TEMPORARILY_UNAVAILABLE": 33
+      },
+      "p50_s": 1.086,
+      "p95_s": 2.215,
+      "p99_s": 2.46,
+      "success_p95_s": 2.137,
+      "server_p95_s": 2.187,
+      "dispatch_span_s": 1.0,
+      "enrollments": 1467,
+      "expected": 1500,
+      "quota_consistent": true,
+      "correctness_pass": false,
+      "latency_pass": false,
+      "unexpected_error_rate": 0.022,
+      "wall_s": 2.961
+    },
+    {
+      "scenario": "uniform",
+      "round": 2,
+      "status": {
+        "200:OK": 1366,
+        "503:TEMPORARILY_UNAVAILABLE": 134
+      },
+      "p50_s": 1.481,
+      "p95_s": 2.41,
+      "p99_s": 2.819,
+      "success_p95_s": 2.41,
+      "server_p95_s": 2.325,
+      "dispatch_span_s": 0.999,
+      "enrollments": 1366,
+      "expected": 1500,
+      "quota_consistent": true,
+      "correctness_pass": false,
+      "latency_pass": false,
+      "unexpected_error_rate": 0.08933333333333333,
+      "wall_s": 3.512
+    },
+    {
+      "scenario": "uniform",
+      "round": 3,
+      "status": {
+        "200:OK": 1168,
+        "503:TEMPORARILY_UNAVAILABLE": 332
+      },
+      "p50_s": 2.976,
+      "p95_s": 3.534,
+      "p99_s": 3.628,
+      "success_p95_s": 3.418,
+      "server_p95_s": 3.465,
+      "dispatch_span_s": 1.15,
+      "enrollments": 1168,
+      "expected": 1500,
+      "quota_consistent": true,
+      "correctness_pass": false,
+      "latency_pass": false,
+      "unexpected_error_rate": 0.22133333333333333,
+      "wall_s": 4.533
+    },
+    {
+      "scenario": "hot_club",
+      "round": 1,
+      "status": {
+        "200:OK": 651,
+        "503:TEMPORARILY_UNAVAILABLE": 849
+      },
+      "p50_s": 2.01,
+      "p95_s": 2.145,
+      "p99_s": 2.225,
+      "success_p95_s": 2.199,
+      "server_p95_s": 2.126,
+      "dispatch_span_s": 0.999,
+      "enrollments": 651,
+      "expected": 1500,
+      "quota_consistent": true,
+      "correctness_pass": false,
+      "latency_pass": false,
+      "unexpected_error_rate": 0.566,
+      "wall_s": 3.182
+    },
+    {
+      "scenario": "hot_club",
+      "round": 2,
+      "status": {
+        "200:OK": 615,
+        "503:TEMPORARILY_UNAVAILABLE": 885
+      },
+      "p50_s": 2.028,
+      "p95_s": 2.154,
+      "p99_s": 2.256,
+      "success_p95_s": 2.222,
+      "server_p95_s": 2.148,
+      "dispatch_span_s": 0.999,
+      "enrollments": 615,
+      "expected": 1500,
+      "quota_consistent": true,
+      "correctness_pass": false,
+      "latency_pass": false,
+      "unexpected_error_rate": 0.59,
+      "wall_s": 3.16
+    },
+    {
+      "scenario": "hot_club",
+      "round": 3,
+      "status": {
+        "200:OK": 567,
+        "503:TEMPORARILY_UNAVAILABLE": 933
+      },
+      "p50_s": 2.21,
+      "p95_s": 2.535,
+      "p99_s": 2.607,
+      "success_p95_s": 2.507,
+      "server_p95_s": 2.443,
+      "dispatch_span_s": 0.999,
+      "enrollments": 567,
+      "expected": 1500,
+      "quota_consistent": true,
+      "correctness_pass": false,
+      "latency_pass": false,
+      "unexpected_error_rate": 0.622,
+      "wall_s": 3.433
+    }
+  ],
+  "steady_read_p95_s": 0.013
+}
