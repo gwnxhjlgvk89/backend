@@ -41,3 +41,5 @@ cp .env.example .env
 交付状态见 [docs/DELIVERY.md](docs/DELIVERY.md)，隔离Linux环境见 [deploy/README.md](deploy/README.md)。28项后端回归已通过；容量结论以最终报告为准，真机验收由用户要求暂缓。
 
 管理员说明：[docs/ADMIN.md](docs/ADMIN.md)；接口：[docs/API.md](docs/API.md)；迁移与回滚：[docs/OPERATIONS.md](docs/OPERATIONS.md)。
+
+最新现有环境实测结论、通过项及未达标项：[容量验收摘要](docs/CURRENT_ACCEPTANCE.md)。本项目尚未完成生产容量验收。

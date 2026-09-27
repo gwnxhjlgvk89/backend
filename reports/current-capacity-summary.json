@@ -1,0 +1,1207 @@
+[
+  {
+    "file": "corrected-login-16cpu-p3-50mbps.json",
+    "report_sha256": "b6d88b72d900e62d2bcdfae114d6aaf19d6db9e53fb7054b0499ec1e4fc495c0",
+    "application_sha256": "f3247b5699a3337a03ad6440fcbbbfd2e7b8e78e354aa3e7937ab450b15909fc",
+    "driver_sha256": "f9f261194a9877eeaa5e1344132d7e8eda495aabe1b1feb8ce7a271a79926be3",
+    "cpu_quota": 16,
+    "egress_mbps": 50.0,
+    "runtime": {
+      "password_concurrency": 3,
+      "pool_size": 15,
+      "pool_overflow": 3,
+      "read_pool_size": 4,
+      "argon2id": {
+        "memory_kib": 7168,
+        "passes": 5,
+        "parallelism": 1
+      }
+    },
+    "api_command": [
+      "uvicorn",
+      "club.api:app",
+      "--host",
+      "0.0.0.0",
+      "--port",
+      "8000",
+      "--workers",
+      "4",
+      "--no-access-log"
+    ],
+    "users": 1500,
+    "mode": "login",
+    "scenario": "uniform",
+    "hold_seconds": 30,
+    "evidence_gates": {
+      "explicitly_completed": true,
+      "requested_rounds_present": true,
+      "no_driver_errors": true,
+      "tls_verified": true,
+      "egress_was_used": true,
+      "egress_restored": true,
+      "no_oom": true
+    },
+    "peak_pod_memory_mib": 1561.4,
+    "rounds": [
+      {
+        "round": 1,
+        "completed": 1500,
+        "login_p95_s": 4.216,
+        "enrollment_p95_s": 1.5348,
+        "enrollment_p99_s": 1.7292,
+        "notification_p95_s": 1.561,
+        "steady_p95_s": 0.0708,
+        "failed_original_scope_gates": [
+          "login_p95_4s"
+        ],
+        "failed_current_scope_gates": [
+          "login_p95_4s"
+        ],
+        "measured_scope_pass": false
+      },
+      {
+        "round": 2,
+        "completed": 1500,
+        "login_p95_s": 4.1301,
+        "enrollment_p95_s": 1.5543,
+        "enrollment_p99_s": 1.8143,
+        "notification_p95_s": 1.5031,
+        "steady_p95_s": 0.1079,
+        "failed_original_scope_gates": [
+          "login_p95_4s"
+        ],
+        "failed_current_scope_gates": [
+          "login_p95_4s"
+        ],
+        "measured_scope_pass": false
+      },
+      {
+        "round": 3,
+        "completed": 1500,
+        "login_p95_s": 4.2202,
+        "enrollment_p95_s": 1.5382,
+        "enrollment_p99_s": 1.726,
+        "notification_p95_s": 1.5911,
+        "steady_p95_s": 0.0796,
+        "failed_original_scope_gates": [
+          "login_p95_4s"
+        ],
+        "failed_current_scope_gates": [
+          "login_p95_4s"
+        ],
+        "measured_scope_pass": false
+      }
+    ],
+    "production_capacity_verified": false,
+    "hardware_equivalence_verified": false,
+    "note": "Each scope is partial; cold login, ready uniform/hot/last-seat, mixed, reconnect require three consecutive rounds at one configuration plus 600s active stability. No cloud-core equivalence inferred."
+  },
+  {
+    "file": "upper-login-24cpu-p3-50mbps.json",
+    "report_sha256": "a491d02078848e510a392f7cc62a259df5bbda1e39390827b9805a6a91d6fd2c",
+    "application_sha256": "f3247b5699a3337a03ad6440fcbbbfd2e7b8e78e354aa3e7937ab450b15909fc",
+    "driver_sha256": "14104cc57828e3504212859897bd4460df05c8626e284cadc4d8d8228e0c1602",
+    "cpu_quota": 24,
+    "egress_mbps": 50.0,
+    "runtime": {
+      "password_concurrency": 3,
+      "pool_size": 15,
+      "pool_overflow": 3,
+      "read_pool_size": 4,
+      "argon2id": {
+        "memory_kib": 7168,
+        "passes": 5,
+        "parallelism": 1
+      }
+    },
+    "api_command": [
+      "uvicorn",
+      "club.api:app",
+      "--host",
+      "0.0.0.0",
+      "--port",
+      "8000",
+      "--workers",
+      "4",
+      "--no-access-log"
+    ],
+    "users": 1500,
+    "mode": "login",
+    "scenario": "uniform",
+    "hold_seconds": 30,
+    "evidence_gates": {
+      "explicitly_completed": true,
+      "requested_rounds_present": true,
+      "no_driver_errors": true,
+      "tls_verified": true,
+      "egress_was_used": true,
+      "egress_restored": true,
+      "no_oom": true
+    },
+    "peak_pod_memory_mib": 2075.9,
+    "rounds": [
+      {
+        "round": 1,
+        "completed": 1500,
+        "login_p95_s": 4.1054,
+        "enrollment_p95_s": 1.5403,
+        "enrollment_p99_s": 1.6813,
+        "notification_p95_s": 1.1964,
+        "steady_p95_s": 0.0787,
+        "failed_original_scope_gates": [
+          "login_p95_4s"
+        ],
+        "failed_current_scope_gates": [
+          "login_p95_4s"
+        ],
+        "measured_scope_pass": false
+      },
+      {
+        "round": 2,
+        "completed": 1500,
+        "login_p95_s": 4.152,
+        "enrollment_p95_s": 1.518,
+        "enrollment_p99_s": 1.7912,
+        "notification_p95_s": 1.5281,
+        "steady_p95_s": 0.0821,
+        "failed_original_scope_gates": [
+          "login_p95_4s"
+        ],
+        "failed_current_scope_gates": [
+          "login_p95_4s"
+        ],
+        "measured_scope_pass": false
+      },
+      {
+        "round": 3,
+        "completed": 1500,
+        "login_p95_s": 4.1528,
+        "enrollment_p95_s": 1.5358,
+        "enrollment_p99_s": 1.7136,
+        "notification_p95_s": 0.7676,
+        "steady_p95_s": 0.0728,
+        "failed_original_scope_gates": [
+          "login_p95_4s"
+        ],
+        "failed_current_scope_gates": [
+          "login_p95_4s"
+        ],
+        "measured_scope_pass": false
+      }
+    ],
+    "production_capacity_verified": false,
+    "hardware_equivalence_verified": false,
+    "note": "Each scope is partial; cold login, ready uniform/hot/last-seat, mixed, reconnect require three consecutive rounds at one configuration plus 600s active stability. No cloud-core equivalence inferred."
+  },
+  {
+    "file": "frozen-ready-uniform-16cpu-p3-50mbps.json",
+    "report_sha256": "9f31f55a2ca71b191ba5bc5b83095ac56be473c7c6ef917a6d100090fa19cbb5",
+    "application_sha256": "f3247b5699a3337a03ad6440fcbbbfd2e7b8e78e354aa3e7937ab450b15909fc",
+    "driver_sha256": "b5c9678315fe90ec1869d1d13fe99a9eed4abb20676cd50b9e40f65306f86084",
+    "cpu_quota": 16,
+    "egress_mbps": 50.0,
+    "runtime": {
+      "password_concurrency": 3,
+      "pool_size": 15,
+      "pool_overflow": 3,
+      "read_pool_size": 4,
+      "argon2id": {
+        "memory_kib": 7168,
+        "passes": 5,
+        "parallelism": 1
+      }
+    },
+    "api_command": [
+      "uvicorn",
+      "club.api:app",
+      "--host",
+      "0.0.0.0",
+      "--port",
+      "8000",
+      "--workers",
+      "4",
+      "--no-access-log"
+    ],
+    "users": 1500,
+    "mode": "ready",
+    "scenario": "uniform",
+    "hold_seconds": 30,
+    "evidence_gates": {
+      "explicitly_completed": true,
+      "requested_rounds_present": true,
+      "no_driver_errors": true,
+      "tls_verified": true,
+      "egress_was_used": true,
+      "egress_restored": true,
+      "no_oom": true
+    },
+    "peak_pod_memory_mib": 1625.2,
+    "rounds": [
+      {
+        "round": 1,
+        "completed": 1500,
+        "login_p95_s": null,
+        "enrollment_p95_s": 1.6659,
+        "enrollment_p99_s": 1.7708,
+        "notification_p95_s": 1.3413,
+        "steady_p95_s": 0.1044,
+        "failed_original_scope_gates": [],
+        "failed_current_scope_gates": [],
+        "measured_scope_pass": true
+      },
+      {
+        "round": 2,
+        "completed": 1500,
+        "login_p95_s": null,
+        "enrollment_p95_s": 1.4335,
+        "enrollment_p99_s": 1.66,
+        "notification_p95_s": 0.8433,
+        "steady_p95_s": 0.0965,
+        "failed_original_scope_gates": [],
+        "failed_current_scope_gates": [],
+        "measured_scope_pass": true
+      },
+      {
+        "round": 3,
+        "completed": 1500,
+        "login_p95_s": null,
+        "enrollment_p95_s": 1.6396,
+        "enrollment_p99_s": 1.8017,
+        "notification_p95_s": 1.3985,
+        "steady_p95_s": 0.0967,
+        "failed_original_scope_gates": [],
+        "failed_current_scope_gates": [],
+        "measured_scope_pass": true
+      }
+    ],
+    "production_capacity_verified": false,
+    "hardware_equivalence_verified": false,
+    "note": "Each scope is partial; cold login, ready uniform/hot/last-seat, mixed, reconnect require three consecutive rounds at one configuration plus 600s active stability. No cloud-core equivalence inferred."
+  },
+  {
+    "file": "frozen-ready-hot-16cpu-p3-50mbps.json",
+    "report_sha256": "111c826ec33c0c58f3d96487c83f1e5d0c4928fef837e8449e124c4526512e81",
+    "application_sha256": "f3247b5699a3337a03ad6440fcbbbfd2e7b8e78e354aa3e7937ab450b15909fc",
+    "driver_sha256": "fa249a331275d39ebc89ecd66e8ecaa2cb92be93e7f63c692498708bf74cedcd",
+    "cpu_quota": 16,
+    "egress_mbps": 50.0,
+    "runtime": {
+      "password_concurrency": 3,
+      "pool_size": 15,
+      "pool_overflow": 3,
+      "read_pool_size": 4,
+      "argon2id": {
+        "memory_kib": 7168,
+        "passes": 5,
+        "parallelism": 1
+      }
+    },
+    "api_command": [
+      "uvicorn",
+      "club.api:app",
+      "--host",
+      "0.0.0.0",
+      "--port",
+      "8000",
+      "--workers",
+      "4",
+      "--no-access-log"
+    ],
+    "users": 1500,
+    "mode": "ready",
+    "scenario": "hot_club",
+    "hold_seconds": 30,
+    "evidence_gates": {
+      "explicitly_completed": true,
+      "requested_rounds_present": true,
+      "no_driver_errors": true,
+      "tls_verified": true,
+      "egress_was_used": true,
+      "egress_restored": true,
+      "no_oom": true
+    },
+    "peak_pod_memory_mib": 1625.2,
+    "rounds": [
+      {
+        "round": 1,
+        "completed": 1500,
+        "login_p95_s": null,
+        "enrollment_p95_s": 1.0366,
+        "enrollment_p99_s": 1.0579,
+        "notification_p95_s": 0.9209,
+        "steady_p95_s": 0.0286,
+        "failed_original_scope_gates": [],
+        "failed_current_scope_gates": [],
+        "measured_scope_pass": true
+      },
+      {
+        "round": 2,
+        "completed": 1500,
+        "login_p95_s": null,
+        "enrollment_p95_s": 0.9716,
+        "enrollment_p99_s": 1.1905,
+        "notification_p95_s": 0.9536,
+        "steady_p95_s": 0.0205,
+        "failed_original_scope_gates": [],
+        "failed_current_scope_gates": [],
+        "measured_scope_pass": true
+      },
+      {
+        "round": 3,
+        "completed": 1500,
+        "login_p95_s": null,
+        "enrollment_p95_s": 0.9975,
+        "enrollment_p99_s": 1.2281,
+        "notification_p95_s": 0.7441,
+        "steady_p95_s": 0.0316,
+        "failed_original_scope_gates": [],
+        "failed_current_scope_gates": [],
+        "measured_scope_pass": true
+      }
+    ],
+    "production_capacity_verified": false,
+    "hardware_equivalence_verified": false,
+    "note": "Each scope is partial; cold login, ready uniform/hot/last-seat, mixed, reconnect require three consecutive rounds at one configuration plus 600s active stability. No cloud-core equivalence inferred."
+  },
+  {
+    "file": "frozen-ready-last-16cpu-p3-50mbps.json",
+    "report_sha256": "c8ee894d4e7b707e4ba5315b20b29e3dda84924fc1d172f0b5c68568a2b42df4",
+    "application_sha256": "f3247b5699a3337a03ad6440fcbbbfd2e7b8e78e354aa3e7937ab450b15909fc",
+    "driver_sha256": "fa249a331275d39ebc89ecd66e8ecaa2cb92be93e7f63c692498708bf74cedcd",
+    "cpu_quota": 16,
+    "egress_mbps": 50.0,
+    "runtime": {
+      "password_concurrency": 3,
+      "pool_size": 15,
+      "pool_overflow": 3,
+      "read_pool_size": 4,
+      "argon2id": {
+        "memory_kib": 7168,
+        "passes": 5,
+        "parallelism": 1
+      }
+    },
+    "api_command": [
+      "uvicorn",
+      "club.api:app",
+      "--host",
+      "0.0.0.0",
+      "--port",
+      "8000",
+      "--workers",
+      "4",
+      "--no-access-log"
+    ],
+    "users": 1500,
+    "mode": "ready",
+    "scenario": "last_seat",
+    "hold_seconds": 30,
+    "evidence_gates": {
+      "explicitly_completed": true,
+      "requested_rounds_present": true,
+      "no_driver_errors": true,
+      "tls_verified": true,
+      "egress_was_used": true,
+      "egress_restored": true,
+      "no_oom": true
+    },
+    "peak_pod_memory_mib": 1625.2,
+    "rounds": [
+      {
+        "round": 1,
+        "completed": 1500,
+        "login_p95_s": null,
+        "enrollment_p95_s": 0.7787,
+        "enrollment_p99_s": 1.0105,
+        "notification_p95_s": 0.5965,
+        "steady_p95_s": 0.0203,
+        "failed_original_scope_gates": [],
+        "failed_current_scope_gates": [],
+        "measured_scope_pass": true
+      },
+      {
+        "round": 2,
+        "completed": 1500,
+        "login_p95_s": null,
+        "enrollment_p95_s": 0.6387,
+        "enrollment_p99_s": 0.8284,
+        "notification_p95_s": 1.4544,
+        "steady_p95_s": 0.0265,
+        "failed_original_scope_gates": [],
+        "failed_current_scope_gates": [],
+        "measured_scope_pass": true
+      },
+      {
+        "round": 3,
+        "completed": 1500,
+        "login_p95_s": null,
+        "enrollment_p95_s": 0.5864,
+        "enrollment_p99_s": 0.8161,
+        "notification_p95_s": 1.0936,
+        "steady_p95_s": 0.0215,
+        "failed_original_scope_gates": [],
+        "failed_current_scope_gates": [],
+        "measured_scope_pass": true
+      }
+    ],
+    "production_capacity_verified": false,
+    "hardware_equivalence_verified": false,
+    "note": "Each scope is partial; cold login, ready uniform/hot/last-seat, mixed, reconnect require three consecutive rounds at one configuration plus 600s active stability. No cloud-core equivalence inferred."
+  },
+  {
+    "file": "corrected-reconnect-16cpu-p3-50mbps.json",
+    "report_sha256": "56e7a7e60876bd8bcaf3f45805ca268726a930b41fd88856b42ff5ccb189e7f2",
+    "application_sha256": "f3247b5699a3337a03ad6440fcbbbfd2e7b8e78e354aa3e7937ab450b15909fc",
+    "driver_sha256": "71e3b592cdc3922ff072d37421ac1970bea12cab3d8444a7a9bf3c0f9b0dab3c",
+    "cpu_quota": 16,
+    "egress_mbps": 50.0,
+    "runtime": {
+      "password_concurrency": 3,
+      "pool_size": 15,
+      "pool_overflow": 3,
+      "read_pool_size": 4,
+      "argon2id": {
+        "memory_kib": 7168,
+        "passes": 5,
+        "parallelism": 1
+      }
+    },
+    "api_command": [
+      "uvicorn",
+      "club.api:app",
+      "--host",
+      "0.0.0.0",
+      "--port",
+      "8000",
+      "--workers",
+      "4",
+      "--no-access-log"
+    ],
+    "users": 1500,
+    "mode": "reconnect",
+    "scenario": "uniform",
+    "hold_seconds": 30,
+    "evidence_gates": {
+      "explicitly_completed": true,
+      "requested_rounds_present": true,
+      "no_driver_errors": true,
+      "tls_verified": true,
+      "egress_was_used": true,
+      "egress_restored": true,
+      "no_oom": true
+    },
+    "peak_pod_memory_mib": 1772.0,
+    "rounds": [
+      {
+        "round": 1,
+        "completed": 1500,
+        "login_p95_s": null,
+        "enrollment_p95_s": 1.2952,
+        "enrollment_p99_s": 1.5873,
+        "notification_p95_s": 1.5967,
+        "steady_p95_s": 0.0216,
+        "failed_original_scope_gates": [
+          "interactive_reads_p95_3s"
+        ],
+        "failed_current_scope_gates": [
+          "interactive_reads_p95_3s"
+        ],
+        "measured_scope_pass": false
+      },
+      {
+        "round": 2,
+        "completed": 1500,
+        "login_p95_s": null,
+        "enrollment_p95_s": 1.6689,
+        "enrollment_p99_s": 1.7642,
+        "notification_p95_s": 1.2338,
+        "steady_p95_s": 0.0246,
+        "failed_original_scope_gates": [],
+        "failed_current_scope_gates": [],
+        "measured_scope_pass": true
+      },
+      {
+        "round": 3,
+        "completed": 1500,
+        "login_p95_s": null,
+        "enrollment_p95_s": 1.2104,
+        "enrollment_p99_s": 1.5181,
+        "notification_p95_s": 1.5669,
+        "steady_p95_s": 0.024,
+        "failed_original_scope_gates": [],
+        "failed_current_scope_gates": [],
+        "measured_scope_pass": true
+      }
+    ],
+    "production_capacity_verified": false,
+    "hardware_equivalence_verified": false,
+    "note": "Each scope is partial; cold login, ready uniform/hot/last-seat, mixed, reconnect require three consecutive rounds at one configuration plus 600s active stability. No cloud-core equivalence inferred."
+  },
+  {
+    "file": "corrected-mixed-16cpu-p3-50mbps.json",
+    "report_sha256": "3afce65f49154c3de12d5193867be82ab98abc4b9ea8f02ab9def02224fc010d",
+    "application_sha256": "f3247b5699a3337a03ad6440fcbbbfd2e7b8e78e354aa3e7937ab450b15909fc",
+    "driver_sha256": "71e3b592cdc3922ff072d37421ac1970bea12cab3d8444a7a9bf3c0f9b0dab3c",
+    "cpu_quota": 16,
+    "egress_mbps": 50.0,
+    "runtime": {
+      "password_concurrency": 3,
+      "pool_size": 15,
+      "pool_overflow": 3,
+      "read_pool_size": 4,
+      "argon2id": {
+        "memory_kib": 7168,
+        "passes": 5,
+        "parallelism": 1
+      }
+    },
+    "api_command": [
+      "uvicorn",
+      "club.api:app",
+      "--host",
+      "0.0.0.0",
+      "--port",
+      "8000",
+      "--workers",
+      "4",
+      "--no-access-log"
+    ],
+    "users": 1500,
+    "mode": "mixed",
+    "scenario": "uniform",
+    "hold_seconds": 30,
+    "evidence_gates": {
+      "explicitly_completed": true,
+      "requested_rounds_present": true,
+      "no_driver_errors": true,
+      "tls_verified": true,
+      "egress_was_used": true,
+      "egress_restored": true,
+      "no_oom": true
+    },
+    "peak_pod_memory_mib": 1772.0,
+    "rounds": [
+      {
+        "round": 1,
+        "completed": 1500,
+        "login_p95_s": 1.4189,
+        "enrollment_p95_s": 1.3926,
+        "enrollment_p99_s": 1.6227,
+        "notification_p95_s": 0.7403,
+        "steady_p95_s": 0.0201,
+        "failed_original_scope_gates": [],
+        "failed_current_scope_gates": [],
+        "measured_scope_pass": true
+      },
+      {
+        "round": 2,
+        "completed": 1500,
+        "login_p95_s": 0.7589,
+        "enrollment_p95_s": 1.3856,
+        "enrollment_p99_s": 1.4353,
+        "notification_p95_s": 1.495,
+        "steady_p95_s": 0.0206,
+        "failed_original_scope_gates": [],
+        "failed_current_scope_gates": [],
+        "measured_scope_pass": true
+      },
+      {
+        "round": 3,
+        "completed": 1500,
+        "login_p95_s": 0.835,
+        "enrollment_p95_s": 1.5133,
+        "enrollment_p99_s": 1.9066,
+        "notification_p95_s": 1.5659,
+        "steady_p95_s": 0.0221,
+        "failed_original_scope_gates": [],
+        "failed_current_scope_gates": [],
+        "measured_scope_pass": true
+      }
+    ],
+    "production_capacity_verified": false,
+    "hardware_equivalence_verified": false,
+    "note": "Each scope is partial; cold login, ready uniform/hot/last-seat, mixed, reconnect require three consecutive rounds at one configuration plus 600s active stability. No cloud-core equivalence inferred."
+  },
+  {
+    "file": "frozen-mixed-600s-16cpu-p3-50mbps.json",
+    "report_sha256": "88f27f9e3a94c619b1c0ceedf3f02e608c0cc98132c13215630307c60ee851fc",
+    "application_sha256": "f3247b5699a3337a03ad6440fcbbbfd2e7b8e78e354aa3e7937ab450b15909fc",
+    "driver_sha256": "2a25b0fe1379a1202aaf91a5db673750d3bb9e60c8aa1bf8bb8f9de32f08ca72",
+    "cpu_quota": 16,
+    "egress_mbps": 50.0,
+    "runtime": {
+      "password_concurrency": 3,
+      "pool_size": 15,
+      "pool_overflow": 3,
+      "read_pool_size": 4,
+      "argon2id": {
+        "memory_kib": 7168,
+        "passes": 5,
+        "parallelism": 1
+      }
+    },
+    "api_command": [
+      "uvicorn",
+      "club.api:app",
+      "--host",
+      "0.0.0.0",
+      "--port",
+      "8000",
+      "--workers",
+      "4",
+      "--no-access-log"
+    ],
+    "users": 1500,
+    "mode": "mixed",
+    "scenario": "uniform",
+    "hold_seconds": 600,
+    "evidence_gates": {
+      "explicitly_completed": true,
+      "requested_rounds_present": true,
+      "no_driver_errors": true,
+      "tls_verified": true,
+      "egress_was_used": true,
+      "egress_restored": true,
+      "no_oom": true
+    },
+    "peak_pod_memory_mib": 1727.1,
+    "rounds": [
+      {
+        "round": 1,
+        "completed": 1500,
+        "login_p95_s": 1.6916,
+        "enrollment_p95_s": 1.5499,
+        "enrollment_p99_s": 1.7519,
+        "notification_p95_s": 0.827,
+        "steady_p95_s": 0.0252,
+        "failed_original_scope_gates": [],
+        "failed_current_scope_gates": [],
+        "measured_scope_pass": true
+      }
+    ],
+    "production_capacity_verified": false,
+    "hardware_equivalence_verified": false,
+    "note": "Each scope is partial; cold login, ready uniform/hot/last-seat, mixed, reconnect require three consecutive rounds at one configuration plus 600s active stability. No cloud-core equivalence inferred."
+  },
+  {
+    "file": "first-login-16cpu-p3-50mbps.json",
+    "report_sha256": "faf59d2af9aa20219ee39242e890ef9162f249575b19a548f6f23c4c142fbc63",
+    "application_sha256": "f3247b5699a3337a03ad6440fcbbbfd2e7b8e78e354aa3e7937ab450b15909fc",
+    "driver_sha256": "14104cc57828e3504212859897bd4460df05c8626e284cadc4d8d8228e0c1602",
+    "cpu_quota": 16,
+    "egress_mbps": 50.0,
+    "runtime": {
+      "password_concurrency": 3,
+      "pool_size": 15,
+      "pool_overflow": 3,
+      "read_pool_size": 4,
+      "argon2id": {
+        "memory_kib": 7168,
+        "passes": 5,
+        "parallelism": 1
+      }
+    },
+    "api_command": [
+      "uvicorn",
+      "club.api:app",
+      "--host",
+      "0.0.0.0",
+      "--port",
+      "8000",
+      "--workers",
+      "4",
+      "--no-access-log"
+    ],
+    "users": 1500,
+    "mode": "login",
+    "scenario": "uniform",
+    "hold_seconds": 45,
+    "evidence_gates": {
+      "explicitly_completed": true,
+      "requested_rounds_present": true,
+      "no_driver_errors": true,
+      "tls_verified": true,
+      "egress_was_used": true,
+      "egress_restored": true,
+      "no_oom": true
+    },
+    "peak_pod_memory_mib": 2075.9,
+    "rounds": [
+      {
+        "round": 1,
+        "completed": 1500,
+        "login_p95_s": 5.2539,
+        "enrollment_p95_s": 0.2703,
+        "enrollment_p99_s": 0.3609,
+        "notification_p95_s": 1.1778,
+        "steady_p95_s": 0.0359,
+        "failed_original_scope_gates": [
+          "login_p95_4s"
+        ],
+        "failed_current_scope_gates": [
+          "login_p95_4s"
+        ],
+        "measured_scope_pass": false
+      }
+    ],
+    "production_capacity_verified": false,
+    "hardware_equivalence_verified": false,
+    "note": "Each scope is partial; cold login, ready uniform/hot/last-seat, mixed, reconnect require three consecutive rounds at one configuration plus 600s active stability. No cloud-core equivalence inferred."
+  },
+  {
+    "file": "frozen-overload-ready-16cpu-p3-50mbps.json",
+    "report_sha256": "812ce3cee1bd26d36236975600bcdad11fca627d892c9e752ee775c56ba942be",
+    "application_sha256": "f3247b5699a3337a03ad6440fcbbbfd2e7b8e78e354aa3e7937ab450b15909fc",
+    "driver_sha256": "2a25b0fe1379a1202aaf91a5db673750d3bb9e60c8aa1bf8bb8f9de32f08ca72",
+    "cpu_quota": 16,
+    "egress_mbps": 50.0,
+    "runtime": {
+      "password_concurrency": 3,
+      "pool_size": 15,
+      "pool_overflow": 3,
+      "read_pool_size": 4,
+      "argon2id": {
+        "memory_kib": 7168,
+        "passes": 5,
+        "parallelism": 1
+      }
+    },
+    "api_command": [
+      "uvicorn",
+      "club.api:app",
+      "--host",
+      "0.0.0.0",
+      "--port",
+      "8000",
+      "--workers",
+      "4",
+      "--no-access-log"
+    ],
+    "users": 3000,
+    "mode": "ready",
+    "scenario": "uniform",
+    "hold_seconds": 45,
+    "evidence_gates": {
+      "explicitly_completed": true,
+      "requested_rounds_present": true,
+      "no_driver_errors": true,
+      "tls_verified": true,
+      "egress_was_used": true,
+      "egress_restored": true,
+      "no_oom": false
+    },
+    "peak_pod_memory_mib": 2080.6,
+    "rounds": [
+      {
+        "round": 1,
+        "completed": 2979,
+        "login_p95_s": null,
+        "enrollment_p95_s": 2.8946,
+        "enrollment_p99_s": 4.7715,
+        "notification_p95_s": 1.0589,
+        "steady_p95_s": 0.041,
+        "failed_original_scope_gates": [
+          "all_students_completed",
+          "data_correct",
+          "all_final_quota_snapshots_current",
+          "all_websockets_online",
+          "no_unexpected_ws_close",
+          "ready_enrollment_burst_within_1s",
+          "interactive_reads_p95_3s",
+          "unexpected_errors_under_0_1_percent"
+        ],
+        "failed_current_scope_gates": [
+          "all_students_completed",
+          "data_correct",
+          "all_final_quota_snapshots_current",
+          "all_websockets_online",
+          "no_unexpected_ws_close",
+          "ready_enrollment_burst_within_1s",
+          "interactive_reads_p95_3s",
+          "unexpected_errors_under_0_1_percent"
+        ],
+        "measured_scope_pass": false
+      }
+    ],
+    "production_capacity_verified": false,
+    "hardware_equivalence_verified": false,
+    "note": "Each scope is partial; cold login, ready uniform/hot/last-seat, mixed, reconnect require three consecutive rounds at one configuration plus 600s active stability. No cloud-core equivalence inferred."
+  },
+  {
+    "file": "frozen-recovery-16cpu-p3-50mbps.json",
+    "report_sha256": "830ca98e146589bdbd7e4556bf17f97f4d3972a8773170d340704de163d7fcff",
+    "application_sha256": "f3247b5699a3337a03ad6440fcbbbfd2e7b8e78e354aa3e7937ab450b15909fc",
+    "driver_sha256": "2a25b0fe1379a1202aaf91a5db673750d3bb9e60c8aa1bf8bb8f9de32f08ca72",
+    "cpu_quota": 16,
+    "egress_mbps": 50.0,
+    "runtime": {
+      "password_concurrency": 3,
+      "pool_size": 15,
+      "pool_overflow": 3,
+      "read_pool_size": 4,
+      "argon2id": {
+        "memory_kib": 7168,
+        "passes": 5,
+        "parallelism": 1
+      }
+    },
+    "api_command": [
+      "uvicorn",
+      "club.api:app",
+      "--host",
+      "0.0.0.0",
+      "--port",
+      "8000",
+      "--workers",
+      "4",
+      "--no-access-log"
+    ],
+    "users": 1500,
+    "mode": "ready",
+    "scenario": "uniform",
+    "hold_seconds": 30,
+    "evidence_gates": {
+      "explicitly_completed": true,
+      "requested_rounds_present": true,
+      "no_driver_errors": true,
+      "tls_verified": true,
+      "egress_was_used": true,
+      "egress_restored": true,
+      "no_oom": false
+    },
+    "peak_pod_memory_mib": 2080.6,
+    "rounds": [
+      {
+        "round": 1,
+        "completed": 815,
+        "login_p95_s": null,
+        "enrollment_p95_s": 0.4481,
+        "enrollment_p99_s": 0.5896,
+        "notification_p95_s": 1.1541,
+        "steady_p95_s": 0.0253,
+        "failed_original_scope_gates": [
+          "all_students_completed",
+          "data_correct",
+          "no_capacity_rejections"
+        ],
+        "failed_current_scope_gates": [
+          "all_students_completed",
+          "data_correct",
+          "no_capacity_rejections"
+        ],
+        "measured_scope_pass": false
+      }
+    ],
+    "production_capacity_verified": false,
+    "hardware_equivalence_verified": false,
+    "note": "Each scope is partial; cold login, ready uniform/hot/last-seat, mixed, reconnect require three consecutive rounds at one configuration plus 600s active stability. No cloud-core equivalence inferred."
+  },
+  {
+    "file": "corrected-overload-ready-16cpu-p3-50mbps.json",
+    "report_sha256": "951febe2680a884c3d2f7492c62a64b355ac471d7710009781e5cfe53781c821",
+    "application_sha256": "f3247b5699a3337a03ad6440fcbbbfd2e7b8e78e354aa3e7937ab450b15909fc",
+    "driver_sha256": "2a25b0fe1379a1202aaf91a5db673750d3bb9e60c8aa1bf8bb8f9de32f08ca72",
+    "cpu_quota": 16,
+    "egress_mbps": 50.0,
+    "runtime": {
+      "password_concurrency": 3,
+      "pool_size": 15,
+      "pool_overflow": 3,
+      "read_pool_size": 4,
+      "argon2id": {
+        "memory_kib": 7168,
+        "passes": 5,
+        "parallelism": 1
+      }
+    },
+    "api_command": [
+      "uvicorn",
+      "club.api:app",
+      "--host",
+      "0.0.0.0",
+      "--port",
+      "8000",
+      "--workers",
+      "4",
+      "--no-access-log"
+    ],
+    "users": 3000,
+    "mode": "ready",
+    "scenario": "uniform",
+    "hold_seconds": 45,
+    "evidence_gates": {
+      "explicitly_completed": true,
+      "requested_rounds_present": true,
+      "no_driver_errors": true,
+      "tls_verified": true,
+      "egress_was_used": true,
+      "egress_restored": true,
+      "no_oom": true
+    },
+    "peak_pod_memory_mib": 1772.0,
+    "rounds": [
+      {
+        "round": 1,
+        "completed": 2029,
+        "login_p95_s": null,
+        "enrollment_p95_s": 2.4762,
+        "enrollment_p99_s": 2.7683,
+        "notification_p95_s": 1.6534,
+        "steady_p95_s": 0.0293,
+        "failed_original_scope_gates": [
+          "all_students_completed",
+          "data_correct",
+          "ready_enrollment_burst_within_1s",
+          "no_capacity_rejections"
+        ],
+        "failed_current_scope_gates": [
+          "all_students_completed",
+          "data_correct",
+          "ready_enrollment_burst_within_1s",
+          "no_capacity_rejections"
+        ],
+        "measured_scope_pass": false
+      }
+    ],
+    "production_capacity_verified": false,
+    "hardware_equivalence_verified": false,
+    "note": "Each scope is partial; cold login, ready uniform/hot/last-seat, mixed, reconnect require three consecutive rounds at one configuration plus 600s active stability. No cloud-core equivalence inferred."
+  },
+  {
+    "file": "corrected-overload-login-16cpu-p3-50mbps.json",
+    "report_sha256": "7fbb962047bf2fb8e71266afdec9804178c5f6803de9f42c63a9fe3665901b03",
+    "application_sha256": "f3247b5699a3337a03ad6440fcbbbfd2e7b8e78e354aa3e7937ab450b15909fc",
+    "driver_sha256": "14104cc57828e3504212859897bd4460df05c8626e284cadc4d8d8228e0c1602",
+    "cpu_quota": 16,
+    "egress_mbps": 50.0,
+    "runtime": {
+      "password_concurrency": 3,
+      "pool_size": 15,
+      "pool_overflow": 3,
+      "read_pool_size": 4,
+      "argon2id": {
+        "memory_kib": 7168,
+        "passes": 5,
+        "parallelism": 1
+      }
+    },
+    "api_command": [
+      "uvicorn",
+      "club.api:app",
+      "--host",
+      "0.0.0.0",
+      "--port",
+      "8000",
+      "--workers",
+      "4",
+      "--no-access-log"
+    ],
+    "users": 3000,
+    "mode": "login",
+    "scenario": "uniform",
+    "hold_seconds": 45,
+    "evidence_gates": {
+      "explicitly_completed": true,
+      "requested_rounds_present": true,
+      "no_driver_errors": true,
+      "tls_verified": true,
+      "egress_was_used": true,
+      "egress_restored": true,
+      "no_oom": true
+    },
+    "peak_pod_memory_mib": 2075.9,
+    "rounds": [
+      {
+        "round": 1,
+        "completed": 2876,
+        "login_p95_s": 9.8475,
+        "enrollment_p95_s": 1.6171,
+        "enrollment_p99_s": 2.2295,
+        "notification_p95_s": 0.9316,
+        "steady_p95_s": 0.0434,
+        "failed_original_scope_gates": [
+          "all_students_completed",
+          "data_correct",
+          "all_final_quota_snapshots_current",
+          "all_websockets_online",
+          "login_p95_4s",
+          "interactive_reads_p95_3s",
+          "unexpected_errors_under_0_1_percent"
+        ],
+        "failed_current_scope_gates": [
+          "all_students_completed",
+          "data_correct",
+          "all_final_quota_snapshots_current",
+          "all_websockets_online",
+          "login_p95_4s",
+          "interactive_reads_p95_3s",
+          "unexpected_errors_under_0_1_percent"
+        ],
+        "measured_scope_pass": false
+      }
+    ],
+    "production_capacity_verified": false,
+    "hardware_equivalence_verified": false,
+    "note": "Each scope is partial; cold login, ready uniform/hot/last-seat, mixed, reconnect require three consecutive rounds at one configuration plus 600s active stability. No cloud-core equivalence inferred."
+  },
+  {
+    "file": "warm-overload-login-16cpu-p3-50mbps.json",
+    "report_sha256": "bd4842abcef383aad68f830eb25cdd7dab25aabf5c55b4f427b21013380df529",
+    "application_sha256": "f3247b5699a3337a03ad6440fcbbbfd2e7b8e78e354aa3e7937ab450b15909fc",
+    "driver_sha256": "14104cc57828e3504212859897bd4460df05c8626e284cadc4d8d8228e0c1602",
+    "cpu_quota": 16,
+    "egress_mbps": 50.0,
+    "runtime": {
+      "password_concurrency": 3,
+      "pool_size": 15,
+      "pool_overflow": 3,
+      "read_pool_size": 4,
+      "argon2id": {
+        "memory_kib": 7168,
+        "passes": 5,
+        "parallelism": 1
+      }
+    },
+    "api_command": [
+      "uvicorn",
+      "club.api:app",
+      "--host",
+      "0.0.0.0",
+      "--port",
+      "8000",
+      "--workers",
+      "4",
+      "--no-access-log"
+    ],
+    "users": 3000,
+    "mode": "login_warm",
+    "scenario": "uniform",
+    "hold_seconds": 30,
+    "evidence_gates": {
+      "explicitly_completed": true,
+      "requested_rounds_present": true,
+      "no_driver_errors": true,
+      "tls_verified": true,
+      "egress_was_used": true,
+      "egress_restored": true,
+      "no_oom": true
+    },
+    "peak_pod_memory_mib": 2075.9,
+    "rounds": [
+      {
+        "round": 1,
+        "completed": 1814,
+        "login_p95_s": 4.7607,
+        "enrollment_p95_s": 2.2506,
+        "enrollment_p99_s": 2.4164,
+        "notification_p95_s": 0.6097,
+        "steady_p95_s": 0.097,
+        "failed_original_scope_gates": [
+          "all_students_completed",
+          "data_correct",
+          "all_final_quota_snapshots_current",
+          "all_websockets_online",
+          "login_p95_4s",
+          "no_capacity_rejections"
+        ],
+        "failed_current_scope_gates": [
+          "all_students_completed",
+          "data_correct",
+          "all_final_quota_snapshots_current",
+          "all_websockets_online",
+          "login_p95_4s",
+          "no_capacity_rejections"
+        ],
+        "measured_scope_pass": false
+      }
+    ],
+    "production_capacity_verified": false,
+    "hardware_equivalence_verified": false,
+    "note": "Each scope is partial; cold login, ready uniform/hot/last-seat, mixed, reconnect require three consecutive rounds at one configuration plus 600s active stability. No cloud-core equivalence inferred."
+  },
+  {
+    "file": "keepalive-ready-16cpu-p3-50mbps.json",
+    "report_sha256": "6b804c15415413ecbd89a003a0c8686fead3a65359fcedf1e3fa720d2799d17e",
+    "application_sha256": "f3247b5699a3337a03ad6440fcbbbfd2e7b8e78e354aa3e7937ab450b15909fc",
+    "driver_sha256": "71e3b592cdc3922ff072d37421ac1970bea12cab3d8444a7a9bf3c0f9b0dab3c",
+    "cpu_quota": 16,
+    "egress_mbps": 50.0,
+    "runtime": {
+      "password_concurrency": 3,
+      "pool_size": 15,
+      "pool_overflow": 3,
+      "read_pool_size": 4,
+      "argon2id": {
+        "memory_kib": 7168,
+        "passes": 5,
+        "parallelism": 1
+      }
+    },
+    "api_command": [
+      "uvicorn",
+      "club.api:app",
+      "--host",
+      "0.0.0.0",
+      "--port",
+      "8000",
+      "--workers",
+      "4",
+      "--no-access-log"
+    ],
+    "users": 1500,
+    "mode": "ready",
+    "scenario": "uniform",
+    "hold_seconds": 30,
+    "evidence_gates": {
+      "explicitly_completed": true,
+      "requested_rounds_present": true,
+      "no_driver_errors": true,
+      "tls_verified": true,
+      "egress_was_used": true,
+      "egress_restored": true,
+      "no_oom": true
+    },
+    "peak_pod_memory_mib": 2075.9,
+    "rounds": [
+      {
+        "round": 1,
+        "completed": 1500,
+        "login_p95_s": null,
+        "enrollment_p95_s": 1.5766,
+        "enrollment_p99_s": 1.7636,
+        "notification_p95_s": 1.3873,
+        "steady_p95_s": 0.0201,
+        "failed_original_scope_gates": [],
+        "failed_current_scope_gates": [],
+        "measured_scope_pass": true
+      },
+      {
+        "round": 2,
+        "completed": 1500,
+        "login_p95_s": null,
+        "enrollment_p95_s": 1.4545,
+        "enrollment_p99_s": 1.8552,
+        "notification_p95_s": 1.5028,
+        "steady_p95_s": 0.019,
+        "failed_original_scope_gates": [],
+        "failed_current_scope_gates": [],
+        "measured_scope_pass": true
+      },
+      {
+        "round": 3,
+        "completed": 1500,
+        "login_p95_s": null,
+        "enrollment_p95_s": 1.4126,
+        "enrollment_p99_s": 1.7661,
+        "notification_p95_s": 0.8945,
+        "steady_p95_s": 0.0269,
+        "failed_original_scope_gates": [],
+        "failed_current_scope_gates": [],
+        "measured_scope_pass": true
+      }
+    ],
+    "production_capacity_verified": false,
+    "hardware_equivalence_verified": false,
+    "note": "Each scope is partial; cold login, ready uniform/hot/last-seat, mixed, reconnect require three consecutive rounds at one configuration plus 600s active stability. No cloud-core equivalence inferred."
+  }
+]
