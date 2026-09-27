@@ -8,7 +8,7 @@
 | 首屏 | `GET /bootstrap`（用户、活动、服务端UTC时间、报名、收藏、静态摘要及名额） |
 | 社团 | `GET /clubs/{id}`、`GET /clubs/quotas` |
 | 报名 | `GET /enrollment`、`POST /enrollment`、`DELETE /enrollment` |
-| 收藏/资料 | `PUT/DELETE /favorites/{id}`、`PUT /profile`、`POST /profile/avatar` |
+| 收藏/资料 | `PUT/DELETE /favorites/{id}`、`PUT /profile` |
 | 管理 | `/admin/students` 默认30/最多100分页；`/admin/clubs`；`/admin/overview` |
 | 超管 | `PUT /admin/activity`、`POST /admin/activity/state`、`GET/POST /admin/administrators`、`PUT /admin/administrators/{id}` |
 | 后台任务 | `POST /admin/jobs/import`、`POST /admin/jobs/{id}/confirm`、`POST /admin/jobs/export`、`GET /admin/jobs`、`GET /admin/jobs/{id}`、`GET /admin/jobs/{id}/download` |
@@ -20,3 +20,5 @@
 WebSocket `/api/v1/ws?ticket=...` 使用登录后申请的30秒一次性票据，不把长期Token放URL。`quota_delta` 为新版紧凑批次，`rows` 是 `[club_id,remaining,version]` 三元组数组；批次带 `event_id` 与整数Unix毫秒 `t`（批次最早入队）、`p`（发布），用于保守测量延迟。客户端保留对早期 `quota` / `quotas.items` 对象事件的兼容；后端紧凑协议必须搭配支持 `quota_delta` 的前端提交。客户端忽略较小版本；`activity/catalog/enrollment/resync` 提示获取权威状态。`ping/pong` 心跳；每进程每10秒批量核对当前连接的数据库账号状态及会话版本，Pub/Sub即时撤销作为快路径，连续校验失败会断开重连，账号撤销会关闭连接；断线重新申请票据并同步快照。
 
 服务端 OpenAPI 为最新字段依据：`/api/v1/openapi.json`，交互文档 `/api/v1/docs`。公开响应使用字段白名单和显式模型；不输出密码哈希和会话版本。
+
+头像功能已取消：公开用户字段不再包含avatar；原上传和本地头像媒体路由返回404。数据库历史字段/文件保留供后续审核清理。小程序以姓名首字绘制圆形文字头像，不发起图片请求。

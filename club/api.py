@@ -1,6 +1,5 @@
 from club.logging import install
 from club.admin import router as admin_router
-from club.upload import router as upload_router
 import asyncio
 import json
 import logging
@@ -398,10 +397,9 @@ async def ws(socket: WebSocket):
 
 
 app.include_router(admin_router, prefix="/api/v1/admin")
-app.include_router(upload_router, prefix="/api/v1")
 
 
-@app.api_route("/{legacy:path}", methods=["GET", "POST", "PUT", "PATCH", "DELETE"])
+@app.api_route("/{legacy:path}", methods=["GET", "POST", "PUT", "PATCH", "DELETE"], include_in_schema=False)
 async def legacy_route(legacy: str):
     if legacy.startswith("api/v1/"):
         fail(404, "NOT_FOUND", "接口不存在")

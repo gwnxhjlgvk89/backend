@@ -1,29 +1,28 @@
-from io import BytesIO
-
-from PIL import Image
-
+from club.models import User
 from test_registration import headers
 
 
-async def test_avatar_checks_bytes_size_and_authentication(env):
+async def test_avatar_feature_removed_even_for_existing_users(env):
     app, client, tokens = env
-    endpoint = "/api/v1/profile/avatar"
-    assert (await client.post(endpoint, files={"file": ("avatar.png", b"not an image")})).status_code == 401
-    r = await client.post(endpoint, files={"file": ("avatar.png", b"not an image")}, headers=headers(tokens))
-    assert r.status_code == 422
-    r = await client.post(
-        endpoint, files={"file": ("large.jpg", b"a" * (2 * 1024 * 1024 + 1))}, headers=headers(tokens)
+    async with app.state.sessions() as db, db.begin():
+        user = await db.get(User, 1)
+        user.avatar = "https://old.invalid/private.jpg"
+    for auth in ({}, headers(tokens)):
+        response = await client.post(
+            "/api/v1/profile/avatar", files={"file": ("a.jpg", b"image")}, headers=auth
+        )
+        assert response.status_code == 404
+    assert (await client.get("/api/v1/media/" + "a" * 32 + ".jpg")).status_code == 404
+    response = await client.get("/api/v1/bootstrap", headers=headers(tokens))
+    assert response.status_code == 200
+    assert "avatar" not in response.json()["data"]["user"]
+    assert "old.invalid" not in response.text
+    login = await client.post(
+        "/api/v1/auth/login", json={"username": "user1", "password": "SyntheticPass2026!"}
     )
-    assert r.status_code == 413
-    stream = BytesIO()
-    Image.new("RGB", (20, 20), "blue").save(stream, "PNG")
-    r = await client.post(
-        endpoint, files={"file": ("avatar.jpg", stream.getvalue())}, headers=headers(tokens)
-    )
-    assert r.status_code == 200 and r.json()["data"]["avatar"].endswith(".jpg")
-    name = r.json()["data"]["avatar"].rsplit("/", 1)[-1]
-    image = await client.get("/api/v1/media/" + name)
-    assert image.status_code == 200 and image.headers["content-type"].startswith("image/jpeg")
+    assert login.status_code == 200
+    assert "avatar" not in login.json()["data"]["user"]
+    assert "/api/v1/profile/avatar" not in app.openapi()["paths"]
 
 
 async def test_response_contract_legacy_and_shared_network_limits(env):

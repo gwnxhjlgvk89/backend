@@ -129,7 +129,6 @@ class UserOutput(BaseModel):
     class_name: str
     active: bool
     must_change_password: bool
-    avatar: str
     phone: str
     email: str
 

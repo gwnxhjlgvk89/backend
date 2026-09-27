@@ -135,7 +135,6 @@ def public_user(u):
             "class_name",
             "active",
             "must_change_password",
-            "avatar",
             "phone",
             "email",
         )
