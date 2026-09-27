@@ -26,7 +26,7 @@ async def main(args):
     child = None
     try:
         limits = await remote(f"python3 deploy/limit-test-pod.py --cpus {args.cpus}")
-        Path(str(prefix) + "-limits.txt").write_text(limits)
+        Path(str(prefix) + "-limits.txt").write_text(limits.rstrip() + "\n")
         await proof(
             "-egress-before",
             f"limit --mbps {args.mbps} --port {8443 if urlsplit(args.url).scheme == 'https' else 8080}",

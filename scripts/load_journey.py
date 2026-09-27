@@ -88,7 +88,7 @@ async def run(args):
             raise RuntimeError("Test service did not become ready")
         await fixture(args, "check")
         code = "from pathlib import Path; import hashlib; f=sorted(Path('club').glob('*.py')); print(hashlib.sha256(b''.join(p.name.encode()+bytes([0])+p.read_bytes() for p in f)).hexdigest())"
-        selected = "import json; from club.config import settings; s=settings(); print(json.dumps({k:getattr(s,k) for k in ('password_concurrency','pool_size','pool_overflow')}))"
+        selected = "import json; from club.config import settings; from club.security import password_hasher; s=settings(); v={k:getattr(s,k) for k in ('password_concurrency','pool_size','pool_overflow','read_pool_size')}; v['argon2id']={'memory_kib':password_hasher.memory_cost,'passes':password_hasher.time_cost,'parallelism':password_hasher.parallelism}; print(json.dumps(v))"
         report["runtime_settings"] = json.loads(
             await ssh(args, "podman exec club-capacity-test_api_1 python -c " + shlex.quote(selected))
         )
@@ -598,7 +598,7 @@ if __name__ == "__main__":
     parser.add_argument("--cache", choices=["cold", "warm"], default="cold")
     parser.add_argument("--rounds", type=int, default=1)
     parser.add_argument("--hold-seconds", type=int, default=30)
-    parser.add_argument("--burst-seconds", type=float, default=0.85)
+    parser.add_argument("--burst-seconds", type=float, default=0.6)
     parser.add_argument("--open-after", type=float, default=5)
     parser.add_argument("--seed", type=int, default=1214)
     parser.add_argument("--report", required=True)

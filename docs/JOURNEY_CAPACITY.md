@@ -44,3 +44,5 @@ TLS复现：运行 `deploy/prepare-test-tls.py --host TEST_PRIVATE_IP`，compose
 - `journey-argon-login-4cpu-10mbps.json`：19MiB配置、旧共享HTTP池，748人登录200；未通过。
 - `journey-https-login-4cpu-10mbps.json`：19MiB配置、独立池/TLS、730人登录200；未通过。
 - `journey-https-login-8cpu-10mbps-r1.json` / `...8cpu-50mbps.json`：19MiB配置，分别1278/1379人登录200；仅提高带宽仍未消除登录瓶颈。后续报告才是7MiB新参数结果，不混用结论。
+
+查询进一步优化：8CPU/20Mbps全员登录成功后，仍有身份查询连接等待超时。将每进程主池从15+5改为15+3、预留读池从2改为4，总预算仍为98/150；然后把同一瞬间的账号ID/用户名读取合并成最多128项、2ms窗口的SQL批次。结果只交给当前等待请求，不跨批次缓存，不跳过停用/会话版本校验；报名和管理写入仍在各自事务里重读并锁定。队列有上限，取消和关闭会清理等待者。51项后端回归通过，包括更新账号后立即读到新状态、批量查询减量、取消隔离和队列上限。

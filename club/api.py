@@ -19,6 +19,7 @@ from prometheus_client import Counter, Histogram
 from club.config import settings
 from club.metrics import render, CONNECTIONS, LOOP_LAG
 from club.db import make_engine, sessions
+from club.identity import IdentityReader
 from club.errors import DomainError, fail
 from club.models import Activity, Club, Favorite, Job, Outbox, User, utcnow
 from club.realtime import Hub
@@ -66,10 +67,12 @@ async def lifespan(app):
     app.state.engine = make_engine()
     app.state.sessions = sessions(app.state.engine)
     app.state.catalog_lock = asyncio.Lock()
-    # Reserve two connections per API process for identity/result reads and
+    # Reserve connections per API process for identity/result reads and
     # connection validation; enrollment writes cannot exhaust this small pool.
-    app.state.read_engine = make_engine(pool_size=2, max_overflow=0)
+    app.state.read_engine = make_engine(pool_size=s.read_pool_size, max_overflow=0)
     app.state.read_sessions = sessions(app.state.read_engine)
+    app.state.identities = IdentityReader(app.state.read_sessions)
+    app.state.login_accounts = IdentityReader(app.state.read_sessions, User.username)
     app.state.redis = Redis.from_url(
         s.redis_url, decode_responses=True, socket_timeout=2, socket_connect_timeout=2, max_connections=100
     )
@@ -101,6 +104,8 @@ async def lifespan(app):
     task.cancel()
     validator.cancel()
     await asyncio.gather(task, validator, return_exceptions=True)
+    await app.state.identities.close()
+    await app.state.login_accounts.close()
     await app.state.redis.aclose()
     await subscriber_redis.aclose()
     await app.state.engine.dispose()
@@ -227,16 +232,17 @@ async def metrics(request: Request):
 @app.post("/api/v1/auth/login", response_model=Envelope[LoginOutput])
 async def login(body: Login, request: Request):
     await rate_limit(request, "login", body.username, 10, 60)
-    async with request.app.state.sessions() as db:
-        u = await db.scalar(select(User).where(User.username == body.username))
-        if not u or not u.active:
-            fail(401, "INVALID_CREDENTIALS", "账号或密码错误")
-        verified_hash = u.password_hash
-        uid = u.id
+    u = await request.app.state.login_accounts.get(body.username)
+    if not u or not u.active:
+        fail(401, "INVALID_CREDENTIALS", "账号或密码错误")
+    verified_hash = u.password_hash
+    uid = u.id
     # Slow password work (including thread admission) must not hold a DB checkout.
     if not await verify_password(body.password, verified_hash):
         fail(401, "INVALID_CREDENTIALS", "账号或密码错误")
-    upgraded_hash = await hash_password(body.password) if password_needs_upgrade(verified_hash) else verified_hash
+    upgraded_hash = (
+        await hash_password(body.password) if password_needs_upgrade(verified_hash) else verified_hash
+    )
     async with request.app.state.sessions() as db, db.begin():
         # Re-read after verification: an admin may have disabled/reset this user.
         u = await db.get(User, uid, with_for_update=True)
@@ -299,7 +305,9 @@ async def clubs_cached(request):
             pass
         async with request.app.state.sessions() as db:
             rows = list((await db.scalars(select(Club).where(Club.active.is_(True)).order_by(Club.id))).all())
-            data = [{k: v for k, v in club_data(c).items() if k not in {"remaining", "version"}} for c in rows]
+            data = [
+                {k: v for k, v in club_data(c).items() if k not in {"remaining", "version"}} for c in rows
+            ]
         try:
             await request.app.state.redis.set(key, json.dumps(data), ex=60)
         except RedisError:

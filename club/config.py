@@ -15,6 +15,7 @@ class Settings(BaseSettings):
     token_minutes: int = 120
     pool_size: int = 10
     pool_overflow: int = 5
+    read_pool_size: int = 4
     password_concurrency: int = 1
     storage_backend: str = "local"
     storage_dir: Path = Path(".local/uploads")

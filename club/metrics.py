@@ -19,6 +19,11 @@ LOOP_LAG = Gauge("club_event_loop_lag_seconds", "Event loop scheduling delay", m
 PASSWORD_WAIT = Histogram(
     "club_password_wait_seconds", "Password work admission wait", buckets=(0.01, 0.1, 0.3, 1, 2, 3, 5, 10, 30)
 )
+READ_POOL_WAIT = Histogram(
+    "club_read_pool_wait_seconds",
+    "Identity read pool admission wait",
+    buckets=(0.001, 0.005, 0.01, 0.05, 0.1, 0.3, 1, 2, 3, 5),
+)
 PASSWORD_EXECUTION = Histogram(
     "club_password_execution_seconds",
     "Native password work duration",

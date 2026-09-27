@@ -135,11 +135,10 @@ class Hub:
                 return
             data = claims(raw)
             uid = int(data["sub"])
-            async with ws.app.state.read_sessions() as db:
-                u = await db.get(User, uid)
-                if not u or not u.active or u.token_version != data["ver"]:
-                    await ws.close(code=1008)
-                    return
+            u = await ws.app.state.identities.get(uid)
+            if not u or not u.active or u.token_version != data["ver"]:
+                await ws.close(code=1008)
+                return
         except (RedisError, DomainError, ValueError):
             await ws.close(code=1008)
             return
