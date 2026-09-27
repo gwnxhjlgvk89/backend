@@ -80,6 +80,7 @@ async def lifespan(app):
         health_check_interval=20,
     )
     task = asyncio.create_task(app.state.hub.subscriber(subscriber_redis))
+    validator = asyncio.create_task(app.state.hub.validation_loop(app.state.sessions))
 
     async def monitor_loop():
         while True:
@@ -93,7 +94,8 @@ async def lifespan(app):
     monitor.cancel()
     await asyncio.gather(monitor, return_exceptions=True)
     task.cancel()
-    await asyncio.gather(task, return_exceptions=True)
+    validator.cancel()
+    await asyncio.gather(task, validator, return_exceptions=True)
     await app.state.redis.aclose()
     await subscriber_redis.aclose()
     await app.state.engine.dispose()

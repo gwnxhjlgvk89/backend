@@ -4,7 +4,7 @@
 
 ## 已做的真实验证
 
-2026-09-27，本地 `club_test` 合成数据通过 mysqldump 导出并恢复到空 `club_restore`：SHA256 一致，恢复后学生、报名、收藏与名额指纹一致。报告 `reports/backup-rehearsal.json`。这不等于生产备份已完成。
+2026-09-27，本地 `club_test` 合成数据通过 mysqldump 导出并恢复到空 `club_restore`：SHA256 一致，恢复后学生、报名、收藏与名额指纹一致。报告 `reports/backup-rehearsal.json`；加强学生全字段指纹后再次在新空库验证，见 `reports/backup-profilecheck.json`。这不等于生产备份已完成。
 
 ## 旧数据迁移
 
@@ -30,7 +30,7 @@
 ## 换届重置
 
 1. 备份并完成上面的恢复演练。
-2. `reset-preview --file .local/reset-review.json` 输出当前 v2 学生、报名、收藏数量及指纹；向负责人展示并确认。
+2. `reset-preview --file .local/reset-review.json` 输出当前 v2 学生、报名、收藏数量及指纹（完整学生字段仅参与哈希，预览不含明文个人资料）；向负责人展示并确认。
 3. `reset-apply --file .local/reset-review.json --backup /secure/backup-YYYYMMDD.sql --actor SUPER_USERNAME --maintenance-confirm`：验证恢复凭证、备份和预览匹配；交互验证超级管理员密码并输入确认指纹。
 4. 事务清理当前 v2 学生、报名、收藏、幂等记录、通知、导入导出任务；保留管理员、社团和审计，恢复名额，活动改草稿并清空时间。
 5. 旧版表、历史备份和私有导出/头像文件**不会被这个工具删除**。上线清理前需要另外列出这些遗留数据的范围、数量、保留期限和删除方案。当前版本不把“v2 重置”描述为整个存储的数据清理已完成。

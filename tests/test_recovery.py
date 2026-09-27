@@ -247,3 +247,23 @@ async def test_outbox_batches_quota_and_retries_without_losing_events(env):
         assert (
             await db.scalar(select(func.count()).select_from(Outbox).where(Outbox.delivered.is_(False))) == 0
         )
+
+
+async def test_batched_ws_validation_recovers_missed_revocation(env):
+    app, _, _ = env
+    from club.models import User
+    from sqlalchemy import update
+
+    hub = Hub()
+    good, stale, disabled, missing = (AsyncMock() for _ in range(4))
+    hub.add(good, 1, 1, asyncio.Queue(16))
+    hub.add(stale, 2, 1, asyncio.Queue(16))
+    hub.add(disabled, 3, 1, asyncio.Queue(16))
+    hub.add(missing, 999, 1, asyncio.Queue(16))
+    async with app.state.sessions() as db, db.begin():
+        await db.execute(update(User).where(User.id == 2).values(token_version=2))
+        await db.execute(update(User).where(User.id == 3).values(active=False))
+    await hub.revalidate(app.state.sessions)
+    good.close.assert_not_awaited()
+    for socket in (stale, disabled, missing):
+        socket.close.assert_awaited_once_with(code=1008, reason="session expired")

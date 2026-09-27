@@ -100,13 +100,13 @@ def mysql_process(action, path):
 
 async def state_summary(db):
     rows = (
-        await db.execute(select(User.id, User.token_version).where(User.role == "student").order_by(User.id))
+        await db.execute(select(*User.__table__.columns).where(User.role == "student").order_by(User.id))
     ).all()
     entries = (
         await db.execute(
-            select(Enrollment.student_id, Enrollment.club_id, Enrollment.source).order_by(
-                Enrollment.student_id
-            )
+            select(
+                Enrollment.student_id, Enrollment.club_id, Enrollment.source, Enrollment.created_at
+            ).order_by(Enrollment.student_id)
         )
     ).all()
     quotas = (
@@ -117,7 +117,9 @@ async def state_summary(db):
             select(Favorite.student_id, Favorite.club_id).order_by(Favorite.student_id, Favorite.club_id)
         )
     ).all()
-    state = json.dumps([list(map(list, v)) for v in (rows, entries, quotas, favs)])
+    # Hash all student/profile fields but return only the digest and counts.
+    # A profile change between backup and cleanup must invalidate the review.
+    state = json.dumps([list(map(list, v)) for v in (rows, entries, quotas, favs)], default=str)
     return {
         "students": len(rows),
         "enrollments": len(entries),

@@ -97,3 +97,16 @@ async def test_reset_rejects_active_or_changed_data(env):
             (await db.get(Activity, 1)).state = "paused"
             await db.flush()
             await reset_current(db, "outdated-review", actor)
+
+
+async def test_reset_review_detects_profile_change(env):
+    app, _, _ = env
+    async with app.state.sessions() as db, db.begin():
+        (await db.get(Activity, 1)).state = "paused"
+        actor = await db.get(User, 101)
+        reviewed = await state_summary(db)
+    async with app.state.sessions() as db, db.begin():
+        (await db.get(User, 1)).email = "synthetic@example.invalid"
+    with pytest.raises(ValueError, match="Data changed"):
+        async with app.state.sessions() as db, db.begin():
+            await reset_current(db, reviewed["fingerprint"], actor)
