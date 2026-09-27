@@ -145,6 +145,8 @@ async def main(args):
                     str(offset),
                     "--control-dir",
                     str(control),
+                    "--client-profile",
+                    args.client_profile,
                     "--mode",
                     args.mode,
                     "--scenario",
@@ -276,6 +278,9 @@ if __name__ == "__main__":
     parser.add_argument("--processes", type=int, choices=[2, 3, 4], default=3)
     parser.add_argument(
         "--mode", choices=["login", "login_warm", "ready", "mixed", "reconnect"], default="login"
+    )
+    parser.add_argument(
+        "--client-profile", choices=["legacy", "lean", "connected_first"], default="connected_first"
     )
     parser.add_argument("--scenario", choices=["uniform", "hot_club", "last_seat"], default="uniform")
     parser.add_argument("--cache", choices=["cold", "warm"], default="cold")

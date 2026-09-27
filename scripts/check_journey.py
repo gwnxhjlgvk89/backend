@@ -27,13 +27,19 @@ def evaluate(path):
     restored = proofs["egress-restored"].get("qdiscs", [])
     params = data["parameters"]
     resources = [r["server"]["cgroups"]["budget_total"] for r in data.get("resources", [])]
-    no_oom = bool(resources) and all(
+    all_groups = [
+        group
+        for sample in data.get("resources", [])
+        for group in sample["server"]["cgroups"].values()
+        if "memory.events" in group
+    ]
+    no_oom = bool(all_groups) and all(
         all(
             int(line.split()[1]) == 0
             for line in r["memory.events"].splitlines()
             if line.split()[0] in {"oom", "oom_kill"}
         )
-        for r in resources
+        for r in all_groups
     )
     evidence = {
         "explicitly_completed": data.get("completed") is True,
@@ -47,7 +53,7 @@ def evaluate(path):
     return {
         "file": path.name,
         "report_sha256": hashlib.sha256(path.read_bytes()).hexdigest(),
-        "application_sha256": data["application_sha256"],
+        "application_sha256": data.get("application_sha256"),
         "driver_sha256": data["driver_sha256"],
         "cpu_quota": int(cpu[1]) if cpu else None,
         "egress_mbps": shaped[0]["options"]["rate"] * 8 / 1e6 if len(shaped) == 1 else None,

@@ -47,6 +47,8 @@ async def main(args):
             args.control,
             "--users",
             str(args.users),
+            "--client-profile",
+            args.client_profile,
             "--mode",
             args.mode,
             "--scenario",
@@ -92,6 +94,9 @@ if __name__ == "__main__":
     p.add_argument("--processes", type=int, choices=[1, 2, 3, 4], default=1)
     p.add_argument("--users", type=int, choices=[30, 1500, 3000], default=1500)
     p.add_argument("--mode", choices=["login", "login_warm", "ready", "mixed", "reconnect"], default="login")
+    p.add_argument(
+        "--client-profile", choices=["legacy", "lean", "connected_first"], default="connected_first"
+    )
     p.add_argument("--scenario", choices=["uniform", "hot_club", "last_seat"], default="uniform")
     p.add_argument("--cache", choices=["cold", "warm"], default="cold")
     p.add_argument("--rounds", type=int, default=1)

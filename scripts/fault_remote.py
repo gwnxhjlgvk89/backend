@@ -5,6 +5,7 @@ import asyncio
 import json
 from pathlib import Path
 import time
+import shlex
 
 import aiohttp
 
@@ -12,7 +13,11 @@ from load_remote import fixture, ssh
 
 
 async def main(args):
+    path = Path(args.report)
+    if path.exists():
+        raise SystemExit("Refusing to overwrite fault evidence")
     results = []
+    report = {"test_only": True, "completed": False, "cases": results, "started_at_epoch": time.time()}
     stopped = set()
     async with aiohttp.ClientSession(
         base_url=args.url, trust_env=False, timeout=aiohttp.ClientTimeout(total=15)
@@ -20,6 +25,10 @@ async def main(args):
         async with client.get("/health/live") as r:
             assert r.status == 200 and (await r.json()).get("environment") == "test"
         await fixture(args, "check")
+        code = "from pathlib import Path; import hashlib; f=sorted(Path('club').glob('*.py')); print(hashlib.sha256(b''.join(p.name.encode()+bytes([0])+p.read_bytes() for p in f)).hexdigest())"
+        report["application_sha256"] = (
+            await ssh(args, "podman exec club-capacity-test_api_1 python -c " + shlex.quote(code))
+        ).strip()
         await fixture(args, "prepare", "uniform")
 
         async def control(action, component):
@@ -115,10 +124,11 @@ async def main(args):
             db = await fixture(args, "check")
             assert db["enrollments"] == 2 and not db["inconsistencies"]
             results.append({"case": "api_restart_reconnect_snapshot_and_data_consistency", "pass": True})
+            report["completed"] = True
         finally:
             for component in list(stopped):
                 await control("start", component)
-            Path(args.report).write_text(json.dumps({"test_only": True, "cases": results}, indent=2) + "\n")
+            path.write_text(json.dumps(report, indent=2) + "\n")
             await ready()
         print(json.dumps(results))
 

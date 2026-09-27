@@ -78,3 +78,9 @@ TLS复现：运行 `deploy/prepare-test-tls.py --host TEST_PRIVATE_IP`，compose
 登录等待需要区分原生计算与事件循环/线程调度：新增 `club_password_native_seconds` 在受限线程内测量函数本体，原 `club_password_execution_seconds` 明确包含调度时间。HTTP监控直接包装ASGI响应头，保留请求ID、Server-Timing、no-store和脱敏结构化日志，消除逐请求任务/流桥接；不删除指标或跳过鉴权。专项验证错误响应的请求ID与脱敏、普通响应和WebSocket透传。
 
 只读路由检查确认当前独立Mac发压经Wi-Fi en0，所有已有有线接口未连接。曾观察到路由RTT估计44ms；这是该时刻内核估计，不是固定注入延迟。已请求可用有线发压路径；用户表示线上资源可灵活升级、现阶段不需要追问云规格。暂不把冷TLS长尾全部归因于服务器CPU，也不宣称任何核数已经满足公网容量。
+
+## 首次连接流量模型修正
+
+发现原前端先bootstrap、再连接WS，首次resync会再次下载bootstrap；后端查询优化后这仍增加网络开销。前端改为先发起WS（票据后等待握手最多1.5秒），再初始化，resync与初始化共享进行中的请求。迟到resync不跳过，WS失败仍回退HTTP。压测新增 `connected_first` 模型并设为默认，历史 `lean` 原样保留以复现旧请求顺序；不把请求减量称作相同流量下的CPU扩容收益。
+
+本轮用户明确暂时没有有线发压条件，要求继续完成现有环境测试；后续结果继续标注Wi-Fi、rootless网络与CPU时间额度边界，不再等待提供云机型号或有线设备。

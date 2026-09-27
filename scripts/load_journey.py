@@ -381,7 +381,7 @@ async def run(args):
                                 for cid, remaining, version in value.get("rows", []):
                                     received_quotas.setdefault((cid, version), {})[i] = now
                                     latest_seen[i][cid] = max(latest_seen[i].get(cid, 0), version)
-                            elif event == "enrollment" and args.client_profile == "lean":
+                            elif event == "enrollment" and args.client_profile in {"lean", "connected_first"}:
                                 spawn(request(i, "event_enrollment", "GET", "/enrollment"))
                             elif event in {"resync", "catalog", "activity", "enrollment"}:
                                 spawn(bootstrap(i, "event_bootstrap"))
@@ -391,28 +391,41 @@ async def run(args):
                         if not stop_users.is_set() and sockets.get(i) is ws:
                             ws_counts["unexpected_close"] += 1
 
-                async def connect(i):
+                async def connect(i, initial=False):
                     status, data = await request(i, "ws_ticket", "POST", "/auth/ws-ticket")
                     if status != 200:
                         return False
-                    started = time.monotonic()
-                    records = stages if measuring else setup
-                    try:
-                        ws = await students[i].ws_connect(
-                            "/api/v1/ws?ticket=" + data["ticket"], heartbeat=None
-                        )
-                        sockets[i] = ws
-                        records["ws_connect"].append(
-                            (101, "OK", time.monotonic() - started, started - zero, None, 0)
-                        )
-                        ws_counts["connected"] += 1
-                        spawn(consume(i, ws))
-                        return True
-                    except (aiohttp.ClientError, TimeoutError):
-                        records["ws_connect"].append(
-                            (0, "CONNECT_FAILED", time.monotonic() - started, started - zero, None, 0)
-                        )
-                        return False
+
+                    async def handshake():
+                        started = time.monotonic()
+                        records = stages if measuring else setup
+                        try:
+                            ws = await students[i].ws_connect(
+                                "/api/v1/ws?ticket=" + data["ticket"], heartbeat=None
+                            )
+                            if stop_users.is_set():
+                                await ws.close()
+                                return False
+                            sockets[i] = ws
+                            records["ws_connect"].append(
+                                (101, "OK", time.monotonic() - started, started - zero, None, 0)
+                            )
+                            ws_counts["connected"] += 1
+                            spawn(consume(i, ws))
+                            return True
+                        except (aiohttp.ClientError, TimeoutError):
+                            records["ws_connect"].append(
+                                (0, "CONNECT_FAILED", time.monotonic() - started, started - zero, None, 0)
+                            )
+                            return False
+
+                    if initial:
+                        opening_task = spawn(handshake())
+                        try:
+                            return await asyncio.wait_for(asyncio.shield(opening_task), timeout=1.5)
+                        except TimeoutError:
+                            return False
+                    return await handshake()
 
                 async def background(i):
                     next_ping = time.monotonic() + 20
@@ -453,10 +466,13 @@ async def run(args):
                     return True
 
                 async def enter(i):
+                    if args.client_profile == "connected_first":
+                        await connect(i, initial=True)
                     status, _ = await bootstrap(i)
                     if status != 200:
                         return False
-                    await connect(i)
+                    if args.client_profile != "connected_first":
+                        await connect(i)
                     spawn(background(i))
                     return True
 
@@ -723,7 +739,9 @@ if __name__ == "__main__":
         "--mode", choices=["login", "login_warm", "ready", "mixed", "reconnect"], default="login"
     )
     parser.add_argument("--scenario", choices=["uniform", "hot_club", "last_seat"], default="uniform")
-    parser.add_argument("--client-profile", choices=["legacy", "lean"], default="lean")
+    parser.add_argument(
+        "--client-profile", choices=["legacy", "lean", "connected_first"], default="connected_first"
+    )
     parser.add_argument("--cache", choices=["cold", "warm"], default="cold")
     parser.add_argument("--rounds", type=int, default=1)
     parser.add_argument("--hold-seconds", type=int, default=30)
