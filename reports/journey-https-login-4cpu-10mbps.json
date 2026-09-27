@@ -1,0 +1,796 @@
+{
+  "schema": "student-journey-v1",
+  "environment": "https://192.168.100.130:18082",
+  "test_only": true,
+  "parameters": {
+    "url": "https://192.168.100.130:18082",
+    "ca_cert": "backend/.local/test-ca.crt",
+    "ssh": "gg1214@192.168.100.130",
+    "control": "/private/tmp/club-test-ssh",
+    "users": 1500,
+    "mode": "login",
+    "scenario": "uniform",
+    "client_profile": "lean",
+    "cache": "cold",
+    "rounds": 1,
+    "hold_seconds": 30,
+    "burst_seconds": 0.85,
+    "open_after": 5,
+    "seed": 1214,
+    "report": "backend/reports/journey-https-login-4cpu-10mbps.json"
+  },
+  "driver_sha256": "57f9601a554adb3395e6ee88d46e9131f899661c08f9eb7bb40a8a377fa8e7d2",
+  "http_sessions": "One independent connection pool per student (limit=6 including WS)",
+  "runs": [
+    {
+      "round": 1,
+      "measured_epoch": 1790524640.301483,
+      "stages": {
+        "login": {
+          "count": 1500,
+          "statuses": {
+            "200:OK": 730,
+            "0:TimeoutError": 770
+          },
+          "p50_s": 10.0001,
+          "p95_s": 10.0045,
+          "p99_s": 10.0095,
+          "max_s": 10.0254,
+          "server_p95_s": 7.6081,
+          "dispatch_span_s": 0.8838,
+          "unexpected_errors": 770,
+          "capacity_rejections": 0,
+          "response_bytes": 269776,
+          "arrivals_per_second": {
+            "0": 1500
+          }
+        },
+        "bootstrap": {
+          "count": 730,
+          "statuses": {
+            "200:OK": 730
+          },
+          "p50_s": 0.901,
+          "p95_s": 1.4567,
+          "p99_s": 1.9819,
+          "max_s": 3.1594,
+          "server_p95_s": 1.0202,
+          "dispatch_span_s": 10.3748,
+          "unexpected_errors": 0,
+          "capacity_rejections": 0,
+          "response_bytes": 7500262,
+          "arrivals_per_second": {
+            "0": 53,
+            "1": 59,
+            "2": 47,
+            "3": 61,
+            "4": 128,
+            "5": 94,
+            "6": 69,
+            "7": 42,
+            "8": 77,
+            "9": 70,
+            "10": 30
+          }
+        },
+        "ws_ticket": {
+          "count": 730,
+          "statuses": {
+            "200:OK": 730
+          },
+          "p50_s": 0.8849,
+          "p95_s": 1.4217,
+          "p99_s": 2.0291,
+          "max_s": 2.9938,
+          "server_p95_s": 0.9871,
+          "dispatch_span_s": 11.6674,
+          "unexpected_errors": 0,
+          "capacity_rejections": 0,
+          "response_bytes": 47450,
+          "arrivals_per_second": {
+            "0": 28,
+            "1": 43,
+            "2": 48,
+            "3": 29,
+            "4": 84,
+            "5": 156,
+            "6": 62,
+            "7": 40,
+            "8": 58,
+            "9": 79,
+            "10": 58,
+            "11": 45
+          }
+        },
+        "ws_connect": {
+          "count": 730,
+          "statuses": {
+            "101:OK": 730
+          },
+          "p50_s": 0.9155,
+          "p95_s": 1.4091,
+          "p99_s": 2.0521,
+          "max_s": 3.1568,
+          "server_p95_s": null,
+          "dispatch_span_s": 11.9358,
+          "unexpected_errors": 0,
+          "capacity_rejections": 0,
+          "response_bytes": 0,
+          "arrivals_per_second": {
+            "0": 4,
+            "1": 38,
+            "2": 40,
+            "3": 27,
+            "4": 56,
+            "5": 135,
+            "6": 89,
+            "7": 35,
+            "8": 62,
+            "9": 62,
+            "10": 72,
+            "11": 81,
+            "12": 29
+          }
+        },
+        "detail": {
+          "count": 730,
+          "statuses": {
+            "200:OK": 729,
+            "503:TEMPORARILY_UNAVAILABLE": 1
+          },
+          "p50_s": 1.5994,
+          "p95_s": 2.6984,
+          "p99_s": 3.0251,
+          "max_s": 4.097,
+          "server_p95_s": 1.0748,
+          "dispatch_span_s": 11.8832,
+          "unexpected_errors": 1,
+          "capacity_rejections": 1,
+          "response_bytes": 1698285,
+          "arrivals_per_second": {
+            "1": 9,
+            "2": 34,
+            "3": 27,
+            "4": 50,
+            "5": 82,
+            "6": 111,
+            "7": 44,
+            "8": 71,
+            "9": 65,
+            "10": 58,
+            "11": 81,
+            "12": 90,
+            "13": 8
+          }
+        },
+        "event_bootstrap": {
+          "count": 730,
+          "statuses": {
+            "200:OK": 730
+          },
+          "p50_s": 1.6102,
+          "p95_s": 2.6078,
+          "p99_s": 3.0975,
+          "max_s": 3.7944,
+          "server_p95_s": 1.0334,
+          "dispatch_span_s": 11.8427,
+          "unexpected_errors": 0,
+          "capacity_rejections": 0,
+          "response_bytes": 7509067,
+          "arrivals_per_second": {
+            "1": 4,
+            "2": 28,
+            "3": 11,
+            "4": 54,
+            "5": 67,
+            "6": 103,
+            "7": 87,
+            "8": 71,
+            "9": 62,
+            "10": 26,
+            "11": 118,
+            "12": 60,
+            "13": 39
+          }
+        },
+        "enroll": {
+          "count": 729,
+          "statuses": {
+            "200:OK": 729
+          },
+          "p50_s": 0.4172,
+          "p95_s": 0.7568,
+          "p99_s": 0.7918,
+          "max_s": 0.8825,
+          "server_p95_s": 0.2695,
+          "dispatch_span_s": 9.4605,
+          "unexpected_errors": 0,
+          "capacity_rejections": 0,
+          "response_bytes": 106108,
+          "arrivals_per_second": {
+            "5": 84,
+            "6": 57,
+            "7": 56,
+            "8": 121,
+            "9": 93,
+            "10": 30,
+            "11": 79,
+            "12": 102,
+            "13": 70,
+            "14": 37
+          }
+        },
+        "journey": {
+          "count": 729,
+          "statuses": {
+            "200:COMPLETE": 729
+          },
+          "p50_s": 9.8588,
+          "p95_s": 13.9906,
+          "p99_s": 14.1324,
+          "max_s": 14.272,
+          "server_p95_s": null,
+          "dispatch_span_s": 0.5062,
+          "unexpected_errors": 0,
+          "capacity_rejections": 0,
+          "response_bytes": 0,
+          "arrivals_per_second": {
+            "0": 729
+          }
+        },
+        "event_enrollment": {
+          "count": 729,
+          "statuses": {
+            "200:OK": 729
+          },
+          "p50_s": 1.2966,
+          "p95_s": 2.4055,
+          "p99_s": 2.947,
+          "max_s": 3.6307,
+          "server_p95_s": 2.0349,
+          "dispatch_span_s": 8.9899,
+          "unexpected_errors": 0,
+          "capacity_rejections": 0,
+          "response_bytes": 80593,
+          "arrivals_per_second": {
+            "5": 32,
+            "6": 87,
+            "7": 13,
+            "8": 110,
+            "9": 110,
+            "10": 60,
+            "11": 79,
+            "12": 57,
+            "13": 84,
+            "14": 97
+          }
+        },
+        "active_detail": {
+          "count": 108,
+          "statuses": {
+            "200:OK": 108
+          },
+          "p50_s": 0.0318,
+          "p95_s": 0.1216,
+          "p99_s": 0.1298,
+          "max_s": 0.1316,
+          "server_p95_s": 0.0036,
+          "dispatch_span_s": 7.853,
+          "unexpected_errors": 0,
+          "capacity_rejections": 0,
+          "response_bytes": 251562,
+          "arrivals_per_second": {
+            "23": 3,
+            "24": 3,
+            "25": 1,
+            "26": 9,
+            "27": 23,
+            "28": 18,
+            "29": 17,
+            "30": 27,
+            "31": 7
+          }
+        }
+      },
+      "setup": {},
+      "outcomes": {
+        "enroll_http_200": 729,
+        "login_failed": 770,
+        "detail_failed": 1
+      },
+      "completed_students": 729,
+      "unfinished_students": 771,
+      "confirmed_enrollments": 729,
+      "db": {
+        "enrollments": 729,
+        "inconsistencies": [],
+        "mysql": {
+          "Innodb_buffer_pool_wait_free": "0",
+          "Innodb_row_lock_time": "2157",
+          "Innodb_row_lock_waits": "81",
+          "Max_used_connections": "70",
+          "Threads_connected": "70"
+        }
+      },
+      "data_consistency_pass": true,
+      "expected_enrollments": 1500,
+      "all_expected_enrolled": false,
+      "active_duration_s": 31.5,
+      "websocket": {
+        "connected": 730,
+        "open_at_end": 730,
+        "workers_observed": 4,
+        "notification_p95_s": 1.5792,
+        "timed_deliveries": 144612,
+        "missing_final_quota_snapshots": 32340,
+        "payload_peak_mbps": 3.094544
+      },
+      "scope_gates": {
+        "all_students_completed": false,
+        "data_correct": false,
+        "all_final_quota_snapshots_current": false,
+        "all_websockets_online": false,
+        "no_unexpected_ws_close": true,
+        "ready_enrollment_burst_within_1s": true,
+        "login_p95_3s": false,
+        "login_burst_within_1s": true,
+        "interactive_reads_p95_3s": true,
+        "notifications_p95_3s": true,
+        "enrollment_p95_3s_p99_5s": true,
+        "no_capacity_rejections": false,
+        "unexpected_errors_under_0_1_percent": false
+      }
+    }
+  ],
+  "errors": [],
+  "resources": [
+    {
+      "at": 1790524635.994304,
+      "server": {
+        "containers": [
+          {
+            "id": "2475876fb5d9",
+            "name": "club-capacity-test_mysql_1",
+            "cpu_time": "1.137574s",
+            "cpu_percent": "3.34%",
+            "avg_cpu": "3.34%",
+            "mem_usage": "459.3MB / 1.468GB",
+            "mem_percent": "31.29%",
+            "net_io": "112.7kB / 209kB",
+            "block_io": "0B / 0B",
+            "pids": "43"
+          },
+          {
+            "id": "4cf6f210ead2",
+            "name": "club-capacity-test_redis_1",
+            "cpu_time": "283.018ms",
+            "cpu_percent": "0.83%",
+            "avg_cpu": "0.83%",
+            "mem_usage": "6.828MB / 201.3MB",
+            "mem_percent": "3.39%",
+            "net_io": "20.26kB / 4.437kB",
+            "block_io": "0B / 0B",
+            "pids": "6"
+          },
+          {
+            "id": "5321eeef738f",
+            "name": "club-capacity-test_api_1",
+            "cpu_time": "7.974767s",
+            "cpu_percent": "28.71%",
+            "avg_cpu": "28.71%",
+            "mem_usage": "325.4MB / 943.7MB",
+            "mem_percent": "34.48%",
+            "net_io": "116.6kB / 40.26kB",
+            "block_io": "0B / 0B",
+            "pids": "28"
+          },
+          {
+            "id": "dd7de96d9d41",
+            "name": "club-capacity-test_worker_1",
+            "cpu_time": "1.443727s",
+            "cpu_percent": "5.23%",
+            "avg_cpu": "5.23%",
+            "mem_usage": "63.37MB / 201.3MB",
+            "mem_percent": "31.47%",
+            "net_io": "104.4kB / 99.04kB",
+            "block_io": "0B / 0B",
+            "pids": "2"
+          },
+          {
+            "id": "77cf8f4dba89",
+            "name": "club-capacity-test_nginx_1",
+            "cpu_time": "34.02ms",
+            "cpu_percent": "0.12%",
+            "avg_cpu": "0.12%",
+            "mem_usage": "11.17MB / 268.4MB",
+            "mem_percent": "4.16%",
+            "net_io": "15.12kB / 2.784kB",
+            "block_io": "0B / 0B",
+            "pids": "2"
+          }
+        ],
+        "cgroups": {
+          "mysql": {
+            "memory.current": "471842816",
+            "memory.peak": "473264128",
+            "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\nsock_throttled 0",
+            "cpu.stat": "usage_usec 1137821\nuser_usec 554012\nsystem_usec 583809\nnice_usec 0\ncore_sched.force_idle_usec 0\nnr_periods 0\nnr_throttled 0\nthrottled_usec 0\nnr_bursts 0\nburst_usec 0"
+          },
+          "redis": {
+            "memory.current": "5804032",
+            "memory.peak": "21946368",
+            "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\nsock_throttled 0",
+            "cpu.stat": "usage_usec 283018\nuser_usec 179176\nsystem_usec 103841\nnice_usec 0\ncore_sched.force_idle_usec 0\nnr_periods 0\nnr_throttled 0\nthrottled_usec 0\nnr_bursts 0\nburst_usec 0"
+          },
+          "api": {
+            "memory.current": "336715776",
+            "memory.peak": "384540672",
+            "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\nsock_throttled 0",
+            "cpu.stat": "usage_usec 8087999\nuser_usec 7608117\nsystem_usec 479881\nnice_usec 0\ncore_sched.force_idle_usec 0\nnr_periods 0\nnr_throttled 0\nthrottled_usec 0\nnr_bursts 0\nburst_usec 0"
+          },
+          "worker": {
+            "memory.current": "62337024",
+            "memory.peak": "64208896",
+            "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\nsock_throttled 0",
+            "cpu.stat": "usage_usec 1443727\nuser_usec 1345020\nsystem_usec 98707\nnice_usec 0\ncore_sched.force_idle_usec 0\nnr_periods 0\nnr_throttled 0\nthrottled_usec 0\nnr_bursts 0\nburst_usec 0"
+          },
+          "nginx": {
+            "memory.current": "10149888",
+            "memory.peak": "13475840",
+            "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\nsock_throttled 0",
+            "cpu.stat": "usage_usec 34020\nuser_usec 9876\nsystem_usec 24143\nnice_usec 0\ncore_sched.force_idle_usec 0\nnr_periods 0\nnr_throttled 0\nthrottled_usec 0\nnr_bursts 0\nburst_usec 0"
+          },
+          "budget_total": {
+            "memory.current": "890138624",
+            "memory.peak": "939974656",
+            "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\nsock_throttled 0",
+            "cpu.stat": "usage_usec 11176902\nuser_usec 9862914\nsystem_usec 1313987\nnice_usec 0\ncore_sched.force_idle_usec 0\nnr_periods 274\nnr_throttled 14\nthrottled_usec 1169696\nnr_bursts 0\nburst_usec 0",
+            "cpu.max": "400000 100000",
+            "memory.max": "3145728000"
+          }
+        },
+        "budget": "CPUQuotaPerSecUSec=4s\nMemoryMax=3145728000\nMemorySwapMax=0\n"
+      },
+      "generator_cpu_percent": 9.9,
+      "generator_rss": 51183616
+    },
+    {
+      "at": 1790524646.390739,
+      "server": {
+        "containers": [
+          {
+            "id": "2475876fb5d9",
+            "name": "club-capacity-test_mysql_1",
+            "cpu_time": "3.112625s",
+            "cpu_percent": "7.01%",
+            "avg_cpu": "7.01%",
+            "mem_usage": "523.7MB / 1.468GB",
+            "mem_percent": "35.68%",
+            "net_io": "3.98MB / 6.844MB",
+            "block_io": "0B / 0B",
+            "pids": "103"
+          },
+          {
+            "id": "4cf6f210ead2",
+            "name": "club-capacity-test_redis_1",
+            "cpu_time": "463.38ms",
+            "cpu_percent": "1.05%",
+            "avg_cpu": "1.05%",
+            "mem_usage": "9.691MB / 201.3MB",
+            "mem_percent": "4.81%",
+            "net_io": "994.5kB / 5.607MB",
+            "block_io": "0B / 0B",
+            "pids": "6"
+          },
+          {
+            "id": "5321eeef738f",
+            "name": "club-capacity-test_api_1",
+            "cpu_time": "30.187865s",
+            "cpu_percent": "79.26%",
+            "avg_cpu": "79.26%",
+            "mem_usage": "487.7MB / 943.7MB",
+            "mem_percent": "51.68%",
+            "net_io": "13.69MB / 10.98MB",
+            "block_io": "0B / 0B",
+            "pids": "30"
+          },
+          {
+            "id": "dd7de96d9d41",
+            "name": "club-capacity-test_worker_1",
+            "cpu_time": "1.585853s",
+            "cpu_percent": "4.18%",
+            "avg_cpu": "4.18%",
+            "mem_usage": "62.58MB / 201.3MB",
+            "mem_percent": "31.09%",
+            "net_io": "212.1kB / 237.5kB",
+            "block_io": "0B / 0B",
+            "pids": "2"
+          },
+          {
+            "id": "77cf8f4dba89",
+            "name": "club-capacity-test_nginx_1",
+            "cpu_time": "2.192668s",
+            "cpu_percent": "5.82%",
+            "avg_cpu": "5.82%",
+            "mem_usage": "107.4MB / 268.4MB",
+            "mem_percent": "40.02%",
+            "net_io": "6.235MB / 1.419MB",
+            "block_io": "0B / 0B",
+            "pids": "2"
+          }
+        ],
+        "cgroups": {
+          "mysql": {
+            "memory.current": "537485312",
+            "memory.peak": "539770880",
+            "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\nsock_throttled 0",
+            "cpu.stat": "usage_usec 3114631\nuser_usec 1868992\nsystem_usec 1245639\nnice_usec 0\ncore_sched.force_idle_usec 0\nnr_periods 0\nnr_throttled 0\nthrottled_usec 0\nnr_bursts 0\nburst_usec 0"
+          },
+          "redis": {
+            "memory.current": "8699904",
+            "memory.peak": "21946368",
+            "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\nsock_throttled 0",
+            "cpu.stat": "usage_usec 466848\nuser_usec 274149\nsystem_usec 192699\nnice_usec 0\ncore_sched.force_idle_usec 0\nnr_periods 0\nnr_throttled 0\nthrottled_usec 0\nnr_bursts 0\nburst_usec 0"
+          },
+          "api": {
+            "memory.current": "489398272",
+            "memory.peak": "491864064",
+            "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\nsock_throttled 0",
+            "cpu.stat": "usage_usec 30514626\nuser_usec 28958115\nsystem_usec 1556511\nnice_usec 0\ncore_sched.force_idle_usec 0\nnr_periods 0\nnr_throttled 0\nthrottled_usec 0\nnr_bursts 0\nburst_usec 0"
+          },
+          "worker": {
+            "memory.current": "62533632",
+            "memory.peak": "64225280",
+            "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\nsock_throttled 0",
+            "cpu.stat": "usage_usec 1590135\nuser_usec 1480264\nsystem_usec 109871\nnice_usec 0\ncore_sched.force_idle_usec 0\nnr_periods 0\nnr_throttled 0\nthrottled_usec 0\nnr_bursts 0\nburst_usec 0"
+          },
+          "nginx": {
+            "memory.current": "108072960",
+            "memory.peak": "110194688",
+            "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\nsock_throttled 0",
+            "cpu.stat": "usage_usec 2247817\nuser_usec 1847549\nsystem_usec 400268\nnice_usec 0\ncore_sched.force_idle_usec 0\nnr_periods 0\nnr_throttled 0\nthrottled_usec 0\nnr_bursts 0\nburst_usec 0"
+          },
+          "budget_total": {
+            "memory.current": "1209573376",
+            "memory.peak": "1219076096",
+            "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\nsock_throttled 0",
+            "cpu.stat": "usage_usec 38663248\nuser_usec 35027604\nsystem_usec 3635643\nnice_usec 0\ncore_sched.force_idle_usec 0\nnr_periods 377\nnr_throttled 73\nthrottled_usec 24340335\nnr_bursts 0\nburst_usec 0",
+            "cpu.max": "400000 100000",
+            "memory.max": "3145728000"
+          }
+        },
+        "budget": "CPUQuotaPerSecUSec=4s\nMemoryMax=3145728000\nMemorySwapMax=0\n"
+      },
+      "generator_cpu_percent": 21.6,
+      "generator_rss": 751976448
+    },
+    {
+      "at": 1790524656.832266,
+      "server": {
+        "containers": [
+          {
+            "id": "2475876fb5d9",
+            "name": "club-capacity-test_mysql_1",
+            "cpu_time": "7.148156s",
+            "cpu_percent": "13.04%",
+            "avg_cpu": "13.04%",
+            "mem_usage": "529.1MB / 1.468GB",
+            "mem_percent": "36.04%",
+            "net_io": "13.23MB / 23.36MB",
+            "block_io": "0B / 0B",
+            "pids": "108"
+          },
+          {
+            "id": "4cf6f210ead2",
+            "name": "club-capacity-test_redis_1",
+            "cpu_time": "663.649ms",
+            "cpu_percent": "1.21%",
+            "avg_cpu": "1.21%",
+            "mem_usage": "7.221MB / 201.3MB",
+            "mem_percent": "3.59%",
+            "net_io": "2.007MB / 17.68MB",
+            "block_io": "0B / 0B",
+            "pids": "6"
+          },
+          {
+            "id": "5321eeef738f",
+            "name": "club-capacity-test_api_1",
+            "cpu_time": "1m5.110422s",
+            "cpu_percent": "134.24%",
+            "avg_cpu": "134.24%",
+            "mem_usage": "511.2MB / 943.7MB",
+            "mem_percent": "54.17%",
+            "net_io": "44.29MB / 37.75MB",
+            "block_io": "0B / 0B",
+            "pids": "30"
+          },
+          {
+            "id": "dd7de96d9d41",
+            "name": "club-capacity-test_worker_1",
+            "cpu_time": "1.821018s",
+            "cpu_percent": "3.77%",
+            "avg_cpu": "3.77%",
+            "mem_usage": "63.61MB / 201.3MB",
+            "mem_percent": "31.60%",
+            "net_io": "655.9kB / 572.4kB",
+            "block_io": "0B / 0B",
+            "pids": "2"
+          },
+          {
+            "id": "77cf8f4dba89",
+            "name": "club-capacity-test_nginx_1",
+            "cpu_time": "4.14718s",
+            "cpu_percent": "8.62%",
+            "avg_cpu": "8.62%",
+            "mem_usage": "141.5MB / 268.4MB",
+            "mem_percent": "52.73%",
+            "net_io": "23.08MB / 3.877MB",
+            "block_io": "0B / 0B",
+            "pids": "2"
+          }
+        ],
+        "cgroups": {
+          "mysql": {
+            "memory.current": "549453824",
+            "memory.peak": "552697856",
+            "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\nsock_throttled 0",
+            "cpu.stat": "usage_usec 7153092\nuser_usec 4612057\nsystem_usec 2541034\nnice_usec 0\ncore_sched.force_idle_usec 0\nnr_periods 0\nnr_throttled 0\nthrottled_usec 0\nnr_bursts 0\nburst_usec 0"
+          },
+          "redis": {
+            "memory.current": "7172096",
+            "memory.peak": "21946368",
+            "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\nsock_throttled 0",
+            "cpu.stat": "usage_usec 663879\nuser_usec 369157\nsystem_usec 294722\nnice_usec 0\ncore_sched.force_idle_usec 0\nnr_periods 0\nnr_throttled 0\nthrottled_usec 0\nnr_bursts 0\nburst_usec 0"
+          },
+          "api": {
+            "memory.current": "510095360",
+            "memory.peak": "516710400",
+            "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\nsock_throttled 0",
+            "cpu.stat": "usage_usec 65602547\nuser_usec 62536326\nsystem_usec 3066221\nnice_usec 0\ncore_sched.force_idle_usec 0\nnr_periods 0\nnr_throttled 0\nthrottled_usec 0\nnr_bursts 0\nburst_usec 0"
+          },
+          "worker": {
+            "memory.current": "62820352",
+            "memory.peak": "65327104",
+            "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\nsock_throttled 0",
+            "cpu.stat": "usage_usec 1825895\nuser_usec 1696690\nsystem_usec 129204\nnice_usec 0\ncore_sched.force_idle_usec 0\nnr_periods 0\nnr_throttled 0\nthrottled_usec 0\nnr_bursts 0\nburst_usec 0"
+          },
+          "nginx": {
+            "memory.current": "140734464",
+            "memory.peak": "158273536",
+            "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\nsock_throttled 0",
+            "cpu.stat": "usage_usec 4153574\nuser_usec 3294179\nsystem_usec 859395\nnice_usec 0\ncore_sched.force_idle_usec 0\nnr_periods 0\nnr_throttled 0\nthrottled_usec 0\nnr_bursts 0\nburst_usec 0"
+          },
+          "budget_total": {
+            "memory.current": "1274441728",
+            "memory.peak": "1300160512",
+            "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\nsock_throttled 0",
+            "cpu.stat": "usage_usec 80337700\nuser_usec 73315053\nsystem_usec 7022646\nnice_usec 0\ncore_sched.force_idle_usec 0\nnr_periods 482\nnr_throttled 178\nthrottled_usec 68517386\nnr_bursts 0\nburst_usec 0",
+            "cpu.max": "400000 100000",
+            "memory.max": "3145728000"
+          }
+        },
+        "budget": "CPUQuotaPerSecUSec=4s\nMemoryMax=3145728000\nMemorySwapMax=0\n"
+      },
+      "generator_cpu_percent": 28.5,
+      "generator_rss": 1062174720
+    },
+    {
+      "at": 1790524667.128974,
+      "server": {
+        "containers": [
+          {
+            "id": "2475876fb5d9",
+            "name": "club-capacity-test_mysql_1",
+            "cpu_time": "7.4603s",
+            "cpu_percent": "11.44%",
+            "avg_cpu": "11.44%",
+            "mem_usage": "527.3MB / 1.468GB",
+            "mem_percent": "35.92%",
+            "net_io": "13.55MB / 23.79MB",
+            "block_io": "0B / 0B",
+            "pids": "107"
+          },
+          {
+            "id": "4cf6f210ead2",
+            "name": "club-capacity-test_redis_1",
+            "cpu_time": "695.255ms",
+            "cpu_percent": "1.07%",
+            "avg_cpu": "1.07%",
+            "mem_usage": "7.234MB / 201.3MB",
+            "mem_percent": "3.59%",
+            "net_io": "2.045MB / 17.82MB",
+            "block_io": "0B / 0B",
+            "pids": "6"
+          },
+          {
+            "id": "5321eeef738f",
+            "name": "club-capacity-test_api_1",
+            "cpu_time": "1m9.25973s",
+            "cpu_percent": "117.57%",
+            "avg_cpu": "117.57%",
+            "mem_usage": "508.4MB / 943.7MB",
+            "mem_percent": "53.87%",
+            "net_io": "44.94MB / 38.31MB",
+            "block_io": "0B / 0B",
+            "pids": "30"
+          },
+          {
+            "id": "dd7de96d9d41",
+            "name": "club-capacity-test_worker_1",
+            "cpu_time": "1.902079s",
+            "cpu_percent": "3.24%",
+            "avg_cpu": "3.24%",
+            "mem_usage": "62.87MB / 201.3MB",
+            "mem_percent": "31.23%",
+            "net_io": "718.3kB / 649.7kB",
+            "block_io": "0B / 0B",
+            "pids": "2"
+          },
+          {
+            "id": "77cf8f4dba89",
+            "name": "club-capacity-test_nginx_1",
+            "cpu_time": "4.24551s",
+            "cpu_percent": "7.25%",
+            "avg_cpu": "7.25%",
+            "mem_usage": "135.6MB / 268.4MB",
+            "mem_percent": "50.51%",
+            "net_io": "23.36MB / 4.018MB",
+            "block_io": "0B / 0B",
+            "pids": "2"
+          }
+        ],
+        "cgroups": {
+          "mysql": {
+            "memory.current": "549699584",
+            "memory.peak": "552910848",
+            "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\nsock_throttled 0",
+            "cpu.stat": "usage_usec 7460320\nuser_usec 4819678\nsystem_usec 2640642\nnice_usec 0\ncore_sched.force_idle_usec 0\nnr_periods 0\nnr_throttled 0\nthrottled_usec 0\nnr_bursts 0\nburst_usec 0"
+          },
+          "redis": {
+            "memory.current": "6914048",
+            "memory.peak": "21946368",
+            "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\nsock_throttled 0",
+            "cpu.stat": "usage_usec 695255\nuser_usec 382542\nsystem_usec 312713\nnice_usec 0\ncore_sched.force_idle_usec 0\nnr_periods 0\nnr_throttled 0\nthrottled_usec 0\nnr_bursts 0\nburst_usec 0"
+          },
+          "api": {
+            "memory.current": "507383808",
+            "memory.peak": "516710400",
+            "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\nsock_throttled 0",
+            "cpu.stat": "usage_usec 69264999\nuser_usec 66115362\nsystem_usec 3149636\nnice_usec 0\ncore_sched.force_idle_usec 0\nnr_periods 0\nnr_throttled 0\nthrottled_usec 0\nnr_bursts 0\nburst_usec 0"
+          },
+          "worker": {
+            "memory.current": "62820352",
+            "memory.peak": "65327104",
+            "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\nsock_throttled 0",
+            "cpu.stat": "usage_usec 1902079\nuser_usec 1763271\nsystem_usec 138808\nnice_usec 0\ncore_sched.force_idle_usec 0\nnr_periods 0\nnr_throttled 0\nthrottled_usec 0\nnr_bursts 0\nburst_usec 0"
+          },
+          "nginx": {
+            "memory.current": "133799936",
+            "memory.peak": "158273536",
+            "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\nsock_throttled 0",
+            "cpu.stat": "usage_usec 4250509\nuser_usec 3345403\nsystem_usec 905106\nnice_usec 0\ncore_sched.force_idle_usec 0\nnr_periods 0\nnr_throttled 0\nthrottled_usec 0\nnr_bursts 0\nburst_usec 0"
+          },
+          "budget_total": {
+            "memory.current": "1263607808",
+            "memory.peak": "1300160512",
+            "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\nsock_throttled 0",
+            "cpu.stat": "usage_usec 84047126\nuser_usec 76787278\nsystem_usec 7259847\nnice_usec 0\ncore_sched.force_idle_usec 0\nnr_periods 585\nnr_throttled 183\nthrottled_usec 68970314\nnr_bursts 0\nburst_usec 0",
+            "cpu.max": "400000 100000",
+            "memory.max": "3145728000"
+          }
+        },
+        "budget": "CPUQuotaPerSecUSec=4s\nMemoryMax=3145728000\nMemorySwapMax=0\n"
+      },
+      "generator_cpu_percent": 5.2,
+      "generator_rss": 1063124992
+    }
+  ],
+  "production_capacity_verified": false,
+  "network_scope": "LAN with externally recorded egress shaping; no simulated public RTT/loss",
+  "application_sha256": "b83079787e905ccb481714470a3746737d23148bca0365c6d67fd98b09cb4083",
+  "clock_offset_s": 0.10939693450927734,
+  "clock_calibration_rtt_s": 0.02639603614807129,
+  "started_at": "2026-09-27T15:57:15.717629+00:00",
+  "generator_loop_lag_p95_s": 0.0105,
+  "generator_loop_lag_max_s": 0.08513441691175103
+}
