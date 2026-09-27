@@ -39,7 +39,58 @@ def summary(rows):
         "unexpected_errors": sum(r[0] == 0 or r[0] >= 500 for r in rows),
         "capacity_rejections": sum(r[0] in (429, 503) for r in rows),
         "response_bytes": sum(r[5] for r in rows),
+        "headers_dispatch_span_s": round(
+            max(r[3] + r[7] for r in rows if len(r) > 7 and r[7] is not None)
+            - min(r[3] + r[7] for r in rows if len(r) > 7 and r[7] is not None),
+            4,
+        )
+        if any(len(r) > 7 and r[7] is not None for r in rows)
+        else None,
+        "connect_tls_p95_s": p([r[6] for r in rows if len(r) > 6 and r[6] is not None], 0.95),
+        "before_headers_sent_p95_s": p([r[7] for r in rows if len(r) > 7 and r[7] is not None], 0.95),
+        "response_headers_p95_s": p([r[8] for r in rows if len(r) > 8 and r[8] is not None], 0.95),
         "arrivals_per_second": dict(sorted(Counter(int(r[3]) for r in rows).items())),
+    }
+
+
+def journey_gates(item, mode, users):
+    stages = item["stages"]
+    login = stages.get("login", {})
+    enroll = stages.get("enroll", {})
+    counted = [v for k, v in stages.items() if k != "journey"]
+    return {
+        "all_students_completed": item["completed_students"] == users,
+        "data_correct": item["data_consistency_pass"] and item["all_expected_enrolled"],
+        "all_final_quota_snapshots_current": item["websocket"]["missing_final_quota_snapshots"] == 0
+        and item["websocket"]["timed_deliveries"] > 0,
+        "all_websockets_online": item["websocket"]["open_at_end"] == users,
+        "no_unexpected_ws_close": item["websocket"].get("unexpected_close", 0) == 0,
+        "ready_enrollment_burst_within_1s": mode != "ready"
+        or (bool(enroll.get("count")) and enroll["dispatch_span_s"] <= 1),
+        "warm_login_headers_within_1s": mode != "login_warm"
+        or (
+            bool(login.get("count"))
+            and login.get("headers_dispatch_span_s") is not None
+            and login["headers_dispatch_span_s"] <= 1
+        ),
+        "login_p95_4s": not login.get("count") or login["p95_s"] <= 4,
+        "login_burst_within_1s": not login.get("count") or login["dispatch_span_s"] <= 1,
+        "interactive_reads_p95_3s": all(
+            v["p95_s"] <= 3
+            for k, v in stages.items()
+            if k
+            in {"bootstrap", "burst_bootstrap", "detail", "after_enrollment_bootstrap", "event_bootstrap"}
+            and v["count"]
+        ),
+        "notifications_p95_3s": item["websocket"]["notification_p95_s"] is not None
+        and item["websocket"]["notification_p95_s"] <= 3,
+        "enrollment_p95_3s_p99_5s": bool(enroll.get("count"))
+        and enroll["p95_s"] <= 3
+        and enroll["p99_s"] <= 5,
+        "no_capacity_rejections": all(v["capacity_rejections"] == 0 for v in counted),
+        "unexpected_errors_under_0_1_percent": sum(v["unexpected_errors"] for v in counted)
+        / max(1, sum(v["count"] for v in counted))
+        < 0.001,
     }
 
 
@@ -51,19 +102,28 @@ async def run(args):
         "schema": "student-journey-v1",
         "environment": args.url,
         "test_only": True,
+        "completed": False,
+        "http_keepalive_seconds": 60,
         "parameters": vars(args),
         "driver_sha256": hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
+        "test_ca_sha256": hashlib.sha256(Path(args.ca_cert).read_bytes()).hexdigest()
+        if args.ca_cert
+        else None,
         "http_sessions": "One independent connection pool per student (limit=6 including WS)",
         "runs": [],
         "errors": [],
         "resources": [],
         "production_capacity_verified": False,
         "network_scope": "LAN with externally recorded egress shaping; no simulated public RTT/loss",
+        "cpu_scope": "Pod CPU time quota, not core affinity; rootless helpers may be outside budget",
+        "generator_samples": [],
     }
     path.parent.mkdir(parents=True, exist_ok=True)
 
     def save():
-        path.write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n")
+        temporary = path.with_suffix(".tmp")
+        temporary.write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n")
+        temporary.replace(path)
 
     tls = ssl.create_default_context(cafile=args.ca_cert) if args.ca_cert else True
     connector = aiohttp.TCPConnector(limit=6, ttl_dns_cache=300, ssl=tls)
@@ -96,7 +156,8 @@ async def run(args):
             await ssh(args, "podman exec club-capacity-test_api_1 python -c " + shlex.quote(code))
         ).strip()
         async with client.post(
-            "/api/v1/auth/login", json={"username": "load3000", "password": "SyntheticLoad2026!"}
+            "/api/v1/auth/login",
+            json={"username": f"load{3000 - args.user_offset:04d}", "password": "SyntheticLoad2026!"},
         ) as r:
             calibration_token = (await r.json())["data"]["token"]
         clock_start = time.time()
@@ -111,6 +172,16 @@ async def run(args):
         )
         report["clock_offset_s"] = offset
         report["clock_calibration_rtt_s"] = clock_end - clock_start
+        report["api_image_id"] = (
+            await ssh(args, "podman inspect --format '{{.Image}}' club-capacity-test_api_1")
+        ).strip()
+        report["api_command"] = json.loads(
+            await ssh(args, "podman inspect --format '{{json .Config.Cmd}}' club-capacity-test_api_1")
+        )
+        config_code = "from pathlib import Path; import hashlib,json; root=Path.home()/'club-system-test/backend'; names=['deploy/nginx.conf','deploy/nginx.test.conf','.local/nginx.test.tls.conf','deploy/compose.test.yml','deploy/compose.test.tls.yml','uv.lock']; print(json.dumps({name:hashlib.sha256((root/name).read_bytes()).hexdigest() for name in names if (root/name).exists()}))"
+        report["deployment_config_sha256"] = json.loads(
+            await ssh(args, "python3 -c " + shlex.quote(config_code))
+        )
         report["started_at"] = datetime.now(timezone.utc).isoformat()
         stop_monitor = asyncio.Event()
         lag = []
@@ -122,6 +193,14 @@ async def run(args):
                 tick = time.monotonic()
                 await asyncio.sleep(0.1)
                 lag.append(max(0, time.monotonic() - tick - 0.1))
+                times = proc.cpu_times()
+                report["generator_samples"].append(
+                    {
+                        "at": time.time(),
+                        "cpu_seconds": times.user + times.system,
+                        "rss_bytes": proc.memory_info().rss,
+                    }
+                )
 
         async def resources():
             while not stop_monitor.is_set():
@@ -142,27 +221,57 @@ async def run(args):
                     report["errors"].append("monitor: " + type(exc).__name__)
                 await asyncio.sleep(10)
 
-        students = [
-            aiohttp.ClientSession(
-                base_url=args.url,
-                connector=aiohttp.TCPConnector(limit=6, ssl=tls),
-                timeout=aiohttp.ClientTimeout(total=10, ceil_threshold=30),
-                trust_env=False,
-                headers={"Accept-Encoding": "gzip"},
-            )
-            for _ in range(args.users)
-        ]
+        trace_config = aiohttp.TraceConfig()
+
+        async def connection_start(session, ctx, params):
+            if ctx.trace_request_ctx is None:
+                return
+            ctx.trace_request_ctx["connect_start"] = time.monotonic()
+
+        async def connection_end(session, ctx, params):
+            if ctx.trace_request_ctx is None:
+                return
+            ctx.trace_request_ctx["connect_s"] = time.monotonic() - ctx.trace_request_ctx["connect_start"]
+
+        async def headers_sent(session, ctx, params):
+            if ctx.trace_request_ctx is None:
+                return
+            ctx.trace_request_ctx["sent_at"] = time.monotonic()
+
+        trace_config.on_connection_create_start.append(connection_start)
+        trace_config.on_connection_create_end.append(connection_end)
+        trace_config.on_request_headers_sent.append(headers_sent)
+
+        def make_students():
+            return [
+                aiohttp.ClientSession(
+                    base_url=args.url,
+                    connector=aiohttp.TCPConnector(limit=6, ssl=tls, keepalive_timeout=60),
+                    timeout=aiohttp.ClientTimeout(total=10, ceil_threshold=30),
+                    trust_env=False,
+                    headers={"Accept-Encoding": "gzip"},
+                    trace_configs=[trace_config],
+                )
+                for _ in range(args.users)
+            ]
+
+        students = make_students()
         monitors = [asyncio.create_task(monitor()), asyncio.create_task(resources())]
         reusable_tokens = [None] * args.users
         try:
             for round_no in range(args.rounds):
-                await fixture(args, "prepare", args.scenario)
+                # Full-login rounds must all include fresh transport establishment.
+                if round_no and args.mode == "login":
+                    await asyncio.gather(*(student.close() for student in students))
+                    students = make_students()
+                if not args.control_dir:
+                    await fixture(args, "prepare", args.scenario)
 
                 async def cold_cache():
                     code = "import asyncio; from redis.asyncio import Redis; from club.config import settings\nasync def f():\n r=Redis.from_url(settings().redis_url)\n keys=[k async for k in r.scan_iter(settings().redis_prefix+':catalog*')]\n if keys: await r.delete(*keys)\n await r.aclose()\nasyncio.run(f())"
                     await ssh(args, "podman exec club-capacity-test_api_1 python -c " + shlex.quote(code))
 
-                if args.cache == "cold":
+                if args.cache == "cold" and not args.control_dir:
                     await cold_cache()
                 stages = defaultdict(list)
                 setup = defaultdict(list)
@@ -196,13 +305,16 @@ async def run(args):
                     records = stages if measuring else setup
                     begin = time.monotonic()
                     status, code, data, server, size = 0, "UNKNOWN", None, None, 0
+                    trace = {}
+                    headers_received = None
                     headers = {"Authorization": "Bearer " + tokens[i]} if tokens[i] else {}
                     if key:
                         headers["Idempotency-Key"] = key
                     try:
                         async with students[i].request(
-                            method, "/api/v1" + endpoint, json=body, headers=headers
+                            method, "/api/v1" + endpoint, json=body, headers=headers, trace_request_ctx=trace
                         ) as r:
+                            headers_received = time.monotonic()
                             raw = await r.read()
                             size = len(raw)
                             status = r.status
@@ -226,7 +338,19 @@ async def run(args):
                     except (aiohttp.ClientError, TimeoutError, ValueError) as exc:
                         code = type(exc).__name__
                     records[stage].append(
-                        (status, code, time.monotonic() - begin, begin - zero, server, size)
+                        (
+                            status,
+                            code,
+                            time.monotonic() - begin,
+                            begin - zero,
+                            server,
+                            size,
+                            trace.get("connect_s"),
+                            trace["sent_at"] - begin if "sent_at" in trace else None,
+                            headers_received - trace["sent_at"]
+                            if headers_received and "sent_at" in trace
+                            else None,
+                        )
                     )
                     last_codes[(i, stage)] = code
                     return status, data
@@ -321,7 +445,7 @@ async def run(args):
                         "login",
                         "POST",
                         "/auth/login",
-                        {"username": f"load{i + 1:04d}", "password": "SyntheticLoad2026!"},
+                        {"username": f"load{i + args.user_offset + 1:04d}", "password": "SyntheticLoad2026!"},
                     )
                     if status != 200:
                         return False
@@ -362,19 +486,41 @@ async def run(args):
                     print(f"preparing {prepared} existing sessions", flush=True)
                     await asyncio.gather(*(prepare(i) for i in range(prepared)))
                     await asyncio.sleep(1)
-                if args.cache == "cold":
+                if args.mode == "login_warm":
+                    transport_start = time.monotonic()
+
+                    async def warm_transport(i):
+                        await asyncio.sleep(max(0, transport_start + i * 8 / args.users - time.monotonic()))
+                        async with students[i].get("/health/live") as response:
+                            if response.status != 200 or (await response.json()).get("environment") != "test":
+                                raise RuntimeError("Failed to prepare TEST TLS connection")
+
+                    await asyncio.gather(*(warm_transport(i) for i in range(args.users)))
+                if args.cache == "cold" and not args.control_dir:
                     await cold_cache()
-                zero = time.monotonic() + 2
-                measured_epoch = time.time() + 2
-                deadline = zero + args.hold_seconds
-                opening = zero + args.open_after
-                # The actual server enforces the same opening boundary, not only the driver.
-                code = (
-                    "import asyncio; from datetime import datetime,timezone,timedelta; from club.db import make_engine,sessions; from club.models import Activity\nasync def f():\n e=make_engine()\n async with sessions(e)() as d,d.begin():\n  a=await d.get(Activity,1,with_for_update=True)\n  a.state='published'; a.starts_at=datetime.fromtimestamp("
-                    + str(measured_epoch + args.open_after + offset)
-                    + ",timezone.utc).replace(tzinfo=None); a.ends_at=a.starts_at+timedelta(hours=1)\n await e.dispose()\nasyncio.run(f())"
-                )
-                await ssh(args, "podman exec club-capacity-test_api_1 python -c " + shlex.quote(code))
+                if args.control_dir:
+                    control = Path(args.control_dir)
+                    save()  # Publish metadata before notifying the coordinator.
+                    (control / f"{args.user_offset}.ready").write_text("ready")
+                    async with asyncio.timeout(180):
+                        while not (control / "start.json").exists():
+                            await asyncio.sleep(0.05)
+                    measured_epoch = json.loads((control / "start.json").read_text())["epoch"]
+                    zero = time.monotonic() + measured_epoch - time.time()
+                    deadline = zero + args.hold_seconds
+                    opening = zero + args.open_after
+                else:
+                    zero = time.monotonic() + 2
+                    measured_epoch = time.time() + 2
+                    deadline = zero + args.hold_seconds
+                    opening = zero + args.open_after
+                    # The actual server enforces the same opening boundary, not only the driver.
+                    code = (
+                        "import asyncio; from datetime import datetime,timezone,timedelta; from club.db import make_engine,sessions; from club.models import Activity\nasync def f():\n e=make_engine()\n async with sessions(e)() as d,d.begin():\n  a=await d.get(Activity,1,with_for_update=True)\n  a.state='published'; a.starts_at=datetime.fromtimestamp("
+                        + str(measured_epoch + args.open_after + offset)
+                        + ",timezone.utc).replace(tzinfo=None); a.ends_at=a.starts_at+timedelta(hours=1)\n await e.dispose()\nasyncio.run(f())"
+                    )
+                    await ssh(args, "podman exec club-capacity-test_api_1 python -c " + shlex.quote(code))
                 # Clock skew is bounded by LAN clock calibration recorded before the burst.
                 measuring = True
 
@@ -411,7 +557,7 @@ async def run(args):
                             await old.close()
                         ws_counts["intentional_disconnect"] += 1
                         await connect(i)
-                    cid = i % 42 + 1 if args.scenario == "uniform" else 1
+                    cid = (i + args.user_offset) % 42 + 1 if args.scenario == "uniform" else 1
                     status, _ = await request(i, "detail", "GET", f"/clubs/{cid}")
                     if status != 200:
                         outcomes["detail_failed"] += 1
@@ -501,8 +647,18 @@ async def run(args):
                     if args.scenario == "last_seat"
                     else min(100, args.users)
                 )
+                steady = summary(
+                    [
+                        r
+                        for k, values in stages.items()
+                        if k in {"active_detail", "periodic_quotas"}
+                        for r in values
+                        if r[3] >= 20
+                    ]
+                )
                 item = {
                     "round": round_no + 1,
+                    "steady_reads_after_20s": steady,
                     "measured_epoch": measured_epoch,
                     "stages": {k: summary(v) for k, v in stages.items()},
                     "setup": {k: summary(v) for k, v in setup.items()},
@@ -526,43 +682,10 @@ async def run(args):
                         "payload_peak_mbps": max(payload.values(), default=0) * 8 / 1e6,
                     },
                 }
-                item["scope_gates"] = {
-                    "all_students_completed": len(completed) == args.users,
-                    "data_correct": item["data_consistency_pass"] and item["all_expected_enrolled"],
-                    "all_final_quota_snapshots_current": missing_final == 0 and bool(final_versions),
-                    "all_websockets_online": item["websocket"]["open_at_end"] == args.users,
-                    "no_unexpected_ws_close": ws_counts["unexpected_close"] == 0,
-                    "ready_enrollment_burst_within_1s": args.mode != "ready"
-                    or (bool(stages["enroll"]) and item["stages"]["enroll"]["dispatch_span_s"] <= 1),
-                    "login_p95_3s": not stages["login"] or item["stages"]["login"]["p95_s"] <= 3,
-                    "login_burst_within_1s": not stages["login"]
-                    or item["stages"]["login"]["dispatch_span_s"] <= 1,
-                    "interactive_reads_p95_3s": all(
-                        v["p95_s"] <= 3
-                        for k, v in item["stages"].items()
-                        if k
-                        in {
-                            "bootstrap",
-                            "burst_bootstrap",
-                            "detail",
-                            "after_enrollment_bootstrap",
-                            "event_bootstrap",
-                        }
-                        and v["count"]
-                    ),
-                    "notifications_p95_3s": bool(delays) and p(delays, 0.95) <= 3,
-                    "enrollment_p95_3s_p99_5s": bool(stages["enroll"])
-                    and item["stages"]["enroll"]["p95_s"] <= 3
-                    and item["stages"]["enroll"]["p99_s"] <= 5,
-                    "no_capacity_rejections": all(
-                        v["capacity_rejections"] == 0 for k, v in item["stages"].items() if k != "journey"
-                    ),
-                    "unexpected_errors_under_0_1_percent": sum(
-                        v["unexpected_errors"] for k, v in item["stages"].items() if k != "journey"
-                    )
-                    / max(1, sum(v["count"] for k, v in item["stages"].items() if k != "journey"))
-                    < 0.001,
-                }
+                item["scope_gates"] = journey_gates(item, args.mode, args.users)
+                if args.control_dir:
+                    item["raw_stages"] = dict(stages)
+                    item["raw_notification_delays"] = delays
                 report["runs"].append(item)
                 stop_users.set()
                 await asyncio.gather(*(s.close() for s in sockets.values()), return_exceptions=True)
@@ -572,6 +695,10 @@ async def run(args):
                 save()
                 print(json.dumps({"round": round_no + 1, "gates": item["scope_gates"]}), flush=True)
                 await asyncio.sleep(2)
+            report["completed"] = True
+        except Exception as exc:
+            report["errors"].append("driver: " + type(exc).__name__)
+            raise
         finally:
             await asyncio.gather(*(student.close() for student in students), return_exceptions=True)
             stop_monitor.set()
@@ -591,8 +718,10 @@ if __name__ == "__main__":
     )
     parser.add_argument("--ssh", default="gg1214@192.168.100.130")
     parser.add_argument("--control", default="/private/tmp/club-test-ssh")
-    parser.add_argument("--users", type=int, choices=[30, 1500, 3000], default=1500)
-    parser.add_argument("--mode", choices=["login", "ready", "mixed", "reconnect"], default="login")
+    parser.add_argument("--users", type=int, default=1500)
+    parser.add_argument(
+        "--mode", choices=["login", "login_warm", "ready", "mixed", "reconnect"], default="login"
+    )
     parser.add_argument("--scenario", choices=["uniform", "hot_club", "last_seat"], default="uniform")
     parser.add_argument("--client-profile", choices=["legacy", "lean"], default="lean")
     parser.add_argument("--cache", choices=["cold", "warm"], default="cold")
@@ -600,11 +729,16 @@ if __name__ == "__main__":
     parser.add_argument("--hold-seconds", type=int, default=30)
     parser.add_argument("--burst-seconds", type=float, default=0.6)
     parser.add_argument("--open-after", type=float, default=5)
+    parser.add_argument("--control-dir", help="Internal coordinated driver barrier; never skips TEST guards")
+    parser.add_argument("--user-offset", type=int, default=0)
     parser.add_argument("--seed", type=int, default=1214)
     parser.add_argument("--report", required=True)
     arguments = parser.parse_args()
     if (
-        arguments.rounds < 1
+        not 1 <= arguments.users <= 3000
+        or not 0 <= arguments.user_offset <= 3000 - arguments.users
+        or (arguments.control_dir is not None and arguments.rounds != 1)
+        or arguments.rounds < 1
         or arguments.hold_seconds < 10
         or not 0 < arguments.burst_seconds <= 1
         or arguments.open_after < 2

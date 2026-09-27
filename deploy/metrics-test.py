@@ -61,4 +61,30 @@ result["cgroups"]["budget_total"] = {
     for key in ("memory.current", "memory.peak", "memory.events", "cpu.stat", "cpu.max", "memory.max")
     if (folder / key).exists()
 }
+# Rootless networking can live outside the pod quota. Observe same-user helpers
+# without exposing command lines; shared helpers are not attributed to this app.
+result["network_helpers_observed"] = []
+for process in Path("/proc").iterdir():
+    if not process.name.isdigit():
+        continue
+    try:
+        if process.stat().st_uid != os.getuid():
+            continue
+        name = (process / "comm").read_text().strip()
+        if name not in {"rootlessport", "slirp4netns", "pasta"}:
+            continue
+        fields = (process / "stat").read_text().rsplit(") ", 1)[1].split()
+        group = (process / "cgroup").read_text().strip().split(":")[-1]
+        result["network_helpers_observed"].append(
+            {
+                "pid": int(process.name),
+                "name": name,
+                "cpu_seconds": (int(fields[11]) + int(fields[12])) / os.sysconf("SC_CLK_TCK"),
+                "rss_bytes": int(fields[21]) * os.sysconf("SC_PAGE_SIZE"),
+                "inside_test_budget": group == parent or group.startswith(parent + "/"),
+                "attribution": "same-user helper; may serve other rootless containers",
+            }
+        )
+    except (FileNotFoundError, ProcessLookupError, PermissionError):
+        continue
 print(json.dumps(result))

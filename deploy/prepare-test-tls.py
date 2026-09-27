@@ -8,11 +8,12 @@ import subprocess
 
 p = argparse.ArgumentParser()
 p.add_argument("--host", required=True)
+p.add_argument("--algorithm", choices=["rsa2048", "ecdsa256"], default="rsa2048")
 a = p.parse_args()
 if not ipaddress.ip_address(a.host).is_private:
     raise SystemExit("Only a private isolated test IP is allowed")
 root = Path(__file__).resolve().parents[1]
-folder = root / ".local" / "tls"
+folder = root / ".local" / ("tls" if a.algorithm == "rsa2048" else "tls-ecdsa")
 folder.mkdir(parents=True, exist_ok=True)
 folder.chmod(0o700)
 key, cert = folder / "test.key", folder / "test.crt"
@@ -26,7 +27,7 @@ try:
             "req",
             "-x509",
             "-newkey",
-            "rsa:2048",
+            *(["rsa:2048"] if a.algorithm == "rsa2048" else ["ec", "-pkeyopt", "ec_paramgen_curve:P-256"]),
             "-nodes",
             "-days",
             "30",
@@ -57,4 +58,4 @@ source = source.replace(
     ssl_session_timeout 10m;""",
 )
 (root / ".local/nginx.test.tls.conf").write_text(source)
-print("Created isolated TLS configuration; key stays in ignored .local/tls")
+print("Created isolated TLS configuration; private key remains in ignored .local directory")

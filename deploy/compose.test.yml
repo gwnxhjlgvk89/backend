@@ -1,5 +1,5 @@
 # Isolated TEST stack. No production mounts, ports or credentials.
-# Overall rootless cgroup: 4 CPUs / 3000 MiB, no swap. Per-service memory caps sum to 2940 MiB.
+# Overall rootless cgroup: 4 CPUs / 3000 MiB, no swap. Per-service memory caps sum to 2948 MiB.
 name: club-capacity-test
 services:
   mysql:
@@ -12,7 +12,7 @@ services:
     command: ["--max-connections=150", "--innodb-buffer-pool-size=768M", "--innodb-log-buffer-size=32M", "--innodb-flush-log-at-trx-commit=1", "--sync-binlog=1"]
     volumes: ["mysql:/var/lib/mysql"]
     cgroup_parent: club-capacity.slice
-    mem_limit: 1400m
+    mem_limit: 1280m
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "--silent"]
       interval: 5s
@@ -73,7 +73,7 @@ services:
     ports: ["${TEST_BIND:-127.0.0.1}:18081:8080"]
     depends_on: [api]
     cgroup_parent: club-capacity.slice
-    mem_limit: 256m
+    mem_limit: 384m
 volumes:
   mysql:
   redis:

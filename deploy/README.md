@@ -16,7 +16,7 @@ Ubuntu测试机安装Podman / podman-compose / uidmap / slirp4netns / aardvark-d
 8. 压测完成后单独运行 `scripts/fault_remote.py --url ...`。它会停止/恢复**命名测试容器**的worker、Redis并重启API，请勿与容量测试重叠。
 9. 超容量另运行 `--users 3000 --rounds 3 --hold-seconds 90`。业务拒绝、429、503和传输错误分别统计；`data_consistency_pass`核对成功报名数与数据库占位，`correctness_pass`还要求期望全部可用名额得到响应确认。
 
-数据库与Redis不发布主机端口，HTTP只绑定明确测试网卡；服务共用4CPU/3000MiB预算，MySQL1400MiB、API900MiB、worker192MiB、Redis192MiB、Nginx256MiB。4个API进程，每进程写入等主池15+5连接、身份/结果查询预留池2连接；独立worker固定5+5，连接预算98/150=65.3%。查询预留池不用于报名写入，避免超容量时写请求耗尽全部查询连接。
+数据库与Redis不发布主机端口，HTTP只绑定明确测试网卡；服务共用4CPU/3000MiB预算，MySQL1280MiB、API900MiB、worker192MiB、Redis192MiB、Nginx384MiB。4个API进程，每进程写入等主池15+3连接、身份/结果查询预留池4连接；独立worker固定5+5，连接预算98/150=65.3%。查询预留池不用于报名写入，避免超容量时写请求耗尽全部查询连接。
 
 资源报告包括每容器RSS、内存峰值、OOM计数和CPU累计时间；压测机记录整机与压测进程CPU、RSS和事件循环延迟。Podman `cpu_percent`是容器运行以来平均值，不能当作瞬时CPU峰值。此次测试主机的单核性能/NVMe与生产云机不同，带宽复现仅为测试Nginx出口限速、未复现公网RTT/TLS/丢包，不能宣称完全同硬件验收。
 
@@ -41,3 +41,13 @@ Ubuntu测试机安装Podman / podman-compose / uidmap / slirp4netns / aardvark-d
 先保存 `show`，再 `limit --mbps 10` 并核实rate=1250000 bytes/s以及实际响应字节/包计数非零；执行1500人短时三轮验证，最后在 `finally` 中保存qdisc计数并 `clear`。验证已恢复noqueue，保留前后证据；不得与原10分钟无带宽限制观察混跑。此测试只模拟出口速率，不模拟公网RTT、丢包或TLS开销。
 
 语义依据iproute2项目手册：[PRIO分类](https://man7.org/linux/man-pages/man8/tc-prio.8.html)、[TBF限速](https://man7.org/linux/man-pages/man8/tc-tbf.8.html)、[u32端口匹配](https://man7.org/linux/man-pages/man8/tc-u32.8.html)。
+
+## 完整学生流程、TLS与资源阶梯（2026-09-28）
+
+旧 `load_remote.py` 为分阶段测试；当前完整流程使用 `scripts/run_journey_case.py`，详见 `docs/JOURNEY_CAPACITY.md`。支持 `--mode login|login_warm|ready|mixed|reconnect`、`--scenario uniform|hot_club|last_seat`、`--users 1500|3000`、`--rounds 3`，600秒活跃测试用 `--hold-seconds 600`。短测不能替代持续测试，登录全冷模式不能用提前登录模式替代。
+
+TLS：`python3 deploy/prepare-test-tls.py --host TEST_PRIVATE_IP --algorithm ecdsa256`（RSA对照使用rsa2048）。私钥仅在忽略目录，公开测试证书复制到压测机后传 `--ca-cert`。加载compose.test.tls.yml，ECDSA目录通过 `TEST_TLS_DIR=../.local/tls-ecdsa` 选择，HTTPS端口18082。证书校验始终开启；这不代表微信真机认可自签测试证书。
+
+实验资源可选择CPU时间额度4/6/8/12/16和出口10/20/50Mbps；wrapper自动保存配额与流控证据并在结束恢复4CPU/noqueue。TLS出口过滤端口为8443。密码并发与API进程必须另行通过compose设置并记录，不能仅修改CPU额度：4API进程主池15+3/读池4，总预算98；8API进程主池7+0/读池4，总预算仍98。PASSWORD_CONCURRENCY按试验取值，不能无限加线程。
+
+当前测试模板Nginx为4进程；名额合并1.5秒，通知P95目标3秒。CPU额度不含rootless网络辅助进程，不等价物理核或云机vCPU。TLS已实测，公网RTT/丢包未模拟。完整配置是否达标以连续结果为准，不因模板存在即承诺容量。

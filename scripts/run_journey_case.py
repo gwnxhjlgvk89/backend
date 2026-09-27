@@ -34,13 +34,19 @@ async def main(args):
         shaped = True
         command = [
             sys.executable,
-            str(Path(__file__).with_name("load_journey.py")),
+            str(
+                Path(__file__).with_name(
+                    "load_distributed_journey.py" if args.processes > 1 else "load_journey.py"
+                )
+            ),
             "--url",
             args.url,
             "--ssh",
             args.ssh,
             "--control",
             args.control,
+            "--users",
+            str(args.users),
             "--mode",
             args.mode,
             "--scenario",
@@ -54,6 +60,8 @@ async def main(args):
             "--report",
             args.report,
         ]
+        if args.processes > 1:
+            command += ["--processes", str(args.processes)]
         if args.ca_cert:
             command += ["--ca-cert", args.ca_cert]
         child = await asyncio.create_subprocess_exec(*command)
@@ -81,7 +89,9 @@ if __name__ == "__main__":
     p.add_argument("--control", default="/private/tmp/club-test-ssh")
     p.add_argument("--cpus", type=int, choices=[4, 6, 8, 12, 16], default=4)
     p.add_argument("--mbps", type=int, choices=[10, 20, 50], default=10)
-    p.add_argument("--mode", choices=["login", "ready", "mixed", "reconnect"], default="login")
+    p.add_argument("--processes", type=int, choices=[1, 2, 3, 4], default=1)
+    p.add_argument("--users", type=int, choices=[30, 1500, 3000], default=1500)
+    p.add_argument("--mode", choices=["login", "login_warm", "ready", "mixed", "reconnect"], default="login")
     p.add_argument("--scenario", choices=["uniform", "hot_club", "last_seat"], default="uniform")
     p.add_argument("--cache", choices=["cold", "warm"], default="cold")
     p.add_argument("--rounds", type=int, default=1)
