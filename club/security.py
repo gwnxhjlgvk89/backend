@@ -16,7 +16,7 @@ from redis.exceptions import RedisError
 from club.config import settings
 from club.errors import fail
 from club.models import User
-from club.metrics import PASSWORD_EXECUTION, PASSWORD_WAIT
+from club.metrics import PASSWORD_EXECUTION, PASSWORD_WAIT, PASSWORD_NATIVE
 
 bearer = HTTPBearer(auto_error=False)
 password_slots = asyncio.Semaphore(settings().password_concurrency)
@@ -29,7 +29,15 @@ async def password_work(operation, function, *args):
     await password_slots.acquire()
     PASSWORD_WAIT.observe(time.monotonic() - waiting)
     started = time.monotonic()
-    task = asyncio.create_task(asyncio.to_thread(function, *args))
+
+    def native():
+        native_started = time.monotonic()
+        try:
+            return function(*args)
+        finally:
+            PASSWORD_NATIVE.labels(operation).observe(time.monotonic() - native_started)
+
+    task = asyncio.create_task(asyncio.to_thread(native))
 
     def completed(done):
         if not done.cancelled():

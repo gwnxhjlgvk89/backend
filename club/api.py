@@ -10,6 +10,7 @@ from contextlib import asynccontextmanager
 from fastapi import Depends, FastAPI, Header, Request, WebSocket
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse, Response
+from starlette.datastructures import MutableHeaders
 from redis.asyncio import Redis
 from redis.exceptions import RedisError
 from sqlalchemy import delete, func, select, text, update
@@ -124,30 +125,47 @@ app = FastAPI(
 )
 
 
-@app.middleware("http")
-async def observe(request, call_next):
-    started = time.monotonic()
-    request.state.request_id = uuid.uuid4().hex
-    response = await call_next(request)
-    route = getattr(request.scope.get("route"), "path", "unmatched")
-    elapsed = time.monotonic() - started
-    REQUESTS.labels(route, request.method, response.status_code).inc()
-    LATENCY.labels(route, request.method).observe(elapsed)
-    response.headers["X-Request-ID"] = request.state.request_id
-    response.headers["Server-Timing"] = f"app;dur={elapsed * 1000:.2f}"
-    response.headers["Cache-Control"] = "no-store"
-    logger.info(
-        json.dumps(
-            {
-                "request_id": request.state.request_id,
-                "route": route,
-                "method": request.method,
-                "status": response.status_code,
-                "ms": round(elapsed * 1000),
-            }
-        )
-    )
-    return response
+class Observe:
+    """Observe response headers directly without a task/stream bridge per request."""
+
+    def __init__(self, app):
+        self.app = app
+
+    async def __call__(self, scope, receive, send):
+        if scope["type"] != "http":
+            return await self.app(scope, receive, send)
+        started = time.monotonic()
+        request_id = uuid.uuid4().hex
+        scope.setdefault("state", {})["request_id"] = request_id
+
+        async def observed_send(message):
+            if message["type"] == "http.response.start":
+                route = getattr(scope.get("route"), "path", "unmatched")
+                elapsed = time.monotonic() - started
+                status = message["status"]
+                REQUESTS.labels(route, scope["method"], status).inc()
+                LATENCY.labels(route, scope["method"]).observe(elapsed)
+                headers = MutableHeaders(scope=message)
+                headers["X-Request-ID"] = request_id
+                headers["Server-Timing"] = f"app;dur={elapsed * 1000:.2f}"
+                headers["Cache-Control"] = "no-store"
+                logger.info(
+                    json.dumps(
+                        {
+                            "request_id": request_id,
+                            "route": route,
+                            "method": scope["method"],
+                            "status": status,
+                            "ms": round(elapsed * 1000),
+                        }
+                    )
+                )
+            await send(message)
+
+        await self.app(scope, receive, observed_send)
+
+
+app.add_middleware(Observe)
 
 
 def ok(data=None):

@@ -26,7 +26,7 @@ READ_POOL_WAIT = Histogram(
 )
 PASSWORD_EXECUTION = Histogram(
     "club_password_execution_seconds",
-    "Native password work duration",
+    "Password task duration including executor and event-loop scheduling",
     ["operation"],
     buckets=(0.005, 0.01, 0.025, 0.05, 0.1, 0.3, 1),
 )
@@ -49,3 +49,11 @@ def after_cursor(conn, cursor, statement, parameters, context, executemany):
     DB_QUERY.labels(verb if verb in {"SELECT", "INSERT", "UPDATE", "DELETE"} else "OTHER").observe(
         time.perf_counter() - context.club_started
     )
+
+
+PASSWORD_NATIVE = Histogram(
+    "club_password_native_seconds",
+    "Password function duration inside its native worker thread",
+    ["operation"],
+    buckets=(0.005, 0.01, 0.025, 0.05, 0.1, 0.3, 1),
+)

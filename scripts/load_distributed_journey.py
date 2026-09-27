@@ -24,6 +24,25 @@ except ModuleNotFoundError:
     from load_journey import journey_gates, summary
 
 
+async def counters(args):
+    code = "import urllib.request; print(urllib.request.urlopen('http://127.0.0.1:8000/metrics').read().decode())"
+    raw = await ssh(args, "podman exec club-capacity-test_api_1 python -c " + shlex.quote(code))
+    return {
+        line.split()[0]: float(line.split()[1])
+        for line in raw.splitlines()
+        if line.startswith(
+            (
+                "club_password_",
+                "club_http_seconds_",
+                "club_db_query_seconds_",
+                "club_read_pool_wait_seconds_",
+                "club_pool_wait_seconds_",
+            )
+        )
+        and ("_sum" in line.split()[0] or "_count" in line.split()[0])
+    }
+
+
 def combine(parts, db, mode, scenario, users):
     rows = defaultdict(list)
     outcomes = Counter()
@@ -160,6 +179,7 @@ async def main(args):
                 "deployment_config_sha256",
             ):
                 report[key] = initial[0][key]
+            before_counters = await counters(args)
             epoch = time.time() + 5
             opening = epoch + 5 + initial[0]["clock_offset_s"]
             code = """import asyncio
@@ -200,6 +220,10 @@ asyncio.run(f())""".replace("OPENING", repr(opening)).replace("COLD", repr(args.
             if not all(d.get("completed") and len(d["runs"]) == 1 and not d["errors"] for d in parts):
                 raise RuntimeError("Incomplete shard evidence")
             item = combine(parts, await fixture(args, "check"), args.mode, args.scenario, args.users)
+            after_counters = await counters(args)
+            item["server_counter_deltas"] = {
+                key: value - before_counters.get(key, 0) for key, value in after_counters.items()
+            }
             item["round"] = round_no + 1
             item["measured_epoch"] = epoch
             report["runs"].append(item)
