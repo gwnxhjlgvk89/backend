@@ -1,0 +1,30 @@
+{
+  "schema": "student-journey-distributed-v1",
+  "completed": false,
+  "parameters": {
+    "url": "https://192.168.100.130:18082",
+    "ca_cert": ".local/test-ecdsa-ca.crt",
+    "ssh": "gg1214@192.168.100.130",
+    "control": "/private/tmp/club-test-ssh",
+    "users": 30,
+    "processes": 3,
+    "mode": "login",
+    "scenario": "uniform",
+    "cache": "cold",
+    "rounds": 1,
+    "hold_seconds": 10,
+    "report": "reports/journey-shards-smoke-30.json"
+  },
+  "driver_sha256": "69bbf1c47b8bcddb5750bd4210f78e0e5cd919185199f21f46b2b3a34ef9c640",
+  "child_driver_sha256": "5aa2eecc1f0fed7e192e55f6b14ef73d12b08ad57c6960dde1314bc4c2c28927",
+  "runs": [],
+  "resources": [],
+  "errors": [
+    "FileNotFoundError"
+  ],
+  "parts": [],
+  "production_capacity_verified": false,
+  "network_scope": "LAN, TLS per student, external shaping; no WAN RTT/loss",
+  "cpu_scope": "Pod quota excludes some rootless networking helpers; not physical-core equivalence",
+  "generator_scope": "3 independent Python processes, disjoint student accounts"
+}
