@@ -39,10 +39,11 @@ async def ssh(args, command):
     return out.decode()
 
 
-async def fixture(args, action, scenario="uniform"):
+async def fixture(args, action, scenario="uniform", timings=False):
     raw = await ssh(
         args,
-        f"podman exec club-capacity-test_api_1 python -m club.load_fixture {action} --scenario {scenario}",
+        f"podman exec club-capacity-test_api_1 python -m club.load_fixture {action} --scenario {scenario}"
+        + (" --timings" if timings else ""),
     )
     return json.loads(raw) if action == "check" else None
 
@@ -71,13 +72,19 @@ async def main(args):
     workers = set()
     notification = []
     transport_lag = []
+    arrivals = []
+    quota_times = {}
     received_events = 0
     ws_failures = 0
     lag = []
     generator = psutil.Process()
     generator.cpu_percent()
+    login_window = 60 if args.users == 1500 else 120
     async with aiohttp.ClientSession(
-        base_url=args.url, connector=aiohttp.TCPConnector(limit=4000), timeout=timeout, trust_env=False
+        base_url=args.url,
+        connector=aiohttp.TCPConnector(limit=args.users * 3),
+        timeout=timeout,
+        trust_env=False,
     ) as client:
         r = await client.get("/health/live")
         if r.status != 200 or (await r.json()).get("environment") != "test":
@@ -117,7 +124,7 @@ async def main(args):
         login_results = []
 
         async def login(i):
-            await asyncio.sleep(i * 60 / args.users)
+            await asyncio.sleep(i * login_window / args.users)
             started = time.perf_counter()
             async with client.post(
                 "/api/v1/auth/login", json={"username": f"load{i + 1:04d}", "password": "SyntheticLoad2026!"}
@@ -132,7 +139,7 @@ async def main(args):
         report["login"] = {
             "statuses": dict(Counter(str(x[0]) for x in login_results)),
             "p95_s": p([x[1] for x in login_results], 0.95),
-            "duration_offered_s": 60,
+            "duration_offered_s": login_window,
         }
         save()
         print(json.dumps({"login": report["login"]}), flush=True)
@@ -170,6 +177,7 @@ async def main(args):
                         )
                         for item in quota_events:
                             received_events += 1
+                            arrivals.append(((item["club_id"], item["version"]), time.time() + clock_offset))
                             created = item.get("enqueued_at") or event.get("enqueued_at")
                             if created or event.get("t"):
                                 notification.append(
@@ -247,6 +255,19 @@ async def main(args):
                     await asyncio.sleep(0.5)
                     released = time.perf_counter()
                     results = []
+                    query_probes = []
+
+                    async def probe(i):
+                        await asyncio.sleep(i * 0.1)
+                        started = time.perf_counter()
+                        try:
+                            async with client.get(
+                                "/api/v1/enrollment", headers={"Authorization": "Bearer " + tokens[0]}
+                            ) as r:
+                                await r.read()
+                                query_probes.append((r.status, time.perf_counter() - started))
+                        except (aiohttp.ClientError, TimeoutError):
+                            query_probes.append((0, time.perf_counter() - started))
 
                     async def enroll(i, tok):
                         await asyncio.sleep(i * 0.95 / args.users)
@@ -274,8 +295,14 @@ async def main(args):
                             (status, code, time.perf_counter() - started, started - released, server_seconds)
                         )
 
-                    await asyncio.gather(*(enroll(i, t) for i, t in enumerate(tokens)))
-                    db = await fixture(args, "check")
+                    await asyncio.gather(
+                        *(enroll(i, t) for i, t in enumerate(tokens)),
+                        *(probe(i) for i in range(20) if args.users == 3000),
+                    )
+                    db = await fixture(args, "check", timings=True)
+                    quota_times.update(
+                        {(cid, version): created for cid, version, created in db.pop("quota_timings")}
+                    )
                     expected = (
                         1
                         if scenario == "last_seat"
@@ -297,6 +324,10 @@ async def main(args):
                         "correctness_pass": db["enrollments"] == expected and not db["inconsistencies"],
                         "data_consistency_pass": not db["inconsistencies"]
                         and db["enrollments"] == sum(x[0] == 200 for x in results),
+                        "queries_during_burst": {
+                            "statuses": dict(Counter(str(x[0]) for x in query_probes)),
+                            "p95_s": p([x[1] for x in query_probes], 0.95),
+                        },
                     }
                     report["runs"].append(item)
                     save()
@@ -313,12 +344,30 @@ async def main(args):
                         raise RuntimeError("Status query unavailable")
                 read.append(time.perf_counter() - started)
             report["steady_read_p95_s"] = p(read, 0.95)
+
+            def exact_notification():
+                delays = [
+                    max(0, received - quota_times[key]) for key, received in arrivals if key in quota_times
+                ]
+                delivery_counts = Counter(key for key, _ in arrivals)
+                return {
+                    "notification_p95_s": p(delays, 0.95),
+                    "notification_timing_matched": len(delays),
+                    "notification_timing_missing": len(arrivals) - len(delays),
+                    "observed_quota_versions": len(delivery_counts),
+                    "min_deliveries_per_observed_version": min(delivery_counts.values(), default=0),
+                    "missing_deliveries_for_observed_versions": max(
+                        0, len(delivery_counts) * len(sockets) - len(arrivals)
+                    ),
+                }
+
             while time.monotonic() - connected_at < args.hold_seconds:
                 report["ws_progress"] = {
                     "seconds": round(time.monotonic() - connected_at),
                     "open": sum(not ws.closed for ws in sockets),
                     "failures": ws_failures,
-                    "notification_p95_s": p(notification, 0.95),
+                    "batch_oldest_notification_p95_s": p(notification, 0.95),
+                    **exact_notification(),
                     "publish_to_client_p95_s": p(transport_lag, 0.95),
                 }
                 save()
@@ -331,7 +380,8 @@ async def main(args):
                 "unexpected_closes": ws_failures,
                 "api_workers_observed": len(workers),
                 "quota_deliveries": received_events,
-                "notification_p95_s": p(notification, 0.95),
+                "batch_oldest_notification_p95_s": p(notification, 0.95),
+                **exact_notification(),
                 "publish_to_client_p95_s": p(transport_lag, 0.95),
             }
             report["generator_loop_lag_p95_s"] = p(lag, 0.95)

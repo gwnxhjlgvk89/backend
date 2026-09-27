@@ -1,0 +1,78 @@
+{
+  "enrollment_identity": [
+    {
+      "id": 1,
+      "select_type": "SIMPLE",
+      "table": "u",
+      "partitions": null,
+      "type": "const",
+      "possible_keys": "PRIMARY",
+      "key": "PRIMARY",
+      "key_len": "4",
+      "ref": "const",
+      "rows": 1,
+      "filtered": 100.0,
+      "Extra": "Using index"
+    },
+    {
+      "id": 1,
+      "select_type": "SIMPLE",
+      "table": "e",
+      "partitions": null,
+      "type": "const",
+      "possible_keys": "PRIMARY",
+      "key": "PRIMARY",
+      "key_len": "4",
+      "ref": "const",
+      "rows": 1,
+      "filtered": 100.0,
+      "Extra": null
+    },
+    {
+      "id": 1,
+      "select_type": "SIMPLE",
+      "table": "i",
+      "partitions": null,
+      "type": "const",
+      "possible_keys": "uq_idempotency",
+      "key": "uq_idempotency",
+      "key_len": "262",
+      "ref": "const,const",
+      "rows": 0,
+      "filtered": 0.0,
+      "Extra": "unique row not found"
+    }
+  ],
+  "student_page": [
+    {
+      "id": 1,
+      "select_type": "SIMPLE",
+      "table": "v2_users",
+      "partitions": null,
+      "type": "index",
+      "possible_keys": "ix_v2_users_role",
+      "key": "PRIMARY",
+      "key_len": "4",
+      "ref": null,
+      "rows": 30,
+      "filtered": 100.0,
+      "Extra": "Using where"
+    }
+  ],
+  "outbox_delivery": [
+    {
+      "id": 1,
+      "select_type": "SIMPLE",
+      "table": "v2_outbox",
+      "partitions": null,
+      "type": "ref",
+      "possible_keys": "ix_v2_outbox_delivered",
+      "key": "ix_v2_outbox_delivered",
+      "key_len": "1",
+      "ref": "const",
+      "rows": 1,
+      "filtered": 100.0,
+      "Extra": null
+    }
+  ]
+}

@@ -79,7 +79,22 @@ async def main(args):
                         )
                     ).all()
                 )
-                print(json.dumps({"enrollments": enrolled, "inconsistencies": mismatch, "mysql": status}))
+                result = {"enrollments": enrolled, "inconsistencies": mismatch, "mysql": status}
+                if args.timings:
+                    from datetime import timezone
+
+                    rows = (
+                        await db.execute(
+                            select(Outbox.payload, Outbox.created_at).where(
+                                Outbox.payload["event"].as_string() == "quota"
+                            )
+                        )
+                    ).all()
+                    result["quota_timings"] = [
+                        [p["club_id"], p["version"], created.replace(tzinfo=timezone.utc).timestamp()]
+                        for p, created in rows
+                    ]
+                print(json.dumps(result))
         if args.action == "prepare":
             async for key in redis.scan_iter(f"{settings().redis_prefix}:limit:enrollment:*"):
                 await redis.delete(key)
@@ -92,4 +107,5 @@ if __name__ == "__main__":
     p = argparse.ArgumentParser()
     p.add_argument("action", choices=["seed", "prepare", "check"])
     p.add_argument("--scenario", default="uniform", choices=["uniform", "last_seat", "hot_club"])
+    p.add_argument("--timings", action="store_true")
     asyncio.run(main(p.parse_args()))

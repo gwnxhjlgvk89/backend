@@ -25,3 +25,9 @@ Ubuntu测试机安装Podman / podman-compose / uidmap / slirp4netns / aardvark-d
 ## 生产
 
 `club-api.service`、`club-worker.service`、`nginx.routes.conf`、`production.env.example`为待审核模板。先参考 `docs/OPERATIONS.md`，核实生产MySQL连接预算、HTTPS站点、维护与备份；不直接覆盖运行中的配置。本开发任务没有执行生产部署、数据清理、提审或发布。
+
+超容量保护：Nginx只对报名POST/DELETE设置全局1500个进行中请求的上限，超过时返回带请求ID的JSON 429；GET结果查询使用空限流键，不计入写入限额。此限额不按IP计算，避免误伤校园共享出口。正常1500人验收仍必须无容量429。依据 [Nginx limit_conn 官方语义](https://nginx.org/en/docs/http/ngx_http_limit_conn_module.html)，空key不参与计数。测试Nginx连接上限设为16384，覆盖3000WS及代理连接。
+
+3000人超容量测试先在120秒内登录准备令牌，再执行1秒报名突发；这不是3000人60秒登录达标的声明。压测HTTP连接池也按用户数扩展，避免3000条WS占据固定连接池后在压测机侧悄悄排队。超容量场景每轮另发20次结果查询，直接检查查询可用性。
+
+通知延迟的精确核对使用合成测试库的 `(club_id,version)` 对应出站事件时间与客户端收到时间匹配；批次最早入队时间作为保守上界单列，不能混同为每条名额变更的实际延迟。该核对CLI只读取测试库，不增加生产消息里的学生资料或冗余时间字段。
