@@ -65,6 +65,10 @@ async def lifespan(app):
     s = settings()
     app.state.engine = make_engine()
     app.state.sessions = sessions(app.state.engine)
+    # Reserve two connections per API process for identity/result reads and
+    # connection validation; enrollment writes cannot exhaust this small pool.
+    app.state.read_engine = make_engine(pool_size=2, max_overflow=0)
+    app.state.read_sessions = sessions(app.state.read_engine)
     app.state.redis = Redis.from_url(
         s.redis_url, decode_responses=True, socket_timeout=2, socket_connect_timeout=2, max_connections=100
     )
@@ -80,7 +84,7 @@ async def lifespan(app):
         health_check_interval=20,
     )
     task = asyncio.create_task(app.state.hub.subscriber(subscriber_redis))
-    validator = asyncio.create_task(app.state.hub.validation_loop(app.state.sessions))
+    validator = asyncio.create_task(app.state.hub.validation_loop(app.state.read_sessions))
 
     async def monitor_loop():
         while True:
@@ -99,6 +103,7 @@ async def lifespan(app):
     await app.state.redis.aclose()
     await subscriber_redis.aclose()
     await app.state.engine.dispose()
+    await app.state.read_engine.dispose()
 
 
 app = FastAPI(
@@ -183,7 +188,7 @@ async def live():
 
 @app.get("/health/ready")
 async def ready(request: Request):
-    async with request.app.state.sessions() as db:
+    async with request.app.state.read_sessions() as db:
         await db.execute(text("SELECT 1"))
         if not await db.get(Activity, 1):
             fail(503, "NOT_INITIALIZED", "数据库未初始化")
@@ -351,7 +356,7 @@ async def unfavorite(club_id: int, request: Request, user=Depends(student)):
 
 @app.get("/api/v1/enrollment", response_model=Envelope[EnrollmentOutput | None])
 async def enrollment(request: Request, user=Depends(student)):
-    async with request.app.state.sessions() as db:
+    async with request.app.state.read_sessions() as db:
         return ok(await enrollment_data(db, user.id))
 
 

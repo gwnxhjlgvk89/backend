@@ -74,7 +74,8 @@ async def deliver(factory, redis):
 
 
 async def main():
-    engine = make_engine()
+    # Includes the long-lived leader connection; independent of API pool sizes.
+    engine = make_engine(pool_size=5, max_overflow=5)
     factory = sessions(engine)
     redis = Redis.from_url(settings().redis_url, decode_responses=True, socket_timeout=2)
     stopped = asyncio.Event()

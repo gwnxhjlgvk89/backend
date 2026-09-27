@@ -63,7 +63,7 @@ async def current_user(request: Request, credentials: HTTPAuthorizationCredentia
     if not credentials:
         fail(401, "LOGIN_REQUIRED", "请先登录")
     data = claims(credentials.credentials)
-    async with request.app.state.sessions() as db:
+    async with request.app.state.read_sessions() as db:
         user = await db.get(User, int(data["sub"]))
         if not user or not user.active or user.token_version != data["ver"]:
             fail(401, "SESSION_EXPIRED", "登录已失效，请重新登录")

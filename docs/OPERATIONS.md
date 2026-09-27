@@ -39,7 +39,7 @@
 ## 部署与回滚
 
 - `deploy/club-api.service`、`club-worker.service` 为 systemd 模板；工作目录 `/srv/club/current` 指向不可变版本目录，持久文件 `/srv/club/shared`。
-- `/etc/club/production.env` 由管理员配置0600凭据，参考模板；应用使用无登录 `club` 用户。API模板为4worker，每进程15常驻+5溢出连接，加独立worker后最大100连接；上线前查询 MySQL `max_connections`，总预算不得超过70%。
+- `/etc/club/production.env` 由管理员配置0600凭据，参考模板；应用使用无登录 `club` 用户。API模板为4worker，每进程主池15常驻+5溢出、查询预留池2连接，加独立worker固定5+5后最大98连接；上线前查询 MySQL `max_connections`，总预算不得超过70%。
 - API bind 127.0.0.1:8001；Nginx HTTPS代理所有 `/api/v1/`，单独代理 WebSocket，支持6MB上传。`/health/live` 与 `/health/ready` 必须有路由，`/metrics` 不对公网开放。在http块配置上游keepalive128与WebSocket map，参考 `deploy/nginx.routes.conf`，合并到已核实的正式站点，不直接覆盖现有TLS配置。
 - 维护状态统一返回503；旧业务路由全部426，删除旧的特殊代理入口，不能留下旧版报名旁路。
 - `scripts/package_release.py` 只从已提交、干净的指定 commit 制作归档和 SHA256 清单，不包含 `.env`/数据库/日志/依赖。

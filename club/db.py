@@ -4,12 +4,12 @@ from club.config import settings
 from club.metrics import before_cursor, after_cursor
 
 
-def make_engine():
+def make_engine(*, pool_size=None, max_overflow=None):
     s = settings()
     engine = create_async_engine(
         s.database_url,
-        pool_size=s.pool_size,
-        max_overflow=s.pool_overflow,
+        pool_size=s.pool_size if pool_size is None else pool_size,
+        max_overflow=s.pool_overflow if max_overflow is None else max_overflow,
         pool_timeout=3,
         pool_recycle=300,
         pool_pre_ping=True,
