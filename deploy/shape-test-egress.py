@@ -13,6 +13,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("action", choices=["show", "limit", "clear"])
     parser.add_argument("--mbps", type=int, choices=[10, 20, 50], default=10)
+    parser.add_argument("--port", type=int, choices=[8080, 8443], default=8080)
     args = parser.parse_args()
     target = "club-capacity-test_nginx_1"
     data = json.loads(subprocess.check_output(["podman", "inspect", target]))[0]
@@ -98,7 +99,7 @@ def main():
                 "match",
                 "ip",
                 "sport",
-                "8080",
+                str(args.port),
                 "0xffff",
                 "flowid",
                 "c10:1",

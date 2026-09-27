@@ -1,0 +1,8 @@
+# Optional TEST-only TLS override. Run prepare-test-tls.py first.
+services:
+  nginx:
+    volumes:
+      - ../.local/nginx.test.tls.conf:/etc/nginx/conf.d/default.conf:ro
+      - ../.local/tls:/etc/nginx/test-tls:ro
+    ports:
+      - "${TEST_BIND:-127.0.0.1}:18082:8443"

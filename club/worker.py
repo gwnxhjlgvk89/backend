@@ -104,7 +104,7 @@ async def main():
             while not stopped.is_set():
                 started = time.monotonic()
                 try:
-                    publish_quotas = started - last_quota_attempt >= 1.0
+                    publish_quotas = started - last_quota_attempt >= 1.5
                     await deliver(factory, redis, publish_quotas=publish_quotas)
                     if publish_quotas:
                         last_quota_attempt = started

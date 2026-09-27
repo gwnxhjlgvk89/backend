@@ -10,7 +10,7 @@ from club.models import User
 async def test_argon2_unique_salt_and_invalid_password():
     a = await security.hash_password("SyntheticPass2026!")
     b = await security.hash_password("SyntheticPass2026!")
-    assert a != b and a.startswith("$argon2id$v=19$m=19456,t=2,p=1$")
+    assert a != b and a.startswith("$argon2id$v=19$m=7168,t=5,p=1$")
     assert await security.verify_password("SyntheticPass2026!", a)
     assert not await security.verify_password("wrong", a)
     assert not await security.verify_password("anything", "$argon2id$malformed")
@@ -59,3 +59,13 @@ async def test_cancelled_request_keeps_native_password_slot_until_done(monkeypat
         gate.release()
     finally:
         release.set()
+
+
+def test_existing_stronger_argon_profile_is_not_rehashed_downward():
+    from argon2 import PasswordHasher, Type
+
+    for memory, passes in ((19456, 2), (32768, 3)):
+        hashed = PasswordHasher(memory_cost=memory, time_cost=passes, parallelism=1, type=Type.ID).hash(
+            "SyntheticPass2026!"
+        )
+        assert not security.password_needs_upgrade(hashed)

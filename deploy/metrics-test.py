@@ -1,6 +1,7 @@
 """Non-sensitive metrics for this project's containers only."""
 
 import json
+import os
 from pathlib import Path
 import subprocess
 
@@ -8,6 +9,11 @@ stats = json.loads(subprocess.check_output(["podman", "stats", "--no-stream", "-
 result = {
     "containers": [s for s in stats if s.get("name", "").startswith("club-capacity-test")],
     "cgroups": {},
+    "host_load_average": os.getloadavg(),
+    "host_cpu_ticks": Path("/proc/stat").read_text().splitlines()[0],
+    "host_pressure": {
+        name: Path("/proc/pressure/" + name).read_text().strip() for name in ("cpu", "memory", "io")
+    },
 }
 for short in ("mysql", "redis", "api", "worker", "nginx"):
     name = "club-capacity-test_" + short + "_1"

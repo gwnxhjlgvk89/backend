@@ -6,7 +6,7 @@ from types import SimpleNamespace
 from datetime import datetime, timedelta, timezone
 
 import bcrypt
-from argon2 import PasswordHasher, Type
+from argon2 import PasswordHasher, Type, extract_parameters
 from argon2.exceptions import InvalidHashError, VerificationError
 import jwt
 from fastapi import Depends, Request
@@ -20,8 +20,8 @@ from club.metrics import PASSWORD_EXECUTION, PASSWORD_WAIT
 
 bearer = HTTPBearer(auto_error=False)
 password_slots = asyncio.Semaphore(settings().password_concurrency)
-# OWASP Argon2id baseline: 19 MiB, two passes, one lane. Bcrypt remains readable.
-password_hasher = PasswordHasher(time_cost=2, memory_cost=19456, parallelism=1, type=Type.ID)
+# OWASP-listed tradeoff: 7 MiB, five passes, one lane. Bcrypt remains readable.
+password_hasher = PasswordHasher(time_cost=5, memory_cost=7168, parallelism=1, type=Type.ID)
 
 
 async def password_work(operation, function, *args):
@@ -60,7 +60,16 @@ async def verify_password(value: str, hashed: str):
 def password_needs_upgrade(hashed):
     if not hashed.startswith("$argon2id$"):
         return True
-    return password_hasher.check_needs_rehash(hashed)
+    parameters = extract_parameters(hashed)
+    # Keep existing OWASP-listed or stronger profiles; never demote a stronger hash.
+    profiles = ((47104, 1), (19456, 2), (12288, 3), (9216, 4), (7168, 5))
+    return (
+        parameters.hash_len < 32
+        or parameters.salt_len < 16
+        or not any(
+            parameters.memory_cost >= memory and parameters.time_cost >= passes for memory, passes in profiles
+        )
+    )
 
 
 def token(user: User):

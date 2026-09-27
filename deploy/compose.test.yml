@@ -44,6 +44,7 @@ services:
       PROMETHEUS_MULTIPROC_DIR: /metrics
       POOL_SIZE: 15
       POOL_OVERFLOW: 5
+      PASSWORD_CONCURRENCY: ${TEST_PASSWORD_CONCURRENCY:-1}
     depends_on:
       mysql: {condition: service_healthy}
       redis: {condition: service_healthy}

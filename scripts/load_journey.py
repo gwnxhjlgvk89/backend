@@ -12,6 +12,8 @@ import json
 from pathlib import Path
 import random
 import shlex
+import ssl
+import hashlib
 import time
 
 import aiohttp
@@ -50,6 +52,8 @@ async def run(args):
         "environment": args.url,
         "test_only": True,
         "parameters": vars(args),
+        "driver_sha256": hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
+        "http_sessions": "One independent connection pool per student (limit=6 including WS)",
         "runs": [],
         "errors": [],
         "resources": [],
@@ -61,7 +65,8 @@ async def run(args):
     def save():
         path.write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n")
 
-    connector = aiohttp.TCPConnector(limit=0, ttl_dns_cache=300)
+    tls = ssl.create_default_context(cafile=args.ca_cert) if args.ca_cert else True
+    connector = aiohttp.TCPConnector(limit=6, ttl_dns_cache=300, ssl=tls)
     async with aiohttp.ClientSession(
         base_url=args.url,
         connector=connector,
@@ -69,11 +74,24 @@ async def run(args):
         trust_env=False,
         headers={"Accept-Encoding": "gzip"},
     ) as client:
-        async with client.get("/health/live") as r:
-            if r.status != 200 or (await r.json()).get("environment") != "test":
-                raise RuntimeError("Refusing non-TEST target")
+        for attempt in range(20):
+            try:
+                async with client.get("/health/live") as r:
+                    if r.status == 200:
+                        if (await r.json()).get("environment") != "test":
+                            raise RuntimeError("Refusing non-TEST target")
+                        break
+            except aiohttp.ClientConnectionError:
+                pass
+            await asyncio.sleep(1)
+        else:
+            raise RuntimeError("Test service did not become ready")
         await fixture(args, "check")
         code = "from pathlib import Path; import hashlib; f=sorted(Path('club').glob('*.py')); print(hashlib.sha256(b''.join(p.name.encode()+bytes([0])+p.read_bytes() for p in f)).hexdigest())"
+        selected = "import json; from club.config import settings; s=settings(); print(json.dumps({k:getattr(s,k) for k in ('password_concurrency','pool_size','pool_overflow')}))"
+        report["runtime_settings"] = json.loads(
+            await ssh(args, "podman exec club-capacity-test_api_1 python -c " + shlex.quote(selected))
+        )
         report["application_sha256"] = (
             await ssh(args, "podman exec club-capacity-test_api_1 python -c " + shlex.quote(code))
         ).strip()
@@ -124,7 +142,18 @@ async def run(args):
                     report["errors"].append("monitor: " + type(exc).__name__)
                 await asyncio.sleep(10)
 
+        students = [
+            aiohttp.ClientSession(
+                base_url=args.url,
+                connector=aiohttp.TCPConnector(limit=6, ssl=tls),
+                timeout=aiohttp.ClientTimeout(total=10, ceil_threshold=30),
+                trust_env=False,
+                headers={"Accept-Encoding": "gzip"},
+            )
+            for _ in range(args.users)
+        ]
         monitors = [asyncio.create_task(monitor()), asyncio.create_task(resources())]
+        reusable_tokens = [None] * args.users
         try:
             for round_no in range(args.rounds):
                 await fixture(args, "prepare", args.scenario)
@@ -149,6 +178,7 @@ async def run(args):
                 ws_workers = set()
                 payload = Counter()
                 received_quotas = {}
+                latest_seen = defaultdict(dict)
                 stop_users = asyncio.Event()
                 measuring = False
                 zero = time.monotonic()
@@ -170,7 +200,7 @@ async def run(args):
                     if key:
                         headers["Idempotency-Key"] = key
                     try:
-                        async with client.request(
+                        async with students[i].request(
                             method, "/api/v1" + endpoint, json=body, headers=headers
                         ) as r:
                             raw = await r.read()
@@ -179,6 +209,17 @@ async def run(args):
                             result = json.loads(raw)
                             code = result.get("error", {}).get("code", "OK")
                             data = result.get("data")
+                            if status == 200:
+                                snapshots = (
+                                    data.get("quotas", [])
+                                    if isinstance(data, dict)
+                                    else data
+                                    if endpoint == "/clubs/quotas"
+                                    else []
+                                )
+                                for q in snapshots:
+                                    cid, version = q["club_id"], q["version"]
+                                    latest_seen[i][cid] = max(latest_seen[i].get(cid, 0), version)
                             header = r.headers.get("Server-Timing", "")
                             if "dur=" in header:
                                 server = float(header.split("dur=")[1]) / 1000
@@ -215,6 +256,7 @@ async def run(args):
                                 now = time.time() + offset
                                 for cid, remaining, version in value.get("rows", []):
                                     received_quotas.setdefault((cid, version), {})[i] = now
+                                    latest_seen[i][cid] = max(latest_seen[i].get(cid, 0), version)
                             elif event == "enrollment" and args.client_profile == "lean":
                                 spawn(request(i, "event_enrollment", "GET", "/enrollment"))
                             elif event in {"resync", "catalog", "activity", "enrollment"}:
@@ -232,7 +274,9 @@ async def run(args):
                     started = time.monotonic()
                     records = stages if measuring else setup
                     try:
-                        ws = await client.ws_connect("/api/v1/ws?ticket=" + data["ticket"], heartbeat=None)
+                        ws = await students[i].ws_connect(
+                            "/api/v1/ws?ticket=" + data["ticket"], heartbeat=None
+                        )
                         sockets[i] = ws
                         records["ws_connect"].append(
                             (101, "OK", time.monotonic() - started, started - zero, None, 0)
@@ -301,10 +345,18 @@ async def run(args):
                 )
                 if prepared:
                     before = time.monotonic()
+                    reused_sessions = sum(bool(t) for t in reusable_tokens[:prepared])
+                    preparation_window = 3 if reused_sessions == prepared else 60
 
                     async def prepare(i):
-                        await asyncio.sleep(max(0, before + i * 60 / args.users - time.monotonic()))
-                        if await login(i):
+                        await asyncio.sleep(
+                            max(0, before + i * preparation_window / args.users - time.monotonic())
+                        )
+                        if reusable_tokens[i]:
+                            tokens[i] = reusable_tokens[i]
+                            await enter(i)
+                        elif await login(i):
+                            reusable_tokens[i] = tokens[i]
                             await enter(i)
 
                     print(f"preparing {prepared} existing sessions", flush=True)
@@ -434,6 +486,14 @@ async def run(args):
                     if key in quota_times
                     for t in values.values()
                 ]
+                final_versions = {}
+                for cid, version in quota_times:
+                    final_versions[cid] = max(final_versions.get(cid, 0), version)
+                missing_final = sum(
+                    latest_seen[i].get(cid, 0) < version
+                    for i in range(args.users)
+                    for cid, version in final_versions.items()
+                )
                 expected = (
                     args.users
                     if args.scenario == "uniform"
@@ -462,14 +522,18 @@ async def run(args):
                         "workers_observed": len(ws_workers),
                         "notification_p95_s": p(delays, 0.95),
                         "timed_deliveries": len(delays),
+                        "missing_final_quota_snapshots": missing_final,
                         "payload_peak_mbps": max(payload.values(), default=0) * 8 / 1e6,
                     },
                 }
                 item["scope_gates"] = {
                     "all_students_completed": len(completed) == args.users,
                     "data_correct": item["data_consistency_pass"] and item["all_expected_enrolled"],
+                    "all_final_quota_snapshots_current": missing_final == 0 and bool(final_versions),
                     "all_websockets_online": item["websocket"]["open_at_end"] == args.users,
                     "no_unexpected_ws_close": ws_counts["unexpected_close"] == 0,
+                    "ready_enrollment_burst_within_1s": args.mode != "ready"
+                    or (bool(stages["enroll"]) and item["stages"]["enroll"]["dispatch_span_s"] <= 1),
                     "login_p95_3s": not stages["login"] or item["stages"]["login"]["p95_s"] <= 3,
                     "login_burst_within_1s": not stages["login"]
                     or item["stages"]["login"]["dispatch_span_s"] <= 1,
@@ -509,6 +573,7 @@ async def run(args):
                 print(json.dumps({"round": round_no + 1, "gates": item["scope_gates"]}), flush=True)
                 await asyncio.sleep(2)
         finally:
+            await asyncio.gather(*(student.close() for student in students), return_exceptions=True)
             stop_monitor.set()
             for task in monitors:
                 task.cancel()
@@ -521,6 +586,9 @@ async def run(args):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--url", required=True)
+    parser.add_argument(
+        "--ca-cert", help="Explicit test CA for HTTPS; certificate verification remains enabled"
+    )
     parser.add_argument("--ssh", default="gg1214@192.168.100.130")
     parser.add_argument("--control", default="/private/tmp/club-test-ssh")
     parser.add_argument("--users", type=int, choices=[30, 1500, 3000], default=1500)
