@@ -16,7 +16,7 @@ Ubuntu测试机安装Podman / podman-compose / uidmap / slirp4netns / aardvark-d
 8. 压测完成后单独运行 `scripts/fault_remote.py --url ...`。它会停止/恢复**命名测试容器**的worker、Redis并重启API，请勿与容量测试重叠。
 9. 超容量另运行 `--users 3000 --rounds 3 --hold-seconds 90`。业务拒绝、429、503和传输错误分别统计；`data_consistency_pass`核对成功报名数与数据库占位，`correctness_pass`还要求期望全部可用名额得到响应确认。
 
-数据库与Redis不发布主机端口，HTTP只绑定明确测试网卡；服务共用4CPU/3000MiB预算，MySQL1280MiB、API900MiB、worker192MiB、Redis192MiB、Nginx384MiB。4个API进程，每进程写入等主池15+3连接、身份/结果查询预留池4连接；独立worker固定5+5，连接预算98/150=65.3%。查询预留池不用于报名写入，避免超容量时写请求耗尽全部查询连接。
+数据库与Redis不发布主机端口，HTTP只绑定明确测试网卡；服务共用4CPU/3000MiB预算，MySQL1152MiB、API900MiB、worker192MiB、Redis192MiB、Nginx512MiB。3000人HTTPS场景曾触及Nginx原384MiB上限，因而从MySQL原1280MiB上限调拨128MiB，总预算不增加；MySQL buffer pool仍为768MiB。4个API进程，每进程写入等主池15+3连接、身份/结果查询预留池4连接；独立worker固定5+5，连接预算98/150=65.3%。查询预留池不用于报名写入，避免超容量时写请求耗尽全部查询连接。
 
 资源报告包括每容器RSS、内存峰值、OOM计数和CPU累计时间；压测机记录整机与压测进程CPU、RSS和事件循环延迟。Podman `cpu_percent`是容器运行以来平均值，不能当作瞬时CPU峰值。此次测试主机的单核性能/NVMe与生产云机不同，带宽复现仅为测试Nginx出口限速、未复现公网RTT/TLS/丢包，不能宣称完全同硬件验收。
 
@@ -26,7 +26,7 @@ Ubuntu测试机安装Podman / podman-compose / uidmap / slirp4netns / aardvark-d
 
 `club-api.service`、`club-worker.service`、`nginx.routes.conf`、`production.env.example`为待审核模板。先参考 `docs/OPERATIONS.md`，核实生产MySQL连接预算、HTTPS站点、维护与备份；不直接覆盖运行中的配置。本开发任务没有执行生产部署、数据清理、提审或发布。
 
-超容量保护：Nginx只对报名POST/DELETE设置全局1500个进行中请求的上限，超过时返回带请求ID的JSON 429；GET结果查询使用空限流键，不计入写入限额。此限额不按IP计算，避免误伤校园共享出口。正常1500人验收仍必须无容量429。依据 [Nginx limit_conn 官方语义](https://nginx.org/en/docs/http/ngx_http_limit_conn_module.html)，空key不参与计数。测试Nginx连接上限设为16384，覆盖3000WS及代理连接。
+超容量保护：Nginx对报名POST/DELETE设置全局1500个进行中请求上限，登录POST单独设置1600个进行中请求上限，超过时返回带请求ID和Retry-After的JSON 429；GET结果查询使用空限流键，不计入写入限额。此限额不按IP计算，避免误伤校园共享出口。正常1500人验收仍必须无容量429，不能用限流冒充达标。依据 [Nginx limit_conn 官方语义](https://nginx.org/en/docs/http/ngx_http_limit_conn_module.html)，空key不参与计数。测试Nginx连接上限设为16384，覆盖3000WS及代理连接。
 
 3000人超容量测试先在120秒内登录准备令牌，再执行1秒报名突发；这不是3000人60秒登录达标的声明。压测HTTP连接池也按用户数扩展，避免3000条WS占据固定连接池后在压测机侧悄悄排队。超容量场景每轮另发20次结果查询，直接检查查询可用性。
 
