@@ -172,6 +172,10 @@ async def run(args):
         )
         report["clock_offset_s"] = offset
         report["clock_calibration_rtt_s"] = clock_end - clock_start
+        # Capacity bursts start just inside the open window. Exact boundary
+        # correctness belongs to transactional tests; clock midpoint uncertainty
+        # must not turn this capacity case into accidental early submissions.
+        report["opening_guard_s"] = 0.05
         report["api_image_id"] = (
             await ssh(args, "podman inspect --format '{{.Image}}' club-capacity-test_api_1")
         ).strip()
@@ -278,6 +282,8 @@ async def run(args):
                 tokens = [None] * args.users
                 sockets = {}
                 pending_boot = {}
+                pending_connect = {}
+                connect_locks = defaultdict(asyncio.Lock)
                 auxiliaries = set()
                 outcomes = Counter()
                 last_codes = {}
@@ -392,40 +398,60 @@ async def run(args):
                             ws_counts["unexpected_close"] += 1
 
                 async def connect(i, initial=False):
-                    status, data = await request(i, "ws_ticket", "POST", "/auth/ws-ticket")
-                    if status != 200:
-                        return False
-
-                    async def handshake():
-                        started = time.monotonic()
-                        records = stages if measuring else setup
-                        try:
-                            ws = await students[i].ws_connect(
-                                "/api/v1/ws?ticket=" + data["ticket"], heartbeat=None
-                            )
-                            if stop_users.is_set():
-                                await ws.close()
-                                return False
-                            sockets[i] = ws
-                            records["ws_connect"].append(
-                                (101, "OK", time.monotonic() - started, started - zero, None, 0)
-                            )
-                            ws_counts["connected"] += 1
-                            spawn(consume(i, ws))
+                    # Match the client: a periodic reconnect and a page resume
+                    # share one ticket/handshake, including after the 1.5s fallback.
+                    async with connect_locks[i]:
+                        if i in sockets and not sockets[i].closed:
                             return True
-                        except (aiohttp.ClientError, TimeoutError):
-                            records["ws_connect"].append(
-                                (0, "CONNECT_FAILED", time.monotonic() - started, started - zero, None, 0)
-                            )
-                            return False
+                        opening_task = pending_connect.get(i)
+                        if opening_task is None:
+                            status, data = await request(i, "ws_ticket", "POST", "/auth/ws-ticket")
+                            if status != 200:
+                                return False
 
-                    if initial:
-                        opening_task = spawn(handshake())
+                            async def handshake():
+                                started = time.monotonic()
+                                records = stages if measuring else setup
+                                try:
+                                    ws = await students[i].ws_connect(
+                                        "/api/v1/ws?ticket=" + data["ticket"], heartbeat=None
+                                    )
+                                    if stop_users.is_set():
+                                        await ws.close()
+                                        return False
+                                    sockets[i] = ws
+                                    records["ws_connect"].append(
+                                        (101, "OK", time.monotonic() - started, started - zero, None, 0)
+                                    )
+                                    ws_counts["connected"] += 1
+                                    spawn(consume(i, ws))
+                                    return True
+                                except (aiohttp.ClientError, TimeoutError):
+                                    records["ws_connect"].append(
+                                        (
+                                            0,
+                                            "CONNECT_FAILED",
+                                            time.monotonic() - started,
+                                            started - zero,
+                                            None,
+                                            0,
+                                        )
+                                    )
+                                    return False
+
+                            opening_task = spawn(handshake())
+                            pending_connect[i] = opening_task
+                            opening_task.add_done_callback(
+                                lambda done: (
+                                    pending_connect.pop(i, None) if pending_connect.get(i) is done else None
+                                )
+                            )
                         try:
-                            return await asyncio.wait_for(asyncio.shield(opening_task), timeout=1.5)
+                            if initial:
+                                return await asyncio.wait_for(asyncio.shield(opening_task), timeout=1.5)
+                            return await asyncio.shield(opening_task)
                         except TimeoutError:
                             return False
-                    return await handshake()
 
                 async def background(i):
                     next_ping = time.monotonic() + 20
@@ -563,11 +589,17 @@ async def run(args):
                         outcomes["setup_failed"] += 1
                         return
                     else:
+                        if args.mode == "reconnect" and args.client_profile == "connected_first":
+                            old = sockets.pop(i, None)
+                            if old:
+                                await old.close()
+                            ws_counts["intentional_disconnect"] += 1
+                            await connect(i, initial=True)
                         status, _ = await bootstrap(i, "burst_bootstrap")
                         if status != 200:
                             outcomes["bootstrap_failed"] += 1
                             return
-                    if args.mode == "reconnect":
+                    if args.mode == "reconnect" and args.client_profile != "connected_first":
                         old = sockets.pop(i, None)
                         if old:
                             await old.close()
@@ -579,7 +611,7 @@ async def run(args):
                         outcomes["detail_failed"] += 1
                         return
                     await asyncio.sleep(
-                        max(0, opening + i * args.burst_seconds / args.users - time.monotonic())
+                        max(0, opening + 0.05 + i * args.burst_seconds / args.users - time.monotonic())
                     )
                     key = f"journey-{args.mode}-{time.time_ns()}-{i}"
                     status, data = await request(i, "enroll", "POST", "/enrollment", {"club_id": cid}, key)
@@ -618,7 +650,18 @@ async def run(args):
                     )
 
                 print(f"round {round_no + 1} {args.mode}/{args.scenario} burst started", flush=True)
-                await asyncio.gather(*(journey(i) for i in range(args.users)))
+
+                async def overload_query_probe(index):
+                    # Reuse an already authenticated student; do not invalidate
+                    # their session with a second login. Cover browsing and the
+                    # opening-time enrollment burst with independent result reads.
+                    await asyncio.sleep(max(0, zero + index * 0.25 - time.monotonic()))
+                    await request(0, "overload_result_query", "GET", "/enrollment")
+
+                await asyncio.gather(
+                    *(journey(i) for i in range(args.users)),
+                    *(overload_query_probe(i) for i in range(48) if args.users == 3000 and prepared),
+                )
                 print(
                     json.dumps(
                         {

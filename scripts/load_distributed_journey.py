@@ -179,6 +179,7 @@ async def main(args):
                 "runtime_settings",
                 "test_ca_sha256",
                 "deployment_config_sha256",
+                "opening_guard_s",
             ):
                 report[key] = initial[0][key]
             before_counters = await counters(args)
