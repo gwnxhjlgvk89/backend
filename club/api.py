@@ -20,6 +20,7 @@ from club.config import settings
 from club.metrics import render, CONNECTIONS, LOOP_LAG
 from club.db import make_engine, sessions
 from club.identity import IdentityReader
+from club.bootstrap import BootstrapReader
 from club.errors import DomainError, fail
 from club.models import Activity, Club, Favorite, Job, Outbox, User, utcnow
 from club.realtime import Hub
@@ -48,7 +49,7 @@ from club.security import (
     token,
     verify_password,
 )
-from club.services import activity_data, club_data, enrollment_data, event, iso, mutate_enrollment
+from club.services import club_data, enrollment_data, event, iso, mutate_enrollment
 
 install()
 logger = logging.getLogger("club")
@@ -67,6 +68,7 @@ async def lifespan(app):
     app.state.engine = make_engine()
     app.state.sessions = sessions(app.state.engine)
     app.state.catalog_lock = asyncio.Lock()
+    app.state.bootstrap_reads = BootstrapReader(app.state.sessions)
     # Reserve connections per API process for identity/result reads and
     # connection validation; enrollment writes cannot exhaust this small pool.
     app.state.read_engine = make_engine(pool_size=s.read_pool_size, max_overflow=0)
@@ -104,6 +106,7 @@ async def lifespan(app):
     task.cancel()
     validator.cancel()
     await asyncio.gather(task, validator, return_exceptions=True)
+    await app.state.bootstrap_reads.close()
     await app.state.identities.close()
     await app.state.login_accounts.close()
     await app.state.redis.aclose()
@@ -323,23 +326,13 @@ async def quota_snapshot(request):
 
 @app.get("/api/v1/bootstrap", response_model=Envelope[BootstrapOutput])
 async def bootstrap(request: Request, user=Depends(current_user)):
-    async with request.app.state.sessions() as db:
-        a = await db.get(Activity, 1)
-        if not a:
-            fail(503, "NOT_INITIALIZED", "活动尚未初始化")
-        mine = await enrollment_data(db, user.id)
-        favorites = list(
-            (await db.scalars(select(Favorite.club_id).where(Favorite.student_id == user.id))).all()
-        )
+    snapshot = await request.app.state.bootstrap_reads.get(user.id)
     return ok(
         {
             "user": public_user(user),
-            "activity": activity_data(a),
             "server_time": iso(utcnow()),
-            "enrollment": mine,
-            "favorites": favorites,
             "clubs": await clubs_cached(request),
-            "quotas": await quota_snapshot(request),
+            **snapshot,
         }
     )
 
