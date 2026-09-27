@@ -1,7 +1,12 @@
 """Verify and limit the actual pod's systemd cgroup, not an unused compose hint."""
 
+import argparse
 import json
 import subprocess
+
+parser = argparse.ArgumentParser()
+parser.add_argument("--cpus", type=int, choices=[4, 6, 8, 12, 16], default=4)
+args = parser.parse_args()
 
 names = ["club-capacity-test_" + s + "_1" for s in ("mysql", "redis", "api", "worker", "nginx")]
 items = json.loads(subprocess.check_output(["podman", "inspect", *names]))
@@ -18,7 +23,7 @@ subprocess.run(
         "set-property",
         "--runtime",
         unit,
-        "CPUQuota=400%",
+        f"CPUQuota={args.cpus * 100}%",
         "MemoryMax=3000M",
         "MemorySwapMax=0",
     ],
@@ -42,5 +47,5 @@ result = subprocess.check_output(
     text=True,
 )
 print(result)
-if "CPUQuotaPerSecUSec=4s" not in result or "MemoryMax=3145728000" not in result:
+if f"CPUQuotaPerSecUSec={args.cpus}s" not in result or "MemoryMax=3145728000" not in result:
     raise SystemExit("Resource limits were not applied")

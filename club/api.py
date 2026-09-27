@@ -41,6 +41,7 @@ from club.security import (
     hash_password,
     issue_ticket,
     public_user,
+    password_needs_upgrade,
     rate_limit,
     student,
     token,
@@ -64,6 +65,7 @@ async def lifespan(app):
     s = settings()
     app.state.engine = make_engine()
     app.state.sessions = sessions(app.state.engine)
+    app.state.catalog_lock = asyncio.Lock()
     # Reserve two connections per API process for identity/result reads and
     # connection validation; enrollment writes cannot exhaust this small pool.
     app.state.read_engine = make_engine(pool_size=2, max_overflow=0)
@@ -234,11 +236,13 @@ async def login(body: Login, request: Request):
     # Slow password work (including thread admission) must not hold a DB checkout.
     if not await verify_password(body.password, verified_hash):
         fail(401, "INVALID_CREDENTIALS", "账号或密码错误")
+    upgraded_hash = await hash_password(body.password) if password_needs_upgrade(verified_hash) else verified_hash
     async with request.app.state.sessions() as db, db.begin():
         # Re-read after verification: an admin may have disabled/reset this user.
         u = await db.get(User, uid, with_for_update=True)
         if not u or not u.active or u.password_hash != verified_hash:
             fail(401, "INVALID_CREDENTIALS", "账号或密码错误")
+        u.password_hash = upgraded_hash
         u.token_version += 1
         event(db, {"event": "session_revoked", "user_id": u.id, "version": u.token_version})
     return ok({"token": token(u), "user": public_user(u)})
@@ -285,14 +289,22 @@ async def clubs_cached(request):
             return json.loads(value)
     except RedisError:
         pass
-    async with request.app.state.sessions() as db:
-        rows = list((await db.scalars(select(Club).where(Club.active.is_(True)).order_by(Club.id))).all())
-        data = [{k: v for k, v in club_data(c).items() if k not in {"remaining", "version"}} for c in rows]
-    try:
-        await request.app.state.redis.set(key, json.dumps(data), ex=60)
-    except RedisError:
-        pass
-    return data
+    # Coalesce a cold catalog miss within each process; quota reads stay separate.
+    async with request.app.state.catalog_lock:
+        try:
+            value = await request.app.state.redis.get(key)
+            if value:
+                return json.loads(value)
+        except RedisError:
+            pass
+        async with request.app.state.sessions() as db:
+            rows = list((await db.scalars(select(Club).where(Club.active.is_(True)).order_by(Club.id))).all())
+            data = [{k: v for k, v in club_data(c).items() if k not in {"remaining", "version"}} for c in rows]
+        try:
+            await request.app.state.redis.set(key, json.dumps(data), ex=60)
+        except RedisError:
+            pass
+        return data
 
 
 async def quota_snapshot(request):

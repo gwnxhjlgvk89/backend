@@ -215,6 +215,8 @@ async def run(args):
                                 now = time.time() + offset
                                 for cid, remaining, version in value.get("rows", []):
                                     received_quotas.setdefault((cid, version), {})[i] = now
+                            elif event == "enrollment" and args.client_profile == "lean":
+                                spawn(request(i, "event_enrollment", "GET", "/enrollment"))
                             elif event in {"resync", "catalog", "activity", "enrollment"}:
                                 spawn(bootstrap(i, "event_bootstrap"))
                     except (aiohttp.ClientError, ValueError):
@@ -369,7 +371,8 @@ async def run(args):
                     status, data = await request(i, "enroll", "POST", "/enrollment", {"club_id": cid}, key)
                     if status == 200:
                         seen_enrolled.add(i)
-                        await bootstrap(i, "after_enrollment_bootstrap")
+                        if args.client_profile == "legacy":
+                            await bootstrap(i, "after_enrollment_bootstrap")
                     elif status == 0 or status >= 500:
                         q, mine = await request(i, "uncertain_result", "GET", "/enrollment")
                         if q == 200 and mine:
@@ -523,6 +526,7 @@ if __name__ == "__main__":
     parser.add_argument("--users", type=int, choices=[30, 1500, 3000], default=1500)
     parser.add_argument("--mode", choices=["login", "ready", "mixed", "reconnect"], default="login")
     parser.add_argument("--scenario", choices=["uniform", "hot_club", "last_seat"], default="uniform")
+    parser.add_argument("--client-profile", choices=["legacy", "lean"], default="lean")
     parser.add_argument("--cache", choices=["cold", "warm"], default="cold")
     parser.add_argument("--rounds", type=int, default=1)
     parser.add_argument("--hold-seconds", type=int, default=30)

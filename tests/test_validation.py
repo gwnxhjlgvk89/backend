@@ -58,4 +58,5 @@ async def test_metrics_report_durable_backlog_without_personal_data(env):
     assert "club_outbox_pending 1" in response.text
     assert "club_database_available 1" in response.text
     assert "club_redis_available 1" in response.text
-    assert "password" not in response.text
+    assert "SyntheticPass2026!" not in response.text
+    assert "password_hash" not in response.text

@@ -59,6 +59,24 @@ async def main(args):
                 a.state = "published"
                 a.starts_at = utcnow() - timedelta(hours=1)
                 a.ends_at = utcnow() + timedelta(days=1)
+            elif args.action == "passwords":
+                # Explicit TEST fixture only: unique salts, never reuse a hash across accounts.
+                users = list((await db.scalars(select(User).order_by(User.id))).all())
+                for user in users:
+                    user.password_hash = await hash_password("SyntheticLoad2026!")
+                print(json.dumps({"synthetic_passwords_updated": len(users), "algorithm": "argon2id"}))
+            elif args.action == "details":
+                import random
+
+                rng = random.Random(1214)
+                for club in (await db.scalars(select(Club))).all():
+                    club.description = "合成社团介绍，仅用于性能验证。\n" + "".join(
+                        rng.choice("校园活动社团学习交流科学运动艺术实践合作创造阅读音乐") for _ in range(680)
+                    )
+                    club.category = "校园活动"
+                    club.location = f"合成活动室 {club.id}"
+                    club.schedule = "每周社团活动时间"
+                print(json.dumps({"synthetic_detail_characters": 680, "cover_images": False}))
             elif args.action == "prepare":
                 for model in (Favorite, Idempotency, Enrollment, Outbox):
                     await db.execute(delete(model))
@@ -105,7 +123,7 @@ async def main(args):
 
 if __name__ == "__main__":
     p = argparse.ArgumentParser()
-    p.add_argument("action", choices=["seed", "prepare", "check"])
+    p.add_argument("action", choices=["seed", "prepare", "check", "passwords", "details"])
     p.add_argument("--scenario", default="uniform", choices=["uniform", "last_seat", "hot_club"])
     p.add_argument("--timings", action="store_true")
     asyncio.run(main(p.parse_args()))

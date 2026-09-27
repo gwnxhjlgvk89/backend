@@ -1,10 +1,13 @@
 import asyncio
 import hashlib
 import secrets
+import time
 from types import SimpleNamespace
 from datetime import datetime, timedelta, timezone
 
 import bcrypt
+from argon2 import PasswordHasher, Type
+from argon2.exceptions import InvalidHashError, VerificationError
 import jwt
 from fastapi import Depends, Request
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
@@ -13,22 +16,51 @@ from redis.exceptions import RedisError
 from club.config import settings
 from club.errors import fail
 from club.models import User
+from club.metrics import PASSWORD_EXECUTION, PASSWORD_WAIT
 
 bearer = HTTPBearer(auto_error=False)
-password_slots = asyncio.Semaphore(4)
+password_slots = asyncio.Semaphore(settings().password_concurrency)
+# OWASP Argon2id baseline: 19 MiB, two passes, one lane. Bcrypt remains readable.
+password_hasher = PasswordHasher(time_cost=2, memory_cost=19456, parallelism=1, type=Type.ID)
+
+
+async def password_work(operation, function, *args):
+    waiting = time.monotonic()
+    await password_slots.acquire()
+    PASSWORD_WAIT.observe(time.monotonic() - waiting)
+    started = time.monotonic()
+    task = asyncio.create_task(asyncio.to_thread(function, *args))
+
+    def completed(done):
+        if not done.cancelled():
+            done.exception()  # Retrieve errors even if the HTTP task was cancelled.
+        PASSWORD_EXECUTION.labels(operation).observe(time.monotonic() - started)
+        password_slots.release()
+
+    task.add_done_callback(completed)
+    # Cancellation cannot release the slot while its native thread is still working.
+    return await asyncio.shield(task)
 
 
 async def hash_password(value: str):
-    async with password_slots:
-        return (await asyncio.to_thread(bcrypt.hashpw, value.encode(), bcrypt.gensalt(rounds=10))).decode()
+    return await password_work("argon2_hash", password_hasher.hash, value)
 
 
 async def verify_password(value: str, hashed: str):
-    async with password_slots:
-        try:
-            return await asyncio.to_thread(bcrypt.checkpw, value.encode(), hashed.encode())
-        except ValueError:
-            return False
+    try:
+        if hashed.startswith("$argon2id$"):
+            return await password_work("argon2_verify", password_hasher.verify, hashed, value)
+        if hashed.startswith(("$2a$", "$2b$", "$2y$")):
+            return await password_work("bcrypt_verify", bcrypt.checkpw, value.encode(), hashed.encode())
+        return False
+    except (ValueError, InvalidHashError, VerificationError):
+        return False
+
+
+def password_needs_upgrade(hashed):
+    if not hashed.startswith("$argon2id$"):
+        return True
+    return password_hasher.check_needs_rehash(hashed)
 
 
 def token(user: User):

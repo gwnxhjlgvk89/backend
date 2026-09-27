@@ -15,6 +15,7 @@ class Settings(BaseSettings):
     token_minutes: int = 120
     pool_size: int = 10
     pool_overflow: int = 5
+    password_concurrency: int = 2
     storage_backend: str = "local"
     storage_dir: Path = Path(".local/uploads")
     public_url: str = "http://127.0.0.1:8001"
@@ -27,6 +28,8 @@ class Settings(BaseSettings):
 
     @model_validator(mode="after")
     def validate_environment(self):
+        if not 1 <= self.password_concurrency <= 8:
+            raise ValueError("PASSWORD_CONCURRENCY must be between 1 and 8 per API process")
         if self.club_env not in {"development", "test", "production"}:
             raise ValueError("Invalid CLUB_ENV")
         if not self.database_url.startswith("mysql+asyncmy://"):
