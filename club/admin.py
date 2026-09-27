@@ -1,0 +1,284 @@
+import uuid
+
+from fastapi import APIRouter, Depends, File, Query, Request, UploadFile
+from sqlalchemy import delete, func, or_, select, update
+
+from club.errors import fail
+from club.models import Activity, Audit, Club, Enrollment, Favorite, Idempotency, Job, User, utcnow
+from club.schemas import ActivityInput, ActivityState, AdminInput, ClubInput, StudentInput
+from club.security import admin, hash_password, public_user, super_admin
+from club.services import activity_data, club_data, consistency, event, mutable_activity
+
+router = APIRouter(dependencies=[Depends(admin)])
+
+
+def audit(db, user, action, target, summary=None):
+    db.add(Audit(actor_id=user.id, action=action, target=str(target), summary=summary or {}))
+
+
+def changed(db):
+    event(db, {"event": "catalog"})
+
+
+@router.get("/students")
+async def students(request: Request, page: int = Query(1, ge=1), page_size: int = Query(30, ge=1, le=100),
+                   search: str = Query("", max_length=64), major: str = "", selected: str = ""):
+    conditions = [User.role == "student"]
+    if search:
+        pattern = f"%{search.replace('%', '').replace('_', '')}%"
+        conditions.append(or_(User.username.like(pattern), User.name.like(pattern)))
+    if major:
+        conditions.append(User.major == major)
+    if selected in {"yes", "no"}:
+        exists = select(Enrollment.student_id).where(Enrollment.student_id == User.id).exists()
+        conditions.append(exists if selected == "yes" else ~exists)
+    async with request.app.state.sessions() as db:
+        total = await db.scalar(select(func.count()).select_from(User).where(*conditions))
+        rows = (await db.execute(select(User, Enrollment.club_id, Enrollment.source, Club.name)
+            .outerjoin(Enrollment, Enrollment.student_id == User.id).outerjoin(Club, Club.id == Enrollment.club_id)
+            .where(*conditions).order_by(User.id).offset((page - 1) * page_size).limit(page_size))).all()
+        items = [{**public_user(u), "club_id": cid, "club_name": name, "source": source} for u, cid, source, name in rows]
+    return {"data": {"items": items, "total": total, "page": page, "page_size": page_size}}
+
+
+@router.get("/clubs")
+async def clubs(request: Request):
+    async with request.app.state.sessions() as db:
+        return {"data": [club_data(c, True) for c in await db.scalars(select(Club).order_by(Club.id))]}
+
+
+@router.get("/overview")
+async def overview(request: Request):
+    async with request.app.state.sessions() as db:
+        a = await db.get(Activity, 1)
+        return {"data": {"activity": activity_data(a),
+            "students": await db.scalar(select(func.count()).select_from(User).where(User.role == "student")),
+            "enrolled": await db.scalar(select(func.count()).select_from(Enrollment)),
+            "clubs": await db.scalar(select(func.count()).select_from(Club)), "inconsistencies": await consistency(db)}}
+
+
+@router.put("/activity")
+async def configure(body: ActivityInput, request: Request, user=Depends(super_admin)):
+    async with request.app.state.sessions() as db, db.begin():
+        a = await mutable_activity(db)
+        for key, value in body.model_dump().items():
+            setattr(a, key, value)
+        a.state, a.version = "draft", a.version + 1
+        audit(db, user, "activity.configure", 1)
+        event(db, {"event": "activity", "version": a.version})
+    return {"data": activity_data(a)}
+
+
+@router.post("/activity/state")
+async def state(body: ActivityState, request: Request, user=Depends(super_admin)):
+    async with request.app.state.sessions() as db, db.begin():
+        a = await db.get(Activity, 1, with_for_update=True)
+        if body.state == "published":
+            if not a.starts_at or not a.ends_at or a.ends_at <= utcnow():
+                fail(422, "INVALID_WINDOW", "请先配置有效报名时间")
+            if await consistency(db):
+                fail(409, "QUOTA_MISMATCH", "名额与报名记录不一致，禁止发布")
+            if not await db.scalar(select(func.count()).select_from(Club).where(Club.active.is_(True))):
+                fail(409, "NO_CLUBS", "请先添加社团")
+        a.state, a.version = body.state, a.version + 1
+        audit(db, user, "activity.state", 1, {"state": body.state})
+        event(db, {"event": "activity", "version": a.version})
+    return {"data": activity_data(a)}
+
+
+@router.post("/clubs")
+async def create_club(body: ClubInput, request: Request, user=Depends(admin)):
+    async with request.app.state.sessions() as db, db.begin():
+        await mutable_activity(db)
+        c = Club(**body.model_dump(), remaining=body.capacity)
+        db.add(c)
+        await db.flush()
+        audit(db, user, "club.create", c.id)
+        changed(db)
+    return {"data": club_data(c, True)}
+
+
+@router.put("/clubs/{club_id}")
+async def edit_club(club_id: int, body: ClubInput, request: Request, user=Depends(admin)):
+    async with request.app.state.sessions() as db, db.begin():
+        await mutable_activity(db)
+        c = await db.get(Club, club_id, with_for_update=True)
+        if not c:
+            fail(404, "NOT_FOUND", "社团不存在")
+        used = await db.scalar(select(func.count()).select_from(Enrollment).where(Enrollment.club_id == club_id))
+        if body.capacity < used:
+            fail(409, "CAPACITY_TOO_SMALL", "总名额不能小于已报名人数")
+        for key, value in body.model_dump().items():
+            setattr(c, key, value)
+        c.remaining, c.version = body.capacity - used, c.version + 1
+        audit(db, user, "club.update", c.id)
+        changed(db)
+    return {"data": club_data(c, True)}
+
+
+@router.delete("/clubs/{club_id}")
+async def delete_club(club_id: int, request: Request, user=Depends(admin)):
+    async with request.app.state.sessions() as db, db.begin():
+        await mutable_activity(db)
+        if await db.scalar(select(func.count()).select_from(Enrollment).where(Enrollment.club_id == club_id)):
+            fail(409, "CLUB_HAS_ENROLLMENTS", "社团已有报名，请先处理报名记录")
+        await db.execute(delete(Favorite).where(Favorite.club_id == club_id))
+        await db.execute(delete(Club).where(Club.id == club_id))
+        audit(db, user, "club.delete", club_id)
+        changed(db)
+    return {"data": None}
+
+
+async def save_student(db, body, hashed, user_id=None):
+    u = await db.get(User, user_id, with_for_update=True) if user_id else None
+    if user_id and (not u or u.role != "student"):
+        fail(404, "NOT_FOUND", "学生不存在")
+    if not u:
+        if not hashed:
+            fail(422, "PASSWORD_REQUIRED", "新学生需要初始密码")
+        u = User(role="student", password_hash=hashed)
+        db.add(u)
+    for key in ("username", "name", "major", "class_name", "active"):
+        setattr(u, key, getattr(body, key))
+    if hashed:
+        u.password_hash, u.must_change_password = hashed, True
+    if user_id:
+        u.token_version += 1
+        event(db, {"event": "session_revoked", "user_id": u.id, "version": u.token_version})
+    await db.flush()
+    current = await db.get(Enrollment, u.id)
+    if current and current.source == "normal" and body.reserved_club_id != current.club_id:
+        fail(409, "ENROLLMENT_EXISTS", "学生已有普通报名，不能直接改为预报名")
+    if current and current.source == "reserved" and current.club_id != body.reserved_club_id:
+        await db.execute(update(Club).where(Club.id == current.club_id).values(remaining=Club.remaining + 1, version=Club.version + 1))
+        await db.delete(current)
+        await db.flush()
+        current = None
+    if body.reserved_club_id and not current:
+        c = await db.get(Club, body.reserved_club_id, with_for_update=True)
+        if not c or not c.active or c.remaining <= 0:
+            fail(409, "RESERVATION_UNAVAILABLE", "预报名社团不存在、未开放或已满")
+        if c.allowed_majors and u.major not in c.allowed_majors:
+            fail(409, "MAJOR_NOT_ALLOWED", "预报名不符合专业要求")
+        c.remaining, c.version = c.remaining - 1, c.version + 1
+        db.add(Enrollment(student_id=u.id, club_id=c.id, source="reserved"))
+    return u
+
+
+@router.post("/students")
+async def create_student(body: StudentInput, request: Request, user=Depends(admin)):
+    hashed = await hash_password(body.password) if body.password else None
+    async with request.app.state.sessions() as db, db.begin():
+        await mutable_activity(db)
+        u = await save_student(db, body, hashed)
+        audit(db, user, "student.create", u.id)
+        changed(db)
+    return {"data": public_user(u)}
+
+
+@router.put("/students/{user_id}")
+async def edit_student(user_id: int, body: StudentInput, request: Request, user=Depends(admin)):
+    hashed = await hash_password(body.password) if body.password else None
+    async with request.app.state.sessions() as db, db.begin():
+        await mutable_activity(db)
+        u = await save_student(db, body, hashed, user_id)
+        audit(db, user, "student.update", u.id)
+        changed(db)
+    return {"data": public_user(u)}
+
+
+@router.delete("/students/{user_id}")
+async def delete_student(user_id: int, request: Request, user=Depends(admin)):
+    async with request.app.state.sessions() as db, db.begin():
+        await mutable_activity(db)
+        u = await db.get(User, user_id, with_for_update=True)
+        if not u or u.role != "student":
+            fail(404, "NOT_FOUND", "学生不存在")
+        enrolled = await db.get(Enrollment, user_id)
+        if enrolled:
+            await db.execute(update(Club).where(Club.id == enrolled.club_id).values(remaining=Club.remaining + 1, version=Club.version + 1))
+            await db.delete(enrolled)
+        await db.execute(delete(Favorite).where(Favorite.student_id == user_id))
+        await db.execute(delete(Idempotency).where(Idempotency.user_id == user_id))
+        await db.delete(u)
+        audit(db, user, "student.delete", user_id)
+        event(db, {"event": "session_revoked", "user_id": user_id})
+        changed(db)
+    return {"data": None}
+
+
+@router.post("/administrators")
+async def create_admin(body: AdminInput, request: Request, user=Depends(super_admin)):
+    hashed = await hash_password(body.password)
+    async with request.app.state.sessions() as db, db.begin():
+        u = User(username=body.username, name=body.name, password_hash=hashed, role=body.role)
+        db.add(u)
+        await db.flush()
+        audit(db, user, "admin.create", u.id, {"role": u.role})
+    return {"data": public_user(u)}
+
+
+@router.post("/jobs/import")
+async def import_preview(request: Request, file: UploadFile = File(), user=Depends(admin)):
+    content = await file.read(5 * 1024 * 1024 + 1)
+    if len(content) > 5 * 1024 * 1024:
+        fail(413, "FILE_TOO_LARGE", "文件不能超过5MB")
+    from club.jobs import parse_students
+    import asyncio
+    rows = await asyncio.to_thread(parse_students, content)
+    for row in rows:
+        row["password_hash"] = await hash_password(row.pop("password"))
+    async with request.app.state.sessions() as db, db.begin():
+        await mutable_activity(db)
+        existing = set((await db.scalars(select(User.username))).all())
+        duplicates = [r["username"] for r in rows if r["username"] in existing]
+        if duplicates:
+            fail(409, "DUPLICATE_STUDENTS", "文件包含已有账号，请移除或使用编辑功能")
+        job = Job(id=str(uuid.uuid4()), actor_id=user.id, kind="import_students", state="preview",
+                  payload={"rows": rows}, result={"rows": len(rows), "preview": [{k: r[k] for k in ("username", "name", "major", "class_name")} for r in rows[:20]]})
+        db.add(job)
+    return {"data": {"id": job.id, "state": job.state, **job.result}}
+
+
+@router.post("/jobs/{job_id}/confirm")
+async def confirm_job(job_id: str, request: Request, user=Depends(admin)):
+    async with request.app.state.sessions() as db, db.begin():
+        await mutable_activity(db)
+        job = await db.get(Job, job_id, with_for_update=True)
+        if not job or job.actor_id != user.id:
+            fail(404, "NOT_FOUND", "任务不存在")
+        if job.state != "preview":
+            fail(409, "JOB_ALREADY_CONFIRMED", "任务已确认或结束")
+        job.state = "queued"
+        audit(db, user, "import.confirm", job.id)
+    return {"data": {"id": job.id, "state": job.state}}
+
+
+@router.post("/jobs/export")
+async def export(request: Request, user=Depends(admin)):
+    async with request.app.state.sessions() as db, db.begin():
+        await mutable_activity(db)
+        job = Job(id=str(uuid.uuid4()), actor_id=user.id, kind="export_students")
+        db.add(job)
+        audit(db, user, "export.request", job.id)
+    return {"data": {"id": job.id}}
+
+
+@router.get("/jobs/{job_id}")
+async def job_status(job_id: str, request: Request, user=Depends(admin)):
+    async with request.app.state.sessions() as db:
+        job = await db.get(Job, job_id)
+        if not job or job.actor_id != user.id:
+            fail(404, "NOT_FOUND", "任务不存在")
+        return {"data": {"id": job.id, "state": job.state, "result": job.result}}
+
+
+@router.get("/jobs/{job_id}/download")
+async def download(job_id: str, request: Request, user=Depends(admin)):
+    from fastapi.responses import FileResponse
+    from club.config import settings
+    async with request.app.state.sessions() as db:
+        job = await db.get(Job, job_id)
+        if not job or job.actor_id != user.id or job.kind != "export_students" or job.state != "done":
+            fail(404, "NOT_FOUND", "导出文件不可用")
+    return FileResponse(settings().storage_dir / "private" / f"{job.id}.xlsx", filename="社团报名导出.xlsx")

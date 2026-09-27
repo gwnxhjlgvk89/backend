@@ -1,0 +1,78 @@
+import asyncio
+import json
+import logging
+import signal
+
+from redis.asyncio import Redis
+from sqlalchemy import select
+
+from club.config import settings
+from club.db import make_engine, sessions
+from club.jobs import run_one
+from club.models import Job, Outbox
+
+logger = logging.getLogger("club.worker")
+
+
+async def deliver(factory, redis):
+    async with factory() as db:
+        rows = list((await db.scalars(select(Outbox).where(Outbox.delivered.is_(False)).order_by(Outbox.id).limit(500))).all())
+    if not rows:
+        return
+    coalesced = {}
+    for row in rows:
+        p = row.payload
+        key = (p["event"], p.get("club_id"), p.get("user_id"))
+        coalesced[key] = {**p, "event_id": row.id}
+    for payload in coalesced.values():
+        if payload["event"] == "catalog":
+            await redis.delete(f"{settings().redis_prefix}:catalog")
+        await redis.publish(f"{settings().redis_prefix}:events", json.dumps(payload))
+    async with factory() as db, db.begin():
+        from sqlalchemy import update
+        await db.execute(update(Outbox).where(Outbox.id.in_([r.id for r in rows])).values(delivered=True))
+
+
+async def main():
+    engine = make_engine()
+    factory = sessions(engine)
+    redis = Redis.from_url(settings().redis_url, decode_responses=True, socket_timeout=2)
+    stopped = asyncio.Event()
+    for sig in (signal.SIGINT, signal.SIGTERM):
+        asyncio.get_running_loop().add_signal_handler(sig, stopped.set)
+    # MySQL advisory lock prevents two background workers from duplicating jobs.
+    async with engine.connect() as leader:
+        from sqlalchemy import text
+        if not await leader.scalar(text("SELECT GET_LOCK('club_v2_worker', 0)")):
+            raise RuntimeError("Another worker is already running")
+        async with factory() as db, db.begin():
+            for job in await db.scalars(select(Job).where(Job.state == "running")):
+                job.state = "queued"
+
+        async def notifications():
+            while not stopped.is_set():
+                try:
+                    await deliver(factory, redis)
+                except Exception as exc:
+                    logger.warning("outbox_retry type=%s", type(exc).__name__)
+                await asyncio.sleep(.25)
+
+        task = asyncio.create_task(notifications())
+        try:
+            while not stopped.is_set():
+                try:
+                    await run_one(factory)
+                except Exception as exc:
+                    logger.warning("job_retry type=%s", type(exc).__name__)
+                await asyncio.sleep(1)
+        finally:
+            task.cancel()
+            await asyncio.gather(task, return_exceptions=True)
+            await leader.execute(text("SELECT RELEASE_LOCK('club_v2_worker')"))
+    await redis.aclose()
+    await engine.dispose()
+
+
+if __name__ == "__main__":
+    logging.basicConfig(level=logging.INFO)
+    asyncio.run(main())
