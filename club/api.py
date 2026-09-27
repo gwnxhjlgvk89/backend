@@ -227,18 +227,21 @@ async def login(body: Login, request: Request):
     await rate_limit(request, "login", body.username, 10, 60)
     async with request.app.state.sessions() as db:
         u = await db.scalar(select(User).where(User.username == body.username))
-        if not u or not u.active or not await verify_password(body.password, u.password_hash):
+        if not u or not u.active:
             fail(401, "INVALID_CREDENTIALS", "账号或密码错误")
         verified_hash = u.password_hash
-        # Serialize concurrent logins; returned token always has the committed version.
-        await db.rollback()
-        async with db.begin():
-            u = await db.scalar(select(User).where(User.username == body.username).with_for_update())
-            if not u or not u.active or u.password_hash != verified_hash:
-                fail(401, "INVALID_CREDENTIALS", "账号或密码错误")
-            u.token_version += 1
-            event(db, {"event": "session_revoked", "user_id": u.id, "version": u.token_version})
-        return ok({"token": token(u), "user": public_user(u)})
+        uid = u.id
+    # Slow password work (including thread admission) must not hold a DB checkout.
+    if not await verify_password(body.password, verified_hash):
+        fail(401, "INVALID_CREDENTIALS", "账号或密码错误")
+    async with request.app.state.sessions() as db, db.begin():
+        # Re-read after verification: an admin may have disabled/reset this user.
+        u = await db.get(User, uid, with_for_update=True)
+        if not u or not u.active or u.password_hash != verified_hash:
+            fail(401, "INVALID_CREDENTIALS", "账号或密码错误")
+        u.token_version += 1
+        event(db, {"event": "session_revoked", "user_id": u.id, "version": u.token_version})
+    return ok({"token": token(u), "user": public_user(u)})
 
 
 @app.post("/api/v1/auth/logout")
