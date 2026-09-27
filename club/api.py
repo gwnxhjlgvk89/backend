@@ -13,7 +13,7 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse, Response
 from redis.asyncio import Redis
 from redis.exceptions import RedisError
-from sqlalchemy import delete, select, text, update
+from sqlalchemy import delete, func, select, text, update
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from prometheus_client import Counter, Histogram
 
@@ -21,7 +21,7 @@ from club.config import settings
 from club.metrics import render, CONNECTIONS, LOOP_LAG
 from club.db import make_engine, sessions
 from club.errors import DomainError, fail
-from club.models import Activity, Club, Favorite, User, utcnow
+from club.models import Activity, Club, Favorite, Job, Outbox, User, utcnow
 from club.realtime import Hub
 from club.schemas import (
     Contact,
@@ -193,7 +193,27 @@ async def ready(request: Request):
 async def metrics(request: Request):
     if request.client.host not in {"127.0.0.1", "::1", "testclient"}:
         fail(403, "PRIVATE_ENDPOINT", "此接口仅供本机监控")
-    return Response(render(), media_type="text/plain; version=0.0.4")
+    # Query shared durable state only at scrape time, never on enrollment writes.
+    values = []
+    try:
+        async with asyncio.timeout(2), request.app.state.sessions() as db:
+            pending = await db.scalar(
+                select(func.count()).select_from(Outbox).where(Outbox.delivered.is_(False))
+            )
+            states = dict((await db.execute(select(Job.state, func.count()).group_by(Job.state))).all())
+        values += ["club_database_available 1", f"club_outbox_pending {pending}"]
+        values += [
+            f'club_jobs{{state="{state}"}} {states.get(state, 0)}'
+            for state in ("queued", "running", "failed", "preview")
+        ]
+    except (SQLAlchemyError, TimeoutError):
+        values.append("club_database_available 0")
+    try:
+        await request.app.state.redis.ping()
+        values.append("club_redis_available 1")
+    except RedisError:
+        values.append("club_redis_available 0")
+    return Response(render() + ("\n".join(values) + "\n").encode(), media_type="text/plain; version=0.0.4")
 
 
 @app.post("/api/v1/auth/login", response_model=Envelope[LoginOutput])

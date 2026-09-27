@@ -46,3 +46,17 @@ async def test_response_contract_legacy_and_shared_network_limits(env):
     assert r.status_code == 200
     assert "Server-Timing" in r.headers and "X-Request-ID" in r.headers
     assert not any(key in r.text for key in ("password_hash", "token_version"))
+
+
+async def test_metrics_report_durable_backlog_without_personal_data(env):
+    from club.models import Outbox
+
+    app, client, _ = env
+    async with app.state.sessions() as db, db.begin():
+        db.add(Outbox(payload={"event": "catalog"}))
+    response = await client.get("/metrics")
+    assert response.status_code == 200
+    assert "club_outbox_pending 1" in response.text
+    assert "club_database_available 1" in response.text
+    assert "club_redis_available 1" in response.text
+    assert "password" not in response.text
