@@ -193,3 +193,43 @@ async def test_hub_deduplicates_events_and_preserves_new_session():
     assert queue.qsize() == 1
     hub.dispatch({"event": "session_revoked", "user_id": 1, "version": 4, "event_id": 3})
     assert queue.qsize() == 2
+
+
+async def test_outbox_batches_quota_and_retries_without_losing_events(env):
+    import json
+    from unittest.mock import MagicMock
+    from club.models import Outbox
+    from club.worker import deliver
+
+    app, client, tokens = env
+    async with app.state.sessions() as db, db.begin():
+        db.add_all(
+            [
+                Outbox(payload={"event": "quota", "club_id": i, "remaining": 10, "version": 1})
+                for i in range(1, 43)
+            ]
+        )
+        db.add(Outbox(payload={"event": "enrollment", "user_id": 1}))
+    pipe = MagicMock()
+    pipe.execute = AsyncMock(side_effect=ConnectionError("synthetic outage"))
+    redis = MagicMock()
+    redis.pipeline.return_value = pipe
+    import pytest
+
+    with pytest.raises(ConnectionError):
+        await deliver(app.state.sessions, redis)
+    async with app.state.sessions() as db:
+        assert (
+            await db.scalar(select(func.count()).select_from(Outbox).where(Outbox.delivered.is_(False))) == 43
+        )
+    pipe.reset_mock()
+    pipe.execute = AsyncMock()
+    await deliver(app.state.sessions, redis)
+    messages = [json.loads(call.args[1]) for call in pipe.publish.call_args_list]
+    assert len(messages) == 2
+    batch = next(m for m in messages if m["event"] == "quotas")
+    assert len(batch["items"]) == 42
+    async with app.state.sessions() as db:
+        assert (
+            await db.scalar(select(func.count()).select_from(Outbox).where(Outbox.delivered.is_(False))) == 0
+        )

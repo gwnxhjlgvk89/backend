@@ -23,7 +23,19 @@ from club.db import make_engine, sessions
 from club.errors import DomainError, fail
 from club.models import Activity, Club, Favorite, User, utcnow
 from club.realtime import Hub
-from club.schemas import Contact, EnrollmentInput, Login, PasswordChange
+from club.schemas import (
+    Contact,
+    EnrollmentInput,
+    Login,
+    PasswordChange,
+    Envelope,
+    LoginOutput,
+    BootstrapOutput,
+    ClubDetailOutput,
+    QuotaOutput,
+    EnrollmentOutput,
+    EnrollmentResult,
+)
 from club.security import (
     current_user,
     enrollment_identity,
@@ -184,7 +196,7 @@ async def metrics(request: Request):
     return Response(render(), media_type="text/plain; version=0.0.4")
 
 
-@app.post("/api/v1/auth/login")
+@app.post("/api/v1/auth/login", response_model=Envelope[LoginOutput])
 async def login(body: Login, request: Request):
     await rate_limit(request, "login", body.username, 10, 60)
     async with request.app.state.sessions() as db:
@@ -214,7 +226,7 @@ async def logout(request: Request, user=Depends(current_user)):
     return ok()
 
 
-@app.post("/api/v1/auth/password")
+@app.post("/api/v1/auth/password", response_model=Envelope[LoginOutput])
 async def password(body: PasswordChange, request: Request, user=Depends(current_user)):
     await rate_limit(request, "password", user.id, 5, 60)
     if not await verify_password(body.old_password, user.password_hash):
@@ -260,7 +272,7 @@ async def quota_snapshot(request):
         return [{"club_id": cid, "remaining": rem, "version": ver} for cid, rem, ver in rows]
 
 
-@app.get("/api/v1/bootstrap")
+@app.get("/api/v1/bootstrap", response_model=Envelope[BootstrapOutput])
 async def bootstrap(request: Request, user=Depends(current_user)):
     async with request.app.state.sessions() as db:
         a = await db.get(Activity, 1)
@@ -283,12 +295,12 @@ async def bootstrap(request: Request, user=Depends(current_user)):
     )
 
 
-@app.get("/api/v1/clubs/quotas")
+@app.get("/api/v1/clubs/quotas", response_model=Envelope[list[QuotaOutput]])
 async def quotas(request: Request, user=Depends(current_user)):
     return ok(await quota_snapshot(request))
 
 
-@app.get("/api/v1/clubs/{club_id}")
+@app.get("/api/v1/clubs/{club_id}", response_model=Envelope[ClubDetailOutput])
 async def detail(club_id: int, request: Request, user=Depends(current_user)):
     async with request.app.state.sessions() as db:
         club = await db.get(Club, club_id)
@@ -315,13 +327,13 @@ async def unfavorite(club_id: int, request: Request, user=Depends(student)):
     return ok()
 
 
-@app.get("/api/v1/enrollment")
+@app.get("/api/v1/enrollment", response_model=Envelope[EnrollmentOutput | None])
 async def enrollment(request: Request, user=Depends(student)):
     async with request.app.state.sessions() as db:
         return ok(await enrollment_data(db, user.id))
 
 
-@app.post("/api/v1/enrollment")
+@app.post("/api/v1/enrollment", response_model=Envelope[EnrollmentResult])
 async def select_club(
     body: EnrollmentInput,
     request: Request,
@@ -336,7 +348,7 @@ async def select_club(
     )
 
 
-@app.delete("/api/v1/enrollment")
+@app.delete("/api/v1/enrollment", response_model=Envelope[EnrollmentResult])
 async def cancel(request: Request, user=Depends(enrollment_identity), idempotency_key: str = Header()):
     await rate_limit(request, "enrollment", user.id, 6, 10)
     return ok(

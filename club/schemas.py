@@ -109,3 +109,89 @@ class ActivityInput(Input):
 
 class ActivityState(Input):
     state: Literal["published", "paused", "draft"]
+
+
+# Explicit public output contracts. ORM columns never define the API surface.
+from typing import Generic, TypeVar
+
+T = TypeVar("T")
+
+
+class Envelope(BaseModel, Generic[T]):
+    data: T
+
+
+class UserOutput(BaseModel):
+    id: int
+    username: str
+    name: str
+    role: Literal["student", "admin", "super_admin"]
+    major: str
+    class_name: str
+    active: bool
+    must_change_password: bool
+    avatar: str
+    phone: str
+    email: str
+
+
+class LoginOutput(BaseModel):
+    token: str
+    user: UserOutput
+
+
+class ActivityOutput(BaseModel):
+    name: str
+    state: Literal["draft", "paused", "upcoming", "open", "ended"]
+    configured_state: Literal["draft", "paused", "published"]
+    starts_at: str | None
+    ends_at: str | None
+    allow_cancel: bool
+    cancel_until: str | None
+    version: int
+
+
+class ClubOutput(BaseModel):
+    id: int
+    name: str
+    category: str
+    location: str
+    schedule: str
+    cover: str
+    capacity: int
+    active: bool
+    allowed_majors: list[str]
+
+
+class QuotaOutput(BaseModel):
+    club_id: int
+    remaining: int
+    version: int
+
+
+class ClubDetailOutput(ClubOutput):
+    remaining: int
+    version: int
+    description: str
+
+
+class EnrollmentOutput(BaseModel):
+    club_id: int
+    club_name: str
+    source: Literal["normal", "reserved"]
+    created_at: str
+
+
+class EnrollmentResult(BaseModel):
+    status: Literal["enrolled", "cancelled"]
+    enrollment: EnrollmentOutput | None
+
+
+class BootstrapOutput(BaseModel):
+    user: UserOutput
+    activity: ActivityOutput
+    server_time: str
+    enrollment: EnrollmentOutput | None
+    favorites: list[int]
+    clubs: list[ClubOutput]
+    quotas: list[QuotaOutput]

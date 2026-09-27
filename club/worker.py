@@ -36,7 +36,17 @@ async def deliver(factory, redis):
             continue
         coalesced[key] = {**p, "event_id": row.id, "enqueued_at": iso(row.created_at)}
     pipe = redis.pipeline(transaction=False)
+    quotas = [p for p in coalesced.values() if p["event"] == "quota"]
+    if quotas:
+        # A single bounded frame prevents a 42-club burst from overflowing each
+        # client's queue before its sender gets a chance to run.
+        pipe.publish(
+            f"{settings().redis_prefix}:events",
+            json.dumps({"event": "quotas", "items": quotas, "event_id": max(p["event_id"] for p in quotas)}),
+        )
     for payload in coalesced.values():
+        if payload["event"] == "quota":
+            continue
         if payload["event"] == "catalog":
             pipe.delete(f"{settings().redis_prefix}:catalog")
         pipe.publish(f"{settings().redis_prefix}:events", json.dumps(payload))
