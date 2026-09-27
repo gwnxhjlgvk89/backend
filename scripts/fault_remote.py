@@ -79,7 +79,13 @@ async def main(args):
             started = time.monotonic()
             while True:
                 event = await asyncio.wait_for(ws.receive_json(), timeout=15)
-                items = event.get("items", []) if event.get("event") == "quotas" else [event]
+                items = (
+                    [{"club_id": r[0], "remaining": r[1]} for r in event.get("rows", [])]
+                    if event.get("event") == "quota_delta"
+                    else event.get("items", [])
+                    if event.get("event") == "quotas"
+                    else [event]
+                )
                 if any(p.get("club_id") == 1 and p.get("remaining") == 99 for p in items):
                     break
                 assert time.monotonic() - started < 15

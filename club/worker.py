@@ -44,8 +44,8 @@ async def deliver(factory, redis):
             f"{settings().redis_prefix}:events",
             json.dumps(
                 {
-                    "event": "quotas",
-                    "items": [{k: p[k] for k in ("club_id", "remaining", "version")} for p in quotas],
+                    "event": "quota_delta",
+                    "rows": [[p[k] for k in ("club_id", "remaining", "version")] for p in quotas],
                     "event_id": max(p["event_id"] for p in quotas),
                     "enqueued_at": min(p["enqueued_at"] for p in quotas),
                     "published_at": iso(utcnow()),

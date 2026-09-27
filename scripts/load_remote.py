@@ -157,7 +157,12 @@ async def main(args):
                         if "worker_id" in event:
                             workers.add(event["worker_id"])
                         quota_events = (
-                            event.get("items", [])
+                            [
+                                {"club_id": r[0], "remaining": r[1], "version": r[2]}
+                                for r in event.get("rows", [])
+                            ]
+                            if event.get("event") == "quota_delta"
+                            else event.get("items", [])
                             if event.get("event") == "quotas"
                             else [event]
                             if event.get("event") == "quota"

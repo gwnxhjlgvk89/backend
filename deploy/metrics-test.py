@@ -37,4 +37,22 @@ result["budget"] = subprocess.check_output(
     ],
     text=True,
 )
+parent = subprocess.check_output(
+    [
+        "systemctl",
+        "--user",
+        "show",
+        d["HostConfig"]["CgroupParent"].rsplit("/", 1)[-1],
+        "-p",
+        "ControlGroup",
+        "--value",
+    ],
+    text=True,
+).strip()
+folder = Path("/sys/fs/cgroup" + parent)
+result["cgroups"]["budget_total"] = {
+    key: (folder / key).read_text().strip()
+    for key in ("memory.current", "memory.peak", "memory.events", "cpu.stat", "cpu.max", "memory.max")
+    if (folder / key).exists()
+}
 print(json.dumps(result))
