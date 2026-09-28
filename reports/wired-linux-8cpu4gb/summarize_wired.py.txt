@@ -1,0 +1,78 @@
+import hashlib
+import json
+from pathlib import Path
+import sys
+
+sys.path.insert(0, 'scripts')
+from check_journey import evaluate
+from load_connection_phases import summarize
+from load_journey import summary as journey_summary
+
+ROOT = Path('reports/wired-linux-8cpu4gb')
+
+def fields(s):
+    return {k:int(v) for k,v in (row.split() for row in s.splitlines())}
+
+phases = []
+for path in sorted(ROOT.glob('linux*/summary.json')):
+    data = json.loads(path.read_text())
+    parts = [json.loads(p.read_text()) for p in sorted(path.parent.glob('part-*.json'))]
+    rows = [r for p in parts for r in p['rows']]
+    assert summarize(rows) == data['summary']
+    assert len(rows) == 1500 and len({r['index'] for r in rows}) == 1500
+    monitor = json.loads((path.parent/'monitor.json').read_text())['samples']
+    peak = max((fields(b['cgroups']['budget_total']['cpu.stat'])['usage_usec']-fields(a['cgroups']['budget_total']['cpu.stat'])['usage_usec'])/1e6/(b['epoch']-a['epoch']) for a,b in zip(monitor,monitor[1:]))
+    for sample in monitor:
+        assert sample['cgroups']['budget_total']['cpu.max'] == '800000 100000'
+        assert sample['cgroups']['budget_total']['memory.max'] == '4294967296'
+    phases.append({**data,
+        'sample_interval_peak_cpu_cores':peak,
+        'sampled_peak_memory_bytes':max(int(s['cgroups']['budget_total']['memory.current']) for s in monitor),
+        'tcp_delta':{k:monitor[-1]['tcp'][k]-monitor[0]['tcp'][k] for k in monitor[0]['tcp']},
+        'generator_max_sample_gap_s':max(b['epoch']-a['epoch'] for p in parts for a,b in zip(p['samples'],p['samples'][1:]))})
+
+journeys = []
+for path in sorted(ROOT.glob('journey-*.json')):
+    data = json.loads(path.read_text())
+    if 'runs' not in data:
+        continue
+    base = path.with_suffix('')
+    for suffix in ('after','restored'):
+        (ROOT/(base.name+'-egress-'+suffix+'.json')).write_bytes((ROOT/(base.name+'-shaping-'+suffix+'.json')).read_bytes())
+    (ROOT/(base.name+'-limits.txt')).write_text(data['resources'][0]['server']['budget'])
+    checked = evaluate(path)
+    assert all(checked['evidence_gates'].values()), checked
+    parts = []
+    parts_by_round = {}
+    for ref in data['parts']:
+        raw = (ROOT/ref['file']).read_bytes()
+        assert hashlib.sha256(raw).hexdigest() == ref['sha256']
+        part = json.loads(raw)
+        parts.append(part)
+        round_number = int(Path(ref['file']).name.split('-')[1])
+        parts_by_round.setdefault(round_number, []).append(part)
+    assert data['application_sha256'] == '008149badf738d77276c761570906c6b0a8d3517fc944af922b15d1ccc9a48aa'
+    samples = data['resources']
+    for sample in samples:
+        assert sample['server']['cgroups']['budget_total']['cpu.max'] == '800000 100000'
+        assert sample['server']['cgroups']['budget_total']['memory.max'] == '4294967296'
+    rounds = []
+    for row,ev in zip(data['runs'],checked['rounds']):
+        enroll = row['stages']['enroll']
+        homepage = journey_summary([r for p in parts_by_round[row['round']] for k,rows in p['runs'][0]['raw_stages'].items() if k in {'bootstrap','event_bootstrap','burst_bootstrap'} for r in rows])
+        rounds.append({**ev, 'stages':row['stages'], 'db':row['db'], 'websocket':row['websocket'],
+            'homepage_requests':homepage,
+            'enrollment_actual_headers_within_1s':enroll['count']==1500 and enroll['headers_dispatch_span_s']<=1})
+    journeys.append({'report':path.name, 'evidence':checked['evidence_gates'], 'rounds':rounds,
+        'sampled_peak_memory_bytes':max(int(s['server']['cgroups']['budget_total']['memory.current']) for s in samples),
+        'generator_loop_lag_p95_max_s':max(p['generator_loop_lag_p95_s'] for p in parts),
+        'generator_loop_lag_max_s':max(p['generator_loop_lag_max_s'] for p in parts),
+        'generator_rss_peak_bytes':max(s['rss_bytes'] for p in parts for s in p['generator_samples'])})
+
+result = dict(backend_application_commit='547aab2', frontend_commit='b5b1d90',
+              business_code_changed=False, production_touched=False, production_capacity_verified=False,
+              cpu_quota=8,memory_limit_gib=4, load_host='192.168.100.20', target_host='192.168.100.130',
+              network_scope='wired direct LAN, TBF egress only; no WAN RTT/loss emulation',
+              phases=phases, journeys=journeys)
+(ROOT/'summary.json').write_text(json.dumps(result,indent=2,ensure_ascii=False)+'\n')
+print(json.dumps({'phases':len(phases),'journeys':[{k:v for k,v in r.items() if k!='rounds'} for r in journeys]},indent=2))

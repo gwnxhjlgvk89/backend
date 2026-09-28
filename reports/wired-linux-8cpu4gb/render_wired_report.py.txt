@@ -1,0 +1,47 @@
+import json
+from pathlib import Path
+
+root = Path('reports/wired-linux-8cpu4gb')
+data = json.loads((root/'summary.json').read_text())
+path = Path('docs/WIRED_LINUX_LOAD_TESTS.md')
+text = path.read_text().split('## 完整流程结果')[0]
+text += '''## 完整流程结果
+
+表中均为客户端端到端耗时；登录 P95 目标 5 秒、报名 P95/P99 目标 3/5 秒、通知 P95 目标 3 秒。完整流程每个场景连续三轮。首页失败的学生未继续报名，不从分母中删除。
+
+| 带宽 / 场景 / 轮 | 登录成功 | 完成学生 | 登录 P95 | 首页 P95 | 报名 P95 / P99 | 通知 P95 | 报名实际请求头跨度 |
+|---|---:|---:|---:|---:|---:|---:|---:|
+'''
+def f(v):
+    return '—' if v is None else f'{v:.3f}'
+for item in data['journeys']:
+    raw = json.loads((root/item['report']).read_text())
+    mode = raw['parameters']['mode']
+    rate = item['report'].split('-')[-1].split('.')[0]
+    for row in item['rounds']:
+        stages = row['stages']
+        login = stages.get('login', {})
+        bootstrap = row['homepage_requests']
+        enroll = stages['enroll']
+        success = login.get('statuses', {}).get('200:OK', '提前登录')
+        text += f"| {rate}/{mode}/{row['round']} | {success} | {row['completed']}/1500 | {f(login.get('p95_s'))} | {f(bootstrap.get('p95_s'))} | {f(enroll['p95_s'])}/{f(enroll['p99_s'])} | {f(row['notification_p95_s'])} | {f(enroll['headers_dispatch_span_s'])} |\n"
+text += '''
+`login` 为冷登录完整流程，`ready` 为提前登录后统一浏览、报名。首页统计合并 bootstrap、event_bootstrap 和 burst_bootstrap 的原始请求，避免遗漏由活动事件触发的首页加载。实际报名请求头跨度大于一秒的轮次没有满足严格开抢负载，不能因为全部成功而授予容量通过。报告保留脚本原始门槛，并额外校验实际请求头时间。
+
+10Mbps 冷登录三轮登录均无失败；后续首页分别出现 18、17、30 次 `ClientConnectorError`，完整流程未通过。现有驱动仅保存异常类别，未记录底层 errno，不能精确断言这些连接失败的唯一原因。三轮数据库均与成功报名数一致，名额差异列表为空；原始 `data_correct` 综合门槛未过是因为没有达到预期的 1500 人，并非已发现数据错乱。
+
+10Mbps 冷登录完整流程三轮 TBF 累计丢包 11844，提前登录场景三轮累计 10063。应用登录 P95 约几十毫秒，说明传输/连接等待占据了端到端耗时的大部分。TBF 排队及丢包是本测试设置下的直接证据，不是腾讯云公网的实测丢包率。已有 JSON gzip 压缩，响应字节统计是解压后的业务体，不能直接拿它除以 10Mbps 推算线上耗时。
+
+## 资源与核验
+
+| 场景 | 服务内存采样峰值 MiB | 发压分片事件循环 P95 最大值 ms | 发压分片最大停顿 ms | 发压分片 RSS 峰值 MiB |
+|---|---:|---:|---:|---:|
+'''
+for row in data['journeys']:
+    text += f"| {row['report']} | {row['sampled_peak_memory_bytes']/2**20:.1f} | {row['generator_loop_lag_p95_max_s']*1000:.1f} | {row['generator_loop_lag_max_s']*1000:.1f} | {row['generator_rss_peak_bytes']/2**20:.1f} |\n"
+text += '''
+内存采用此次采样的 `memory.current`，不把历史 `memory.peak` 当作本轮峰值。所有采样保持 8CPU/4GiB；OOM、OOM kill 均为零。发压进程会定期保存 JSON，最大停顿也完整保留，没有宣称发压端零开销。
+
+核验脚本重新计算七组阶段统计，确认每组 1500 个不同账号索引，校验完整流程分片 SHA256、服务源码哈希、TLS 验证、各轮完成状态及配额。压测统计相关单元测试 9 个通过。`summary.json`、`driver-hashes.json`、`verification.json` 及精确编排脚本文本提供复现入口。
+'''
+path.write_text(text)

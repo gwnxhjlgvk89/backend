@@ -1,0 +1,76 @@
+import asyncio
+import hashlib
+import json
+from pathlib import Path
+import shlex
+import sys
+
+sys.path.insert(0, 'scripts')
+from load_connection_phases import summarize
+
+ROOT = Path('reports/wired-linux-8cpu4gb')
+TARGET = ['ssh', '-S', '/private/tmp/club-test-current-ssh', '-o', 'BatchMode=yes', 'gg1214@192.168.100.130']
+LOAD = ['ssh', '-S', '/private/tmp/club-load20-ssh', '-o', 'BatchMode=yes', 'GG1214@192.168.100.20']
+
+async def run(argv):
+    p = await asyncio.create_subprocess_exec(*argv, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE)
+    out, err = await p.communicate()
+    if p.returncode:
+        raise RuntimeError(f'Command failed {p.returncode}: {err.decode()[-300:]}')
+    return out.decode()
+
+async def target(cmd):
+    return await run(TARGET + ['cd ~/club-system-test/backend && ' + cmd])
+
+async def loader(cmd):
+    return await run(LOAD + ['cd ~/club-load-test && ulimit -n 16384 && ' + cmd])
+
+async def case(mode, mbps):
+    name = f'linux3-{mode}-1500-{mbps}mbps'
+    dest = ROOT / name
+    dest.mkdir()
+    print('START ' + name, flush=True)
+    monitor = None
+    try:
+        if mbps:
+            (dest / 'egress-before.json').write_text(await target(f'python3 deploy/shape-test-egress.py limit --mbps {mbps} --port 8443'))
+        monitor = asyncio.create_task(target('python3 .local/cold-phase-monitor.py --seconds 23'))
+        epoch = float(await loader('.venv/bin/python -c "import time; print(time.time())"')) + 5
+        jobs = []
+        for i in range(3):
+            args = ['.venv/bin/python', 'scripts/load_connection_phases.py', '--mode', mode, '--users', '500', '--offset', str(i*500), '--epoch', str(epoch), '--timeout', '10', '--burst', '.6', '--ca', 'private/test-ca.crt', '--report', f'reports/{name}-{i}.json']
+            jobs.append(asyncio.create_task(loader(shlex.join(args))))
+        results = await asyncio.gather(*jobs, return_exceptions=True)
+        errors = [str(x) for x in results if isinstance(x, Exception)]
+        rows = []
+        for i in range(3):
+            raw = await loader(f'cat reports/{name}-{i}.json')
+            (dest / f'part-{i}.json').write_text(raw)
+            rows += json.loads(raw)['rows']
+        (dest / 'monitor.json').write_text(await monitor)
+        result = dict(name=name, mode=mode, users=1500, mbps=mbps, shards=3,
+                      load_location='192.168.100.20 wired enp6s0 direct LAN to .130', errors=errors,
+                      driver_sha256=hashlib.sha256(Path('scripts/load_connection_phases.py').read_bytes()).hexdigest(),
+                      summary=summarize(rows))
+        (dest / 'summary.json').write_text(json.dumps(result, indent=2)+'\n')
+        print(json.dumps(result), flush=True)
+    finally:
+        if mbps:
+            try:
+                (dest / 'egress-after.json').write_text(await target('python3 deploy/shape-test-egress.py show'))
+            finally:
+                (dest / 'egress-restored.json').write_text(await target('python3 deploy/shape-test-egress.py clear'))
+        if monitor and not monitor.done():
+            await monitor
+
+async def main():
+    (ROOT/'loader-inventory.txt').write_text(await loader("uname -srmo; getconf _NPROCESSORS_ONLN; free -m; ip route get 192.168.100.130; cat /sys/class/net/enp6s0/speed; ulimit -Sn; .venv/bin/pip freeze"))
+    (ROOT/'initial-resources.json').write_text(await target('python3 deploy/metrics-test.py'))
+    (ROOT/'initial-shaping.json').write_text(await target('python3 deploy/shape-test-egress.py show'))
+    for mode in ('tls', 'health', 'login'):
+        await case(mode, 0)
+    for rate in (50, 10):
+        for mode in ('tls', 'login'):
+            await case(mode, rate)
+
+asyncio.run(main())
