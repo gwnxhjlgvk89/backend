@@ -9,7 +9,7 @@ EnvironmentFile=/etc/club/production.env
 Environment=PROMETHEUS_MULTIPROC_DIR=/run/club-metrics
 RuntimeDirectory=club-metrics
 ExecStartPre=/usr/bin/find /run/club-metrics -name *.db -delete
-ExecStart=/srv/club/current/.venv/bin/uvicorn club.api:app --host 127.0.0.1 --port 8001 --workers 4 --no-access-log --timeout-graceful-shutdown 20
+ExecStart=/srv/club/current/.venv/bin/uvicorn club.api:app --host 127.0.0.1 --port 8001 --workers 4 --no-access-log --log-level warning --timeout-graceful-shutdown 20
 Restart=on-failure
 RestartSec=3
 TimeoutStopSec=30
