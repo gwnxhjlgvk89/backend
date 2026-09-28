@@ -1,0 +1,141 @@
+{
+  "recorded_at": "2026-09-28T01:41:41.112487+00:00",
+  "scope": "Native single-thread synthetic CPU probe; no HTTP or database workload",
+  "cpu_model": "AMD EPYC 7K62 48-Core Processor",
+  "kernel": "6.8.0-107-generic",
+  "allowed_cpus_before": [
+    0,
+    1,
+    2,
+    3
+  ],
+  "pinned_cpu": 0,
+  "nice": 19,
+  "binary_sha256": "8532b7bd4e812c83eb9f762c8c1694c23cbfa00a5ca7fe08a7584014b957d1d3",
+  "native_packages": "libargon2-1 0~20190702+dfsg-4build1\nlibc6 2.39-0ubuntu8.7",
+  "argon_library_sha256": "3c593c01d1c3497b1276537a1002c90ce3beb729a3520087608838cf8bbd847d",
+  "before": {
+    "load": [
+      0.10546875,
+      0.02734375,
+      0.00537109375
+    ],
+    "cpu_stat": [
+      "cpu  97638 1175 73299 25874262 33032 0 1587 0 0 0",
+      "cpu0 24484 8 18312 6466212 10177 0 651 0 0 0",
+      "cpu1 24421 89 18324 6468977 7456 0 323 0 0 0",
+      "cpu2 24263 601 18320 6470139 7300 0 284 0 0 0",
+      "cpu3 24468 476 18342 6468934 8097 0 327 0 0 0"
+    ],
+    "memory": {
+      "MemTotal": 3812584,
+      "MemAvailable": 2441644,
+      "SwapTotal": 2035708,
+      "SwapFree": 2035708
+    },
+    "cpu_pressure": "some avg10=0.00 avg60=0.00 avg300=0.00 total=110070554\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=0"
+  },
+  "baseline": {
+    "load": [
+      0.10546875,
+      0.02734375,
+      0.00537109375
+    ],
+    "cpu_stat": [
+      "cpu  97639 1175 73300 25874658 33034 0 1587 0 0 0",
+      "cpu0 24484 8 18312 6466311 10177 0 651 0 0 0",
+      "cpu1 24421 89 18324 6469076 7456 0 323 0 0 0",
+      "cpu2 24264 601 18321 6470237 7301 0 284 0 0 0",
+      "cpu3 24469 476 18342 6469032 8098 0 327 0 0 0"
+    ],
+    "memory": {
+      "MemTotal": 3812584,
+      "MemAvailable": 2441680,
+      "SwapTotal": 2035708,
+      "SwapFree": 2035708
+    },
+    "cpu_pressure": "some avg10=0.00 avg60=0.00 avg300=0.00 total=110072133\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=0"
+  },
+  "after": {
+    "load": [
+      0.2919921875,
+      0.07470703125,
+      0.02099609375
+    ],
+    "cpu_stat": [
+      "cpu  97666 2376 73321 25880596 33038 0 1588 0 0 0",
+      "cpu0 24486 1209 18314 6466908 10177 0 651 0 0 0",
+      "cpu1 24428 89 18330 6470858 7458 0 324 0 0 0",
+      "cpu2 24273 601 18326 6472017 7302 0 284 0 0 0",
+      "cpu3 24479 476 18349 6470811 8099 0 328 0 0 0"
+    ],
+    "memory": {
+      "MemTotal": 3812584,
+      "MemAvailable": 2434524,
+      "SwapTotal": 2035708,
+      "SwapFree": 2035708
+    },
+    "cpu_pressure": "some avg10=0.00 avg60=0.00 avg300=0.00 total=110095183\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=0"
+  },
+  "benchmark": {
+    "round_seconds": 2,
+    "rounds": 3,
+    "argon2id": {
+      "memory_kib": 7168,
+      "passes": 5,
+      "parallelism": 1
+    },
+    "samples": [
+      {
+        "round": 1,
+        "workload": "integer_dependency_chain",
+        "count": 644500000,
+        "wall_s": 2.000168,
+        "cpu_s": 2.000045,
+        "per_second": 322223007.37781
+      },
+      {
+        "round": 1,
+        "workload": "argon2id",
+        "count": 103,
+        "wall_s": 2.001762,
+        "cpu_s": 2.001702,
+        "per_second": 51.454671
+      },
+      {
+        "round": 2,
+        "workload": "integer_dependency_chain",
+        "count": 645000000,
+        "wall_s": 2.000003,
+        "cpu_s": 1.999972,
+        "per_second": 322499449.815597
+      },
+      {
+        "round": 2,
+        "workload": "argon2id",
+        "count": 104,
+        "wall_s": 2.001573,
+        "cpu_s": 2.001515,
+        "per_second": 51.959145
+      },
+      {
+        "round": 3,
+        "workload": "integer_dependency_chain",
+        "count": 645000000,
+        "wall_s": 2.000184,
+        "cpu_s": 2.000122,
+        "per_second": 322470400.28133
+      },
+      {
+        "round": 3,
+        "workload": "argon2id",
+        "count": 104,
+        "wall_s": 2.011269,
+        "cpu_s": 2.011232,
+        "per_second": 51.708636
+      }
+    ],
+    "integer_checksum": "3081406630319827650",
+    "synthetic_argon_digest": "20c244f5aba992a8870449335a0c8c8b3efb1beba43af9f91518ff748c39d40e"
+  }
+}
