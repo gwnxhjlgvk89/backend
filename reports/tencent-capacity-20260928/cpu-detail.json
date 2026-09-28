@@ -1,0 +1,43 @@
+{
+  "cpu_count": 4,
+  "source": "process-health.jsonl; service cgroup cpu.stat deltas and host /proc/stat deltas",
+  "scope": "5-second interval averages, not instantaneous or per-core peaks; guest fields excluded from /proc/stat total to avoid double counting",
+  "peak_service_sum_sample": {
+    "at": 1790598911.6694565,
+    "interval_seconds": 5.000179767608643,
+    "host_execution_cores": 1.62736089841756,
+    "host_iowait_cores": 0.24093925472179684,
+    "host_steal_cores": 0.0,
+    "service_cores": {
+      "club-api": 1.0258309177658083,
+      "club-worker": 0.027840199046798644,
+      "mysql": 0.24820467616778227,
+      "redis-server": 0.01436728344556246,
+      "nginx": 0.11261695102400436
+    }
+  },
+  "host_execution_cores_max": 1.62736089841756,
+  "host_iowait_cores_max": 0.7911424257674887,
+  "host_steal_cores_max": 0.0,
+  "service_individual_peak_cores": {
+    "club-api": 1.0258309177658083,
+    "club-worker": 0.027840199046798644,
+    "mysql": 0.24820467616778227,
+    "redis-server": 0.01738352223834587,
+    "nginx": 0.16043229964411526
+  },
+  "health_by_path": {
+    "local": {
+      "200": 345
+    },
+    "public": {
+      "200": 341,
+      "URLError": 4
+    }
+  },
+  "final_dependencies": {
+    "club_database_available": 1.0,
+    "club_outbox_pending": 0.0,
+    "club_redis_available": 1.0
+  }
+}
