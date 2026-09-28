@@ -1,0 +1,72 @@
+{
+  "passed": true,
+  "scope": "10-minute idle production observation, not a load test",
+  "elapsed_seconds": 600.08,
+  "samples": 61,
+  "health_requests": 122,
+  "health_all_200": true,
+  "dependencies_all_available": true,
+  "outbox_pending_max": 0,
+  "host_oom_kill_delta": 0,
+  "services": {
+    "club-api": {
+      "processes_unchanged": true,
+      "restarts": 0,
+      "oom_kill_delta": 0,
+      "memory_mib_min": 293.8,
+      "memory_mib_max": 296.0,
+      "memory_mib_final": 295.8
+    },
+    "club-worker": {
+      "processes_unchanged": true,
+      "restarts": 0,
+      "oom_kill_delta": 0,
+      "memory_mib_min": 54.3,
+      "memory_mib_max": 54.6,
+      "memory_mib_final": 54.3
+    },
+    "mysql": {
+      "processes_unchanged": true,
+      "restarts": 0,
+      "oom_kill_delta": 0,
+      "memory_mib_min": 586.9,
+      "memory_mib_max": 587.2,
+      "memory_mib_final": 587.0
+    },
+    "redis-server": {
+      "processes_unchanged": true,
+      "restarts": 0,
+      "oom_kill_delta": 0,
+      "memory_mib_min": 6.9,
+      "memory_mib_max": 7.4,
+      "memory_mib_final": 6.9
+    },
+    "nginx": {
+      "processes_unchanged": true,
+      "restarts": 0,
+      "oom_kill_delta": 0,
+      "memory_mib_min": 34.5,
+      "memory_mib_max": 34.8,
+      "memory_mib_final": 34.8
+    }
+  },
+  "host_available_memory_mib_min": 2252.6,
+  "swap_used_mib_max": 0.5,
+  "final_audit": {
+    "nginx_valid": true,
+    "nginx_status_counts_during_observation": {
+      "200": 62
+    },
+    "nginx_5xx_during_observation": 0,
+    "journal_warning_or_higher": 0,
+    "application_error_logs": 0,
+    "tracebacks": 0,
+    "tls_chain_verified": true,
+    "certificate_expires": "Oct 29 20:25:42 2026 GMT",
+    "old_and_verify_ports_closed": true,
+    "release": "81adef2bfa4441fc54d014f445e1f81383242a13",
+    "business_module_count": 22,
+    "business_source_sha256": "1b1ad6ec212d94e7328f7c4170cc27bcf24acb8085e0b03c73896dcd06ae84f1",
+    "disk_free_bytes": 45688262656
+  }
+}

@@ -1,0 +1,79 @@
+{
+  "counts": {
+    "v2_users": 1,
+    "v2_clubs": 0,
+    "v2_enrollments": 0,
+    "v2_jobs": 0
+  },
+  "admin": {
+    "username": "admin",
+    "role": "super_admin",
+    "must_change_password": 1
+  },
+  "activity": {
+    "state": "draft",
+    "starts_at": null,
+    "ends_at": null
+  },
+  "mysql": {
+    "buffer_pool_bytes": 805306368,
+    "max_connections": 151
+  },
+  "app_grants": [
+    "GRANT USAGE ON *.* TO `club_v2_prod_app`@`localhost`",
+    "GRANT SELECT, INSERT, UPDATE, DELETE ON `club_v2_prod`.* TO `club_v2_prod_app`@`localhost`"
+  ],
+  "migration_account_locked": "Y",
+  "redis_config": [
+    "maxmemory-policy",
+    "noeviction",
+    "maxmemory",
+    "201326592"
+  ],
+  "services": {
+    "club-api": {
+      "NRestarts": "0",
+      "User": "club",
+      "ActiveState": "active",
+      "UnitFileState": "enabled"
+    },
+    "club-worker": {
+      "NRestarts": "0",
+      "User": "club",
+      "ActiveState": "active",
+      "UnitFileState": "enabled"
+    },
+    "club-system": {
+      "NRestarts": "0",
+      "User": "root",
+      "ActiveState": "inactive",
+      "UnitFileState": "disabled"
+    },
+    "mysql": {
+      "NRestarts": "0",
+      "User": "mysql",
+      "ActiveState": "active",
+      "UnitFileState": "enabled"
+    },
+    "redis-server": {
+      "NRestarts": "0",
+      "User": "redis",
+      "ActiveState": "active",
+      "UnitFileState": "enabled"
+    },
+    "nginx": {
+      "NRestarts": "0",
+      "User": "",
+      "ActiveState": "active",
+      "UnitFileState": "enabled"
+    },
+    "certbot.timer": {
+      "ActiveState": "active",
+      "UnitFileState": "enabled"
+    }
+  },
+  "isolated_resources_removed": true,
+  "redis_verify_keys_removed": 0,
+  "final_recheck_unix": 1790597838.4822013,
+  "maintenance_disabled": true
+}
