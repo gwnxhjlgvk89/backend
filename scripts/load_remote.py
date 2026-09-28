@@ -22,6 +22,12 @@ def p(values, q):
 
 
 async def ssh(args, command):
+    try:
+        from scripts.load_native import enabled, translate
+    except ModuleNotFoundError:
+        from load_native import enabled, translate
+    if enabled():
+        command = translate(args, command)
     process = await asyncio.create_subprocess_exec(
         "ssh",
         "-o",

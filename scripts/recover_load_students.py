@@ -23,12 +23,17 @@ except ModuleNotFoundError:
 
 
 async def main(args):
+    try:
+        from scripts.load_native import enabled
+    except ModuleNotFoundError:
+        from load_native import enabled
+    native = enabled()
     source = json.loads(Path(args.journey_report).read_text())
     params = source["parameters"]
     if not (
         source.get("completed")
         and not source["errors"]
-        and params["url"] == "https://192.168.100.130:18082"
+        and params["url"] == ("https://wjy-1214.cloud" if native else "https://192.168.100.130:18082")
         and params["mode"] == "login"
         and params["scenario"] == "uniform"
         and params["users"] == 1500
@@ -38,7 +43,11 @@ async def main(args):
     output = Path(args.report)
     if output.exists():
         raise SystemExit("Refusing existing report")
-    remote = SimpleNamespace(ssh="gg1214@192.168.100.130", control="/tmp/club-target-test-ssh")
+    remote = SimpleNamespace(
+        ssh=params["ssh"] if native else "gg1214@192.168.100.130",
+        control=params["control"] if native else "/tmp/club-target-test-ssh",
+        url=params["url"],
+    )
     before = await fixture(remote, "check")
     if before["inconsistencies"] or before["enrollments"] != source["runs"][0]["db"]["enrollments"]:
         raise SystemExit("Fixture changed or inconsistent; refusing recovery")
@@ -74,7 +83,7 @@ asyncio.run(f())"""
         "missing_synthetic_accounts": missing,
         "attempts": [],
     }
-    tls = ssl.create_default_context(cafile=args.ca_cert)
+    tls = ssl.create_default_context(cafile=args.ca_cert) if args.ca_cert else True
     async with aiohttp.ClientSession(
         base_url=params["url"],
         connector=aiohttp.TCPConnector(ssl=tls),
@@ -153,5 +162,5 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--journey-report", required=True)
     parser.add_argument("--report", required=True)
-    parser.add_argument("--ca-cert", required=True)
+    parser.add_argument("--ca-cert")
     asyncio.run(main(parser.parse_args()))

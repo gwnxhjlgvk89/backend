@@ -121,6 +121,13 @@ async def run(args):
     }
     path.parent.mkdir(parents=True, exist_ok=True)
 
+    try:
+        from scripts.load_native import enabled, scope
+    except ModuleNotFoundError:
+        from load_native import enabled, scope
+    if enabled():
+        report.update(scope())
+
     def save():
         temporary = path.with_suffix(".tmp")
         temporary.write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n")
