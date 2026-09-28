@@ -6,6 +6,7 @@ import subprocess
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--cpus", type=int, choices=[4, 6, 8, 12, 16, 24], default=4)
+parser.add_argument("--memory-mib", type=int, choices=[3000, 4096], default=3000)
 args = parser.parse_args()
 
 names = ["club-capacity-test_" + s + "_1" for s in ("mysql", "redis", "api", "worker", "nginx")]
@@ -24,7 +25,7 @@ subprocess.run(
         "--runtime",
         unit,
         f"CPUQuota={args.cpus * 100}%",
-        "MemoryMax=3000M",
+        f"MemoryMax={args.memory_mib}M",
         "MemorySwapMax=0",
     ],
     check=True,
@@ -47,5 +48,5 @@ result = subprocess.check_output(
     text=True,
 )
 print(result)
-if f"CPUQuotaPerSecUSec={args.cpus}s" not in result or "MemoryMax=3145728000" not in result:
+if f"CPUQuotaPerSecUSec={args.cpus}s" not in result or f"MemoryMax={args.memory_mib * 2**20}" not in result:
     raise SystemExit("Resource limits were not applied")

@@ -1,0 +1,106 @@
+"""Summarize retained evidence without treating historical OOM or maxima as new events."""
+import hashlib
+import json
+from pathlib import Path
+import sys
+import tarfile
+
+sys.path.insert(0, str(Path('scripts').resolve()))
+from check_journey import oom_changes
+
+ROOT = Path('reports/wired-four-cpu-stability')
+CASES = ['four-cpu-cold', 'four-cpu-active-600s', 'four-cpu-hot', 'four-cpu-last-seat', 'four-cpu-retry-1', 'four-cpu-retry-2', 'four-cpu-retry-3']
+
+def counters(text):
+    return {k: int(v) for k, v in (line.split() for line in text.splitlines())}
+
+def sha(data):
+    return hashlib.sha256(data).hexdigest()
+
+snapshots = [json.loads(line) for line in (ROOT/'process-health.jsonl').read_text().splitlines()]
+final = json.loads((ROOT/'final-processes.json').read_text())
+snapshots.append(final)
+snapshots += [json.loads(line) for line in (ROOT/'recovery-process-health.jsonl').read_text().splitlines()]
+snapshots.append(json.loads((ROOT/'recovery-final-processes.json').read_text()))
+snapshots.sort(key=lambda s:s['at'])
+base = snapshots[0]['containers']
+changes = []
+monitor_errors = []
+for s in snapshots:
+    if 'error' in s:
+        monitor_errors.append({'at':s['at'], 'monitor_error':s['error']})
+        continue
+    for name, initial in base.items():
+        current=s['containers'][name]
+        stable=lambda data: {(p['pid'], p.get('start_ticks')) for p in data['processes']}
+        missing=stable(initial)-stable(current)
+        if missing or not current['running'] or current['started_at'] != initial['started_at'] or current['restart_count'] != initial['restart_count']:
+            changes.append({'at':s['at'], 'container':name, 'missing_initial_processes':sorted(missing), 'running':current['running']})
+health = [v for s in snapshots if s.get('health_origin') == 'http://192.168.100.130:18081' for v in s['health'].values()]
+invalid_health = [{'at':s['at'], 'health':s.get('health')} for s in snapshots if 'health_origin' not in s and any('error' in h for h in s.get('health',{}).values())]
+resources=[]
+runs=[]
+archives=[]
+for case in CASES:
+    path=ROOT/f'{case}.json'; data=json.loads(path.read_text())
+    assert data['completed'] and not data['errors']
+    assert data['application_sha256'] == '008149badf738d77276c761570906c6b0a8d3517fc944af922b15d1ccc9a48aa'
+    resources.extend(data['resources'])
+    for ref in data['parts']:
+        assert sha((ROOT/ref['file']).read_bytes()) == ref['sha256']
+    archive=ROOT/f'{case}.parts.tar.gz'
+    with tarfile.open(archive,'w:gz') as tar:
+        for ref in data['parts']:
+            tar.add(ROOT/ref['file'],arcname=ref['file'])
+    with tarfile.open(archive,'r:gz') as tar:
+        for ref in data['parts']:
+            assert sha(tar.extractfile(ref['file']).read()) == ref['sha256']
+    archives.append({'file':archive.name,'sha256':sha(archive.read_bytes()),'members':data['parts']})
+    for r in data['runs']:
+        runs.append({
+            'case':case,'round':r['round'],'completed':r['completed_students'],
+            'enrollments':r['db']['enrollments'],'expected':r['expected_enrollments'],
+            'data_consistent':r['data_consistency_pass'],'all_expected_enrolled':r['all_expected_enrolled'],
+            'active_seconds':r['active_duration_s'],'outcomes':r['outcomes'],
+            'stages':r['stages'],'steady_reads':r['steady_reads_after_20s'],'websocket':r['websocket'],
+            'failed_latency_or_other_original_gates':[k for k,v in r['scope_gates'].items() if not v],
+            'http_unexpected_errors':sum(v['unexpected_errors'] for k,v in r['stages'].items() if k!='journey'),
+            'http_capacity_rejections':sum(v['capacity_rejections'] for k,v in r['stages'].items() if k!='journey'),
+        })
+resources.sort(key=lambda s:s['at'])
+assert all(s['server']['cgroups']['budget_total']['cpu.max']=='400000 100000' and s['server']['cgroups']['budget_total']['memory.max']=='4294967296' for s in resources)
+no_oom,oom_deltas=oom_changes(resources)
+before=json.loads((ROOT/'before.json').read_text()); after=json.loads((ROOT/'recovery-after.json').read_text())
+whole_oom={name:{k:counters(after['cgroups'][name]['memory.events'])[k]-counters(group['memory.events'])[k] for k in ('oom','oom_kill')} for name,group in before['cgroups'].items()}
+cpu_samples=[s for s in snapshots if 'budget' in s]
+cpu_intervals=[]
+for a,b in zip(cpu_samples,cpu_samples[1:]):
+    dt=b['at']-a['at']
+    if dt<=0: continue
+    av,bv=counters(a['budget']['cpu.stat']),counters(b['budget']['cpu.stat'])
+    cpu_intervals.append({'at':b['at'],'interval_seconds':dt,'used_cores':(bv['usage_usec']-av['usage_usec'])/1e6/dt,'throttled_periods':bv['nr_throttled']-av['nr_throttled']})
+mem=[int(s['server']['cgroups']['budget_total']['memory.current']) for s in resources]+[int(s['budget']['memory.current']) for s in cpu_samples]
+result={
+    'environment':'wired independent .20 generator -> original rootless HTTPS .130:18082; no artificial bandwidth limit',
+    'application_commit':'547aab2', 'cpu_quota':4,'memory_limit_bytes':4294967296,
+    'request_timeout_seconds':10, 'frontend_read_retry_simulated':False,
+    'production_capacity_verified':False,'hardware_equivalence_verified':False,
+    'recovery':[json.loads((ROOT/f'four-cpu-retry-{i}-recovery.json').read_text()) for i in range(1,4)],
+    'runs':runs,'no_new_oom_in_run_samples':no_oom,'run_oom_deltas':oom_deltas,'whole_observation_oom_deltas':whole_oom,
+    'sampled_memory_peak_mib':max(mem)/2**20,
+    'historical_cgroup_memory_peak_mib':int(after['cgroups']['budget_total']['memory.peak'])/2**20,
+    'process_health_samples':len(snapshots),'observed_seconds':snapshots[-1]['at']-snapshots[0]['at'],
+    'initial_processes':base,'process_continuity_changes':changes, 'monitor_errors':monitor_errors,
+    'valid_health_requests':len(health),'health_failures':[h for h in health if h.get('status')!=200],
+    'health_max_seconds':max(h['seconds'] for h in health),
+    'invalid_initial_health_probes':invalid_health,
+    'invalid_probe_explanation':'Initial probe used 127.0.0.1, but TEST HTTP binds only 192.168.100.130; corrected during first round; retained as instrumentation errors, not server outages.',
+    'sampled_cpu_peak_cores':max(v['used_cores'] for v in cpu_intervals),
+    'cpu_intervals':cpu_intervals,
+    'after':after,
+}
+(ROOT/'summary.json').write_text(json.dumps(result,ensure_ascii=False,indent=2)+'\n')
+(ROOT/'raw-archives.json').write_text(json.dumps(archives,indent=2)+'\n')
+for r in runs:
+    print(r['case'],r['round'],r['completed'],r['enrollments'],{k:(r['stages'].get(k,{}).get('p95_s'),r['stages'].get(k,{}).get('max_s')) for k in ['login','enroll','journey']},r['http_unexpected_errors'],r['websocket'])
+print('memory MiB',result['sampled_memory_peak_mib'],'peak CPU cores',result['sampled_cpu_peak_cores'],'continuity changes',len(changes),'health failures',len(result['health_failures']),'OOM',whole_oom)

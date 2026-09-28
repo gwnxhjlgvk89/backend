@@ -1,0 +1,68 @@
+import asyncio
+import json
+from pathlib import Path
+import shlex
+import time
+
+ROOT = Path('reports/wired-four-cpu-stability')
+TARGET = ['ssh', '-S', '/private/tmp/club-test-current-ssh', '-o', 'BatchMode=yes', 'gg1214@192.168.100.130']
+LOAD = ['ssh', '-S', '/private/tmp/club-load20-ssh', '-o', 'BatchMode=yes', 'GG1214@192.168.100.20']
+
+async def run(argv):
+    p = await asyncio.create_subprocess_exec(*argv, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE)
+    out, err = await p.communicate()
+    if p.returncode:
+        raise RuntimeError(f'Command failed {p.returncode}: {err.decode()[-300:]}')
+    return out.decode()
+
+async def target(cmd):
+    return await run(TARGET + ['cd ~/club-system-test/backend && ' + cmd])
+
+async def monitor(stop):
+    with (ROOT/'process-health.jsonl').open('w') as out:
+        while not stop.is_set():
+            try:
+                sample = json.loads(await target('python3 deploy/stability-test-snapshot.py'))
+            except Exception as exc:
+                sample = {'at': time.time(), 'error': type(exc).__name__}
+            out.write(json.dumps(sample)+'\n'); out.flush()
+            try:
+                await asyncio.wait_for(stop.wait(), 5)
+            except TimeoutError:
+                pass
+
+async def case(name, mode, scenario, rounds, hold):
+    args = ['.venv/bin/python', 'scripts/load_distributed_journey.py', '--url', 'https://192.168.100.130:18082', '--ca-cert', 'private/test-ca.crt', '--ssh', 'gg1214@192.168.100.130', '--control', '/tmp/club-target-test-ssh', '--users', '1500', '--processes', '3', '--client-profile', 'connected_first', '--mode', mode, '--scenario', scenario, '--rounds', str(rounds), '--hold-seconds', str(hold), '--report', f'reports/{name}.json']
+    print('START '+name, flush=True)
+    p = await asyncio.create_subprocess_exec(*LOAD, 'cd ~/club-load-test && ulimit -n 16384 && '+shlex.join(args))
+    code = await p.wait()
+    await run(['scp', '-C', '-o', 'ControlPath=/private/tmp/club-load20-ssh', '-o', 'BatchMode=yes', f'GG1214@192.168.100.20:club-load-test/reports/{name}.json', str(ROOT)])
+    parts = ROOT/f'{name}.parts'; parts.mkdir()
+    await run(['scp', '-C', '-o', 'ControlPath=/private/tmp/club-load20-ssh', '-o', 'BatchMode=yes', f'GG1214@192.168.100.20:club-load-test/reports/{name}.parts/*.json', str(parts)])
+    if code:
+        raise RuntimeError(f'Journey failed {code}; report retained')
+    print('DONE '+name, flush=True)
+
+async def main():
+    ROOT.mkdir(exist_ok=False)
+    (ROOT/'before.json').write_text(await target('python3 deploy/metrics-test.py'))
+    shape=json.loads(await target('python3 deploy/shape-test-egress.py show'))
+    assert all(q['kind']=='noqueue' for q in shape['qdiscs'])
+    (ROOT/'shaping.json').write_text(json.dumps(shape,indent=2))
+    limits=await target('python3 deploy/limit-test-pod.py --cpus 4 --memory-mib 4096')
+    assert 'CPUQuotaPerSecUSec=4s' in limits and 'MemoryMax=4294967296' in limits
+    (ROOT/'limits.txt').write_text(limits)
+    stop=asyncio.Event(); task=asyncio.create_task(monitor(stop))
+    try:
+        await case('four-cpu-cold', 'login', 'uniform', 3, 45)
+        await case('four-cpu-active-600s', 'ready', 'uniform', 1, 600)
+        await case('four-cpu-hot', 'ready', 'hot_club', 1, 45)
+        await case('four-cpu-last-seat', 'ready', 'last_seat', 1, 45)
+        print('RECOVERY observation 30s',flush=True)
+        await asyncio.sleep(30)
+    finally:
+        stop.set(); await task
+        (ROOT/'after.json').write_text(await target('python3 deploy/metrics-test.py'))
+        (ROOT/'final-processes.json').write_text(await target('python3 deploy/stability-test-snapshot.py'))
+
+asyncio.run(main())
