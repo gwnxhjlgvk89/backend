@@ -25,24 +25,25 @@ async def test_direct_password_match_without_native_threads(monkeypatch):
 @pytest.mark.parametrize(
     "name,expected",
     [
-        ("张三", "zhangsan"),
-        ("李雷", "lilei"),
-        ("吕布", "lvbu"),
-        (" 张 三 ", "zhangsan"),
-        ("Alice Smith", "alicesmith"),
-        ("单田芳", "shantianfang"),
-        ("曾小贤", "zengxiaoxian"),
-        ("解晓东", "xiexiaodong"),
-        ("尉迟明", "yuchiming"),
+        ("张三", "张三"),
+        ("李雷", "李雷"),
+        ("吕布", "吕布"),
+        (" 张 三 ", "张 三"),
+        ("Alice Smith", "Alice Smith"),
+        ("单田芳", "单田芳"),
+        ("阿依·古丽", "阿依·古丽"),
+        ("解晓东", "解晓东"),
+        ("尉迟明", "尉迟明"),
     ],
 )
 def test_initial_name_password(name, expected):
     assert initial_password(name) == expected
 
 
-def test_unconvertible_name_is_rejected():
+@pytest.mark.parametrize("name", ["", "   ", "张" * 25])
+def test_invalid_initial_name_is_rejected(name):
     with pytest.raises(DomainError):
-        initial_password("☃")
+        initial_password(name)
 
 
 async def test_plaintext_login_change_password_and_old_session_revocation(env):
@@ -158,7 +159,7 @@ async def test_full_migration_resets_every_account_and_removes_hash_column(env):
         await client.get("/api/v1/bootstrap", headers={"Authorization": "Bearer " + tokens[1]})
     ).status_code == 401
     assert (
-        await client.post("/api/v1/auth/login", json={"username": "user1", "password": "test1"})
+        await client.post("/api/v1/auth/login", json={"username": "user1", "password": "Test 1"})
     ).status_code == 200
     with pytest.raises(RuntimeError, match="reviewed"):
         migration("0004").downgrade()
@@ -167,7 +168,7 @@ async def test_full_migration_resets_every_account_and_removes_hash_column(env):
 async def test_migration_validates_all_names_before_resetting_passwords(env):
     app, _, _ = env
     async with app.state.sessions() as db, db.begin():
-        (await db.get(User, 2)).name = "☃"
+        (await db.get(User, 2)).name = "   "
     async with app.state.engine.begin() as connection:
 
         def upgrade(sync_connection):
@@ -181,17 +182,60 @@ async def test_migration_validates_all_names_before_resetting_passwords(env):
         assert (await db.get(User, 1)).token_version == 1
 
 
-async def test_new_student_and_admin_default_to_name_pinyin(env):
+async def test_new_student_and_admin_default_to_literal_name(env):
     app, client, tokens = env
     headers = {"Authorization": "Bearer " + tokens[101]}
     async with app.state.sessions() as db, db.begin():
         (await db.get(Activity, 1)).state = "paused"
-    for path, username in (("students", "pinyin-student"), ("administrators", "pinyin-admin")):
+    for path, username in (("students", "name-student"), ("administrators", "name-admin")):
         response = await client.post(
             "/api/v1/admin/" + path, headers=headers, json={"username": username, "name": "李雷"}
         )
         assert response.status_code == 200
-        assert "password_plaintext" not in response.text and "lilei" not in response.text
+        assert "password_plaintext" not in response.text
         async with app.state.sessions() as db:
             user = await db.scalar(select(User).where(User.username == username))
-            assert user.password_plaintext == "lilei" and user.must_change_password
+            assert user.password_plaintext == "李雷" and user.must_change_password
+
+        login = await client.post("/api/v1/auth/login", json={"username": username, "password": "李雷"})
+        assert login.status_code == 200
+        assert login.json()["data"]["user"]["must_change_password"]
+        wrong = await client.post("/api/v1/auth/login", json={"username": username, "password": "lilei"})
+        assert wrong.status_code == 401
+
+
+async def test_name_migration_resets_all_roles_and_revokes_old_sessions(env):
+    app, client, tokens = env
+    async with app.state.sessions() as db, db.begin():
+        (await db.get(User, 1)).name = "张三"
+        (await db.get(User, 101)).name = "管理员"
+    async with app.state.engine.begin() as connection:
+
+        def upgrade(sync_connection):
+            with Operations.context(MigrationContext.configure(sync_connection)):
+                migration("0005").upgrade()
+
+        await connection.run_sync(upgrade)
+    async with app.state.sessions() as db:
+        for user in await db.scalars(select(User)):
+            assert user.password_plaintext == user.name.strip()
+            assert user.must_change_password and user.token_version == 2
+    stale = await client.get("/api/v1/bootstrap", headers={"Authorization": "Bearer " + tokens[1]})
+    assert stale.status_code == 401
+    login = await client.post("/api/v1/auth/login", json={"username": "user1", "password": "张三"})
+    assert login.status_code == 200
+    with pytest.raises(RuntimeError, match="reviewed"):
+        migration("0005").downgrade()
+
+
+def test_import_blank_password_uses_chinese_name():
+    from io import BytesIO
+    from openpyxl import Workbook
+    from club.jobs import parse_students
+
+    book = Workbook()
+    book.active.append(["username", "name", "major", "class_name", "password", "reserved_club_id"])
+    book.active.append(["20260001", "吕布", "计算机", "一班", None, None])
+    content = BytesIO()
+    book.save(content)
+    assert parse_students(content.getvalue())[0]["password"] == "吕布"

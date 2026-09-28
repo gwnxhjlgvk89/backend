@@ -1,4 +1,4 @@
-"""Reset all initial passwords to name pinyin and remove legacy hash storage."""
+"""Reset all initial passwords from names and remove legacy hash storage."""
 
 from alembic import op
 import sqlalchemy as sa
