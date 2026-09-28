@@ -1,0 +1,33 @@
+from pathlib import Path
+import json,gzip,hashlib,sys
+from collections import Counter
+sys.path.insert(0,'scripts')
+from check_journey import oom_changes
+R=Path('reports/wired-diagnosis')
+logs={r['probe']:r for line in gzip.decompress((R/'nginx-requests.jsonl.gz').read_bytes()).decode().splitlines() if (r:=json.loads(line))['probe']}
+api={r['request_id']:r for r in json.loads((R/'api-failure-matches.json').read_text())}
+results=[]
+for p in sorted(R.glob('*.json')):
+ d=json.loads(p.read_text())
+ if not isinstance(d,dict) or 'runs' not in d:continue
+ assert d['completed'] and not d['errors']
+ assert d['application_sha256']=='008149badf738d77276c761570906c6b0a8d3517fc944af922b15d1ccc9a48aa'
+ parts=[]
+ for ref in d['parts']:
+  f=R/ref['file'];assert hashlib.sha256(f.read_bytes()).hexdigest()==ref['sha256'];parts.append(json.loads(f.read_text()))
+ failures=[]
+ for part in parts:
+  for stage,rows in part['runs'][0]['raw_stages'].items():
+   if stage=='journey':continue
+   for row in rows:
+    if row[0]!=0:continue
+    probe=row[9] if len(row)>9 else None
+    access=logs.get(probe)
+    failures.append({'stage':stage,'error':row[1],'elapsed_s':row[2],'probe':probe,'errno':row[10] if len(row)>10 else None,'connect_tls_s':row[6] if len(row)>6 else None,'headers_sent_after_s':row[7] if len(row)>7 else None,'nginx':access,'api':api.get(access['api_id']) if access else None})
+ for s in d['resources']:
+  g=s['server']['cgroups']['budget_total'];assert g['cpu.max']=='800000 100000' and g['memory.max']=='4294967296'
+ no_oom,deltas=oom_changes(d['resources'])
+ results.append({'report':p.name,'invalid_for_attribution':p.name=='edge-probe-login-10mbps.json','runtime':d['runtime_settings'],'no_new_oom':no_oom,'oom_counter_deltas':deltas,'failures':failures,'request_error_classes':dict(Counter(r['error'] for r in failures)),'peak_sampled_memory_mib':max(int(s['server']['cgroups']['budget_total']['memory.current']) for s in d['resources'])/2**20,'runs':[{'round':r['round'],'completed_students':r['completed_students'],'outcomes':r['outcomes'],'login':r['stages']['login'],'enrollment':r['stages']['enroll'],'websocket':r['websocket'],'data_consistent':r['data_consistency_pass'],'quota_differences':r['db']['inconsistencies'],'strict_enrollment_headers_within_1s':r['stages']['enroll']['headers_dispatch_span_s']<=1} for r in d['runs']]})
+result={'backend_application_commit':'547aab2','frontend_fix_commit':'b49264a','production_touched':False,'business_backend_changed':False,'cpu_quota':8,'memory_gib':4,'frontend_retry_in_load_driver':False,'edge_bandwidth_scope':'HTTP backend leg only; TLS handshake not shaped; not equivalent to a 10Mbps public HTTPS egress','cases':results}
+(R/'summary.json').write_text(json.dumps(result,ensure_ascii=False,indent=2)+'\n')
+for r in results:print(r['report'],r['request_error_classes'],'matched_nginx',sum(bool(x['nginx']) for x in r['failures']),'new_oom',r['oom_counter_deltas'])

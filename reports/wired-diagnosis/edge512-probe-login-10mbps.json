@@ -1,0 +1,1403 @@
+{
+  "schema": "student-journey-distributed-v1",
+  "completed": true,
+  "parameters": {
+    "url": "https://192.168.100.130:18083",
+    "ca_cert": "private/test-ca.crt",
+    "ssh": "gg1214@192.168.100.130",
+    "control": "/tmp/club-target-test-ssh",
+    "users": 1500,
+    "processes": 3,
+    "mode": "login",
+    "client_profile": "connected_first",
+    "scenario": "uniform",
+    "cache": "cold",
+    "rounds": 1,
+    "hold_seconds": 45,
+    "report": "reports/edge512-probe-login-10mbps.json",
+    "first_password_change": false
+  },
+  "driver_sha256": "14104cc57828e3504212859897bd4460df05c8626e284cadc4d8d8228e0c1602",
+  "child_driver_sha256": "c9a8413b5f7a4456f2ee1a129a2a034a47a995843662ad95e0286e5299be5fe3",
+  "runs": [
+    {
+      "round": 1,
+      "stages": {
+        "login": {
+          "count": 1500,
+          "statuses": {
+            "200:OK": 1500
+          },
+          "p50_s": 0.935,
+          "p95_s": 3.3929,
+          "p99_s": 4.46,
+          "max_s": 7.693,
+          "server_p95_s": 0.0534,
+          "dispatch_span_s": 0.6354,
+          "unexpected_errors": 0,
+          "capacity_rejections": 0,
+          "response_bytes": 559080,
+          "headers_dispatch_span_s": 4.2418,
+          "connect_tls_p95_s": 2.0776,
+          "before_headers_sent_p95_s": 2.0778,
+          "response_headers_p95_s": 1.2875,
+          "arrivals_per_second": {
+            "0": 1500
+          }
+        },
+        "ws_ticket": {
+          "count": 1500,
+          "statuses": {
+            "200:OK": 1500
+          },
+          "p50_s": 0.4236,
+          "p95_s": 1.1631,
+          "p99_s": 1.5242,
+          "max_s": 3.3494,
+          "server_p95_s": 0.0417,
+          "dispatch_span_s": 7.9001,
+          "unexpected_errors": 0,
+          "capacity_rejections": 0,
+          "response_bytes": 97500,
+          "headers_dispatch_span_s": 7.8998,
+          "connect_tls_p95_s": null,
+          "before_headers_sent_p95_s": 0.0002,
+          "response_headers_p95_s": 1.1629,
+          "arrivals_per_second": {
+            "0": 590,
+            "1": 456,
+            "2": 280,
+            "3": 109,
+            "4": 49,
+            "5": 14,
+            "7": 2
+          }
+        },
+        "ws_connect": {
+          "count": 1500,
+          "statuses": {
+            "101:OK": 1500
+          },
+          "p50_s": 0.5301,
+          "p95_s": 1.0627,
+          "p99_s": 1.4958,
+          "max_s": 1.8881,
+          "server_p95_s": null,
+          "dispatch_span_s": 8.8118,
+          "unexpected_errors": 0,
+          "capacity_rejections": 0,
+          "response_bytes": 0,
+          "headers_dispatch_span_s": null,
+          "connect_tls_p95_s": null,
+          "before_headers_sent_p95_s": null,
+          "response_headers_p95_s": null,
+          "arrivals_per_second": {
+            "0": 377,
+            "1": 443,
+            "2": 313,
+            "3": 196,
+            "4": 133,
+            "5": 35,
+            "7": 1,
+            "8": 2
+          }
+        },
+        "event_bootstrap": {
+          "count": 271,
+          "statuses": {
+            "200:OK": 271
+          },
+          "p50_s": 0.8052,
+          "p95_s": 2.3782,
+          "p99_s": 3.599,
+          "max_s": 3.6067,
+          "server_p95_s": 0.083,
+          "dispatch_span_s": 7.8485,
+          "unexpected_errors": 0,
+          "capacity_rejections": 0,
+          "response_bytes": 2791071,
+          "headers_dispatch_span_s": 7.689,
+          "connect_tls_p95_s": 1.5309,
+          "before_headers_sent_p95_s": 1.531,
+          "response_headers_p95_s": 1.5283,
+          "arrivals_per_second": {
+            "0": 219,
+            "1": 27,
+            "2": 16,
+            "3": 1,
+            "4": 2,
+            "5": 4,
+            "7": 2
+          }
+        },
+        "detail": {
+          "count": 1500,
+          "statuses": {
+            "200:OK": 1500
+          },
+          "p50_s": 0.7436,
+          "p95_s": 1.3912,
+          "p99_s": 2.1021,
+          "max_s": 2.3934,
+          "server_p95_s": 0.3633,
+          "dispatch_span_s": 8.881,
+          "unexpected_errors": 0,
+          "capacity_rejections": 0,
+          "response_bytes": 3495320,
+          "headers_dispatch_span_s": 8.8811,
+          "connect_tls_p95_s": null,
+          "before_headers_sent_p95_s": 0.0003,
+          "response_headers_p95_s": 1.391,
+          "arrivals_per_second": {
+            "0": 36,
+            "1": 215,
+            "2": 320,
+            "3": 343,
+            "4": 318,
+            "5": 182,
+            "6": 15,
+            "7": 68,
+            "8": 1,
+            "9": 2
+          }
+        },
+        "bootstrap": {
+          "count": 1238,
+          "statuses": {
+            "200:OK": 1238
+          },
+          "p50_s": 0.8143,
+          "p95_s": 2.3212,
+          "p99_s": 2.4679,
+          "max_s": 2.597,
+          "server_p95_s": 0.5004,
+          "dispatch_span_s": 8.6041,
+          "unexpected_errors": 0,
+          "capacity_rejections": 0,
+          "response_bytes": 12746274,
+          "headers_dispatch_span_s": 8.257,
+          "connect_tls_p95_s": 1.0294,
+          "before_headers_sent_p95_s": 1.0295,
+          "response_headers_p95_s": 1.6102,
+          "arrivals_per_second": {
+            "0": 3,
+            "1": 407,
+            "2": 230,
+            "3": 277,
+            "4": 213,
+            "5": 97,
+            "6": 6,
+            "7": 3,
+            "9": 2
+          }
+        },
+        "enroll": {
+          "count": 1500,
+          "statuses": {
+            "200:OK": 1500
+          },
+          "p50_s": 0.8829,
+          "p95_s": 2.2259,
+          "p99_s": 2.4222,
+          "max_s": 2.6331,
+          "server_p95_s": 0.9102,
+          "dispatch_span_s": 4.3165,
+          "unexpected_errors": 0,
+          "capacity_rejections": 0,
+          "response_bytes": 218352,
+          "headers_dispatch_span_s": 4.3166,
+          "connect_tls_p95_s": null,
+          "before_headers_sent_p95_s": 0.0003,
+          "response_headers_p95_s": 2.2257,
+          "arrivals_per_second": {
+            "5": 1315,
+            "6": 54,
+            "7": 60,
+            "8": 66,
+            "9": 5
+          }
+        },
+        "journey": {
+          "count": 1500,
+          "statuses": {
+            "200:COMPLETE": 1500
+          },
+          "p50_s": 5.95,
+          "p95_s": 7.8867,
+          "p99_s": 8.8037,
+          "max_s": 9.1305,
+          "server_p95_s": null,
+          "dispatch_span_s": 0.6354,
+          "unexpected_errors": 0,
+          "capacity_rejections": 0,
+          "response_bytes": 0,
+          "headers_dispatch_span_s": null,
+          "connect_tls_p95_s": null,
+          "before_headers_sent_p95_s": null,
+          "response_headers_p95_s": null,
+          "arrivals_per_second": {
+            "0": 1500
+          }
+        },
+        "event_enrollment": {
+          "count": 1500,
+          "statuses": {
+            "200:OK": 1500
+          },
+          "p50_s": 1.1868,
+          "p95_s": 1.7431,
+          "p99_s": 1.8998,
+          "max_s": 2.24,
+          "server_p95_s": 0.5723,
+          "dispatch_span_s": 4.5282,
+          "unexpected_errors": 0,
+          "capacity_rejections": 0,
+          "response_bytes": 165852,
+          "headers_dispatch_span_s": 4.5284,
+          "connect_tls_p95_s": 0.0324,
+          "before_headers_sent_p95_s": 0.0003,
+          "response_headers_p95_s": 1.7428,
+          "arrivals_per_second": {
+            "5": 289,
+            "6": 538,
+            "7": 551,
+            "8": 35,
+            "9": 84,
+            "10": 3
+          }
+        },
+        "active_detail": {
+          "count": 1529,
+          "statuses": {
+            "200:OK": 1529
+          },
+          "p50_s": 0.0063,
+          "p95_s": 0.0084,
+          "p99_s": 0.0269,
+          "max_s": 0.2767,
+          "server_p95_s": 0.0052,
+          "dispatch_span_s": 25.3275,
+          "unexpected_errors": 0,
+          "capacity_rejections": 0,
+          "response_bytes": 3561603,
+          "headers_dispatch_span_s": 25.3274,
+          "connect_tls_p95_s": null,
+          "before_headers_sent_p95_s": 0.0003,
+          "response_headers_p95_s": 0.0078,
+          "arrivals_per_second": {
+            "22": 12,
+            "23": 17,
+            "24": 51,
+            "25": 82,
+            "26": 73,
+            "27": 73,
+            "28": 78,
+            "29": 79,
+            "30": 72,
+            "31": 91,
+            "32": 96,
+            "33": 81,
+            "34": 67,
+            "35": 56,
+            "36": 93,
+            "37": 58,
+            "38": 81,
+            "39": 68,
+            "40": 68,
+            "41": 55,
+            "42": 50,
+            "43": 44,
+            "44": 29,
+            "45": 14,
+            "46": 25,
+            "47": 16
+          }
+        }
+      },
+      "steady_reads_after_20s": {
+        "count": 1529,
+        "statuses": {
+          "200:OK": 1529
+        },
+        "p50_s": 0.0063,
+        "p95_s": 0.0084,
+        "p99_s": 0.0269,
+        "max_s": 0.2767,
+        "server_p95_s": 0.0052,
+        "dispatch_span_s": 25.3275,
+        "unexpected_errors": 0,
+        "capacity_rejections": 0,
+        "response_bytes": 3561603,
+        "headers_dispatch_span_s": 25.3274,
+        "connect_tls_p95_s": null,
+        "before_headers_sent_p95_s": 0.0003,
+        "response_headers_p95_s": 0.0078,
+        "arrivals_per_second": {
+          "22": 12,
+          "23": 17,
+          "24": 51,
+          "25": 82,
+          "26": 73,
+          "27": 73,
+          "28": 78,
+          "29": 79,
+          "30": 72,
+          "31": 91,
+          "32": 96,
+          "33": 81,
+          "34": 67,
+          "35": 56,
+          "36": 93,
+          "37": 58,
+          "38": 81,
+          "39": 68,
+          "40": 68,
+          "41": 55,
+          "42": 50,
+          "43": 44,
+          "44": 29,
+          "45": 14,
+          "46": 25,
+          "47": 16
+        }
+      },
+      "completed_students": 1500,
+      "confirmed_enrollments": 1500,
+      "db": {
+        "enrollments": 1500,
+        "inconsistencies": [],
+        "mysql": {
+          "Innodb_buffer_pool_wait_free": "0",
+          "Innodb_row_lock_time": "1699328",
+          "Innodb_row_lock_waits": "41622",
+          "Max_used_connections": "92",
+          "Threads_connected": "80"
+        }
+      },
+      "expected_enrollments": 1500,
+      "data_consistency_pass": true,
+      "all_expected_enrolled": true,
+      "outcomes": {
+        "enroll_http_200": 1500
+      },
+      "active_duration_s": 46.64,
+      "websocket": {
+        "open_at_end": 1500,
+        "unexpected_close": 0,
+        "timed_deliveries": 178206,
+        "missing_final_quota_snapshots": 0,
+        "notification_p95_s": 1.969
+      },
+      "unfinished_students": 0,
+      "scope_gates": {
+        "all_students_completed": true,
+        "data_correct": true,
+        "all_final_quota_snapshots_current": true,
+        "all_websockets_online": true,
+        "no_unexpected_ws_close": true,
+        "ready_enrollment_burst_within_1s": true,
+        "warm_login_headers_within_1s": true,
+        "login_p95_5s": true,
+        "login_burst_within_1s": true,
+        "interactive_reads_p95_3s": true,
+        "notifications_p95_3s": true,
+        "enrollment_p95_3s_p99_5s": true,
+        "no_capacity_rejections": true,
+        "unexpected_errors_under_0_1_percent": true
+      },
+      "server_counter_deltas": {
+        "club_pool_wait_seconds_sum": 344.8353888943093,
+        "club_pool_wait_seconds_count": 1500.0,
+        "club_read_pool_wait_seconds_sum": 7.727289231028408,
+        "club_read_pool_wait_seconds_count": 5475.0,
+        "club_db_query_seconds_sum{operation=\"SELECT\"}": 64.61808452859987,
+        "club_db_query_seconds_count{operation=\"SELECT\"}": 20256.0,
+        "club_db_query_seconds_sum{operation=\"OTHER\"}": 0.002667138003744185,
+        "club_db_query_seconds_count{operation=\"OTHER\"}": 4.0,
+        "club_db_query_seconds_sum{operation=\"DELETE\"}": 0.0,
+        "club_db_query_seconds_count{operation=\"DELETE\"}": 0.0,
+        "club_db_query_seconds_sum{operation=\"UPDATE\"}": 9.347977843834087,
+        "club_db_query_seconds_count{operation=\"UPDATE\"}": 3001.0,
+        "club_db_query_seconds_sum{operation=\"INSERT\"}": 24.55402774887625,
+        "club_db_query_seconds_count{operation=\"INSERT\"}": 6000.0,
+        "club_http_seconds_sum{method=\"GET\",route=\"/health/live\"}": 0.0,
+        "club_http_seconds_count{method=\"GET\",route=\"/health/live\"}": 0.0,
+        "club_http_seconds_sum{method=\"GET\",route=\"/metrics\"}": 0.04748411907348782,
+        "club_http_seconds_count{method=\"GET\",route=\"/metrics\"}": 1.0,
+        "club_http_seconds_sum{method=\"POST\",route=\"/api/v1/auth/login\"}": 24.866653147968464,
+        "club_http_seconds_count{method=\"POST\",route=\"/api/v1/auth/login\"}": 1500.0,
+        "club_http_seconds_sum{method=\"POST\",route=\"/api/v1/auth/ws-ticket\"}": 16.751315491856076,
+        "club_http_seconds_count{method=\"POST\",route=\"/api/v1/auth/ws-ticket\"}": 1500.0,
+        "club_http_seconds_sum{method=\"GET\",route=\"/api/v1/bootstrap\"}": 82.07125684036873,
+        "club_http_seconds_count{method=\"GET\",route=\"/api/v1/bootstrap\"}": 1509.0,
+        "club_http_seconds_sum{method=\"GET\",route=\"/api/v1/clubs/{club_id}\"}": 81.41747747804038,
+        "club_http_seconds_count{method=\"GET\",route=\"/api/v1/clubs/{club_id}\"}": 3029.0,
+        "club_http_seconds_sum{method=\"POST\",route=\"/api/v1/enrollment\"}": 470.2854520821711,
+        "club_http_seconds_count{method=\"POST\",route=\"/api/v1/enrollment\"}": 1500.0,
+        "club_http_seconds_sum{method=\"GET\",route=\"/api/v1/enrollment\"}": 398.1148906296585,
+        "club_http_seconds_count{method=\"GET\",route=\"/api/v1/enrollment\"}": 1500.0,
+        "club_http_seconds_sum{method=\"GET\",route=\"/api/v1/clubs/quotas\"}": 0.0,
+        "club_http_seconds_count{method=\"GET\",route=\"/api/v1/clubs/quotas\"}": 0.0,
+        "club_http_seconds_sum{method=\"GET\",route=\"/health/ready\"}": 0.0,
+        "club_http_seconds_count{method=\"GET\",route=\"/health/ready\"}": 0.0
+      },
+      "measured_epoch": 1790577803.5495803
+    }
+  ],
+  "resources": [
+    {
+      "at": 1790577798.4621387,
+      "server": {
+        "containers": [
+          {
+            "id": "3f25a86c45a7",
+            "name": "club-capacity-test_mysql_1",
+            "cpu_time": "16m41.356137s",
+            "cpu_percent": "2.21%",
+            "avg_cpu": "2.21%",
+            "mem_usage": "746.2MB / 1.208GB",
+            "mem_percent": "61.77%",
+            "net_io": "1.117GB / 2.298GB",
+            "block_io": "0B / 0B",
+            "pids": "124"
+          },
+          {
+            "id": "621618e3206b",
+            "name": "club-capacity-test_redis_1",
+            "cpu_time": "1m52.733675s",
+            "cpu_percent": "0.25%",
+            "avg_cpu": "0.25%",
+            "mem_usage": "7.7MB / 201.3MB",
+            "mem_percent": "3.82%",
+            "net_io": "138MB / 1.08GB",
+            "block_io": "0B / 0B",
+            "pids": "6"
+          },
+          {
+            "id": "bdee21a25cd2",
+            "name": "club-capacity-test_api_1",
+            "cpu_time": "26m56.949157s",
+            "cpu_percent": "12.34%",
+            "avg_cpu": "12.34%",
+            "mem_usage": "542.3MB / 943.7MB",
+            "mem_percent": "57.46%",
+            "net_io": "2.315GB / 1.989GB",
+            "block_io": "0B / 0B",
+            "pids": "26"
+          },
+          {
+            "id": "e349e82d9de6",
+            "name": "club-capacity-test_worker_1",
+            "cpu_time": "1m39.803428s",
+            "cpu_percent": "0.76%",
+            "avg_cpu": "0.76%",
+            "mem_usage": "65.27MB / 201.3MB",
+            "mem_percent": "32.42%",
+            "net_io": "77.24MB / 68.15MB",
+            "block_io": "0B / 0B",
+            "pids": "2"
+          },
+          {
+            "id": "266a58804856",
+            "name": "club-capacity-test_nginx_1",
+            "cpu_time": "3m1.481455s",
+            "cpu_percent": "1.38%",
+            "avg_cpu": "1.38%",
+            "mem_usage": "34.82MB / 536.9MB",
+            "mem_percent": "6.48%",
+            "net_io": "1.342GB / 275.5MB",
+            "block_io": "0B / 0B",
+            "pids": "5"
+          },
+          {
+            "id": "7541a067a79a",
+            "name": "club-capacity-test_edge_probe",
+            "cpu_time": "3.04149s",
+            "cpu_percent": "2.35%",
+            "avg_cpu": "2.35%",
+            "mem_usage": "35.98MB / 536.9MB",
+            "mem_percent": "6.70%",
+            "net_io": "0B / 0B",
+            "block_io": "0B / 0B",
+            "pids": "5"
+          }
+        ],
+        "cgroups": {
+          "mysql": {
+            "memory.current": "1205555200",
+            "memory.peak": "1208229888",
+            "memory.events": "low 0\nhigh 0\nmax 536\noom 0\noom_kill 0\noom_group_kill 0\nsock_throttled 0",
+            "cpu.stat": "usage_usec 1001356716\nuser_usec 657132913\nsystem_usec 344223803\nnice_usec 0\ncore_sched.force_idle_usec 0\nnr_periods 0\nnr_throttled 0\nthrottled_usec 0\nnr_bursts 0\nburst_usec 0"
+          },
+          "redis": {
+            "memory.current": "7667712",
+            "memory.peak": "53493760",
+            "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\nsock_throttled 0",
+            "cpu.stat": "usage_usec 112733910\nuser_usec 55670237\nsystem_usec 57063673\nnice_usec 0\ncore_sched.force_idle_usec 0\nnr_periods 0\nnr_throttled 0\nthrottled_usec 0\nnr_bursts 0\nburst_usec 0"
+          },
+          "api": {
+            "memory.current": "551358464",
+            "memory.peak": "742621184",
+            "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\nsock_throttled 0",
+            "cpu.stat": "usage_usec 1616967447\nuser_usec 1479729493\nsystem_usec 137237953\nnice_usec 0\ncore_sched.force_idle_usec 0\nnr_periods 0\nnr_throttled 0\nthrottled_usec 0\nnr_bursts 0\nburst_usec 0"
+          },
+          "worker": {
+            "memory.current": "65462272",
+            "memory.peak": "67751936",
+            "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\nsock_throttled 0",
+            "cpu.stat": "usage_usec 99806757\nuser_usec 87679040\nsystem_usec 12127716\nnice_usec 0\ncore_sched.force_idle_usec 0\nnr_periods 0\nnr_throttled 0\nthrottled_usec 0\nnr_bursts 0\nburst_usec 0"
+          },
+          "nginx": {
+            "memory.current": "47448064",
+            "memory.peak": "233775104",
+            "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\nsock_throttled 0",
+            "cpu.stat": "usage_usec 181481455\nuser_usec 107892802\nsystem_usec 73588653\nnice_usec 0\ncore_sched.force_idle_usec 0\nnr_periods 0\nnr_throttled 0\nthrottled_usec 0\nnr_bursts 0\nburst_usec 0"
+          },
+          "budget_total": {
+            "memory.current": "1922252800",
+            "memory.peak": "2220556288",
+            "memory.events": "low 0\nhigh 0\nmax 3633\noom 11\noom_kill 4\noom_group_kill 0\nsock_throttled 3606",
+            "cpu.stat": "usage_usec 5561652437\nuser_usec 4725455157\nsystem_usec 836197280\nnice_usec 0\ncore_sched.force_idle_usec 0\nnr_periods 450860\nnr_throttled 703\nthrottled_usec 404761298\nnr_bursts 0\nburst_usec 0",
+            "cpu.max": "800000 100000",
+            "memory.max": "4294967296"
+          }
+        },
+        "host_load_average": [
+          0.70068359375,
+          0.6611328125,
+          0.55078125
+        ],
+        "host_cpu_ticks": "cpu  2822436 3667827 2749656 1581214184 3411592 0 78245 0 0 0",
+        "host_pressure": {
+          "cpu": "some avg10=4.99 avg60=5.62 avg300=5.33 total=41795897312\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=0",
+          "memory": "some avg10=0.00 avg60=0.00 avg300=0.00 total=20704\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=20678",
+          "io": "some avg10=0.93 avg60=1.08 avg300=1.01 total=10184435804\nfull avg10=0.91 avg60=1.04 avg300=0.97 total=10090955799"
+        },
+        "budget": "CPUQuotaPerSecUSec=8s\nMemoryMax=4294967296\nMemorySwapMax=0\n",
+        "network_helpers_observed": [
+          {
+            "pid": 300402,
+            "name": "rootlessport",
+            "cpu_seconds": 119.27,
+            "rss_bytes": 44867584,
+            "inside_test_budget": false,
+            "attribution": "same-user helper; may serve other rootless containers"
+          },
+          {
+            "pid": 4053978,
+            "name": "slirp4netns",
+            "cpu_seconds": 1.6,
+            "rss_bytes": 3907584,
+            "inside_test_budget": false,
+            "attribution": "same-user helper; may serve other rootless containers"
+          }
+        ]
+      },
+      "generator_cpu_percent": 7.8,
+      "generator_rss": 41553920
+    },
+    {
+      "at": 1790577808.82624,
+      "server": {
+        "containers": [
+          {
+            "id": "3f25a86c45a7",
+            "name": "club-capacity-test_mysql_1",
+            "cpu_time": "16m43.995318s",
+            "cpu_percent": "2.21%",
+            "avg_cpu": "2.21%",
+            "mem_usage": "748MB / 1.208GB",
+            "mem_percent": "61.92%",
+            "net_io": "1.124GB / 2.313GB",
+            "block_io": "0B / 0B",
+            "pids": "124"
+          },
+          {
+            "id": "621618e3206b",
+            "name": "club-capacity-test_redis_1",
+            "cpu_time": "1m53.00979s",
+            "cpu_percent": "0.26%",
+            "avg_cpu": "0.26%",
+            "mem_usage": "8.782MB / 201.3MB",
+            "mem_percent": "4.36%",
+            "net_io": "140.1MB / 1.096GB",
+            "block_io": "0B / 0B",
+            "pids": "6"
+          },
+          {
+            "id": "bdee21a25cd2",
+            "name": "club-capacity-test_api_1",
+            "cpu_time": "27m10.518516s",
+            "cpu_percent": "12.44%",
+            "avg_cpu": "12.44%",
+            "mem_usage": "550.8MB / 943.7MB",
+            "mem_percent": "58.37%",
+            "net_io": "2.349GB / 2.017GB",
+            "block_io": "0B / 0B",
+            "pids": "26"
+          },
+          {
+            "id": "e349e82d9de6",
+            "name": "club-capacity-test_worker_1",
+            "cpu_time": "1m39.942051s",
+            "cpu_percent": "0.76%",
+            "avg_cpu": "0.76%",
+            "mem_usage": "65.27MB / 201.3MB",
+            "mem_percent": "32.42%",
+            "net_io": "77.45MB / 68.47MB",
+            "block_io": "0B / 0B",
+            "pids": "2"
+          },
+          {
+            "id": "266a58804856",
+            "name": "club-capacity-test_nginx_1",
+            "cpu_time": "3m2.349952s",
+            "cpu_percent": "1.39%",
+            "avg_cpu": "1.39%",
+            "mem_usage": "92.42MB / 536.9MB",
+            "mem_percent": "17.21%",
+            "net_io": "1.362GB / 278.9MB",
+            "block_io": "0B / 0B",
+            "pids": "5"
+          },
+          {
+            "id": "7541a067a79a",
+            "name": "club-capacity-test_edge_probe",
+            "cpu_time": "5.306419s",
+            "cpu_percent": "3.79%",
+            "avg_cpu": "3.79%",
+            "mem_usage": "183.4MB / 536.9MB",
+            "mem_percent": "34.17%",
+            "net_io": "0B / 0B",
+            "block_io": "0B / 0B",
+            "pids": "5"
+          }
+        ],
+        "cgroups": {
+          "mysql": {
+            "memory.current": "1207091200",
+            "memory.peak": "1208229888",
+            "memory.events": "low 0\nhigh 0\nmax 536\noom 0\noom_kill 0\noom_group_kill 0\nsock_throttled 0",
+            "cpu.stat": "usage_usec 1004028808\nuser_usec 658896345\nsystem_usec 345132462\nnice_usec 0\ncore_sched.force_idle_usec 0\nnr_periods 0\nnr_throttled 0\nthrottled_usec 0\nnr_bursts 0\nburst_usec 0"
+          },
+          "redis": {
+            "memory.current": "9330688",
+            "memory.peak": "53493760",
+            "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\nsock_throttled 0",
+            "cpu.stat": "usage_usec 113024292\nuser_usec 55815508\nsystem_usec 57208783\nnice_usec 0\ncore_sched.force_idle_usec 0\nnr_periods 0\nnr_throttled 0\nthrottled_usec 0\nnr_bursts 0\nburst_usec 0"
+          },
+          "api": {
+            "memory.current": "552038400",
+            "memory.peak": "742621184",
+            "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\nsock_throttled 0",
+            "cpu.stat": "usage_usec 1631068419\nuser_usec 1492484731\nsystem_usec 138583688\nnice_usec 0\ncore_sched.force_idle_usec 0\nnr_periods 0\nnr_throttled 0\nthrottled_usec 0\nnr_bursts 0\nburst_usec 0"
+          },
+          "worker": {
+            "memory.current": "65740800",
+            "memory.peak": "67751936",
+            "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\nsock_throttled 0",
+            "cpu.stat": "usage_usec 99945298\nuser_usec 87810118\nsystem_usec 12135179\nnice_usec 0\ncore_sched.force_idle_usec 0\nnr_periods 0\nnr_throttled 0\nthrottled_usec 0\nnr_bursts 0\nburst_usec 0"
+          },
+          "nginx": {
+            "memory.current": "109457408",
+            "memory.peak": "233775104",
+            "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\nsock_throttled 0",
+            "cpu.stat": "usage_usec 182395101\nuser_usec 108278369\nsystem_usec 74116732\nnice_usec 0\ncore_sched.force_idle_usec 0\nnr_periods 0\nnr_throttled 0\nthrottled_usec 0\nnr_bursts 0\nburst_usec 0"
+          },
+          "budget_total": {
+            "memory.current": "2142232576",
+            "memory.peak": "2220556288",
+            "memory.events": "low 0\nhigh 0\nmax 3641\noom 11\noom_kill 4\noom_group_kill 0\nsock_throttled 3606",
+            "cpu.stat": "usage_usec 5582846394\nuser_usec 4742683528\nsystem_usec 840162866\nnice_usec 0\ncore_sched.force_idle_usec 0\nnr_periods 450963\nnr_throttled 703\nthrottled_usec 404761298\nnr_bursts 0\nburst_usec 0",
+            "cpu.max": "800000 100000",
+            "memory.max": "4294967296"
+          }
+        },
+        "host_load_average": [
+          1.31396484375,
+          0.78857421875,
+          0.5927734375
+        ],
+        "host_cpu_ticks": "cpu  2824197 3667892 2750127 1581236317 3411761 0 78363 0 0 0",
+        "host_pressure": {
+          "cpu": "some avg10=3.21 avg60=5.10 avg300=5.22 total=41796214312\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=0",
+          "memory": "some avg10=0.00 avg60=0.00 avg300=0.00 total=20716\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=20690",
+          "io": "some avg10=0.83 avg60=1.04 avg300=1.00 total=10184575323\nfull avg10=0.82 avg60=1.00 avg300=0.96 total=10091088891"
+        },
+        "budget": "CPUQuotaPerSecUSec=8s\nMemoryMax=4294967296\nMemorySwapMax=0\n",
+        "network_helpers_observed": [
+          {
+            "pid": 300402,
+            "name": "rootlessport",
+            "cpu_seconds": 120.33,
+            "rss_bytes": 74084352,
+            "inside_test_budget": false,
+            "attribution": "same-user helper; may serve other rootless containers"
+          },
+          {
+            "pid": 4053978,
+            "name": "slirp4netns",
+            "cpu_seconds": 1.6,
+            "rss_bytes": 3907584,
+            "inside_test_budget": false,
+            "attribution": "same-user helper; may serve other rootless containers"
+          }
+        ]
+      },
+      "generator_cpu_percent": 31.3,
+      "generator_rss": 344612864
+    },
+    {
+      "at": 1790577819.134979,
+      "server": {
+        "containers": [
+          {
+            "id": "3f25a86c45a7",
+            "name": "club-capacity-test_mysql_1",
+            "cpu_time": "16m46.610466s",
+            "cpu_percent": "2.22%",
+            "avg_cpu": "2.22%",
+            "mem_usage": "746.7MB / 1.208GB",
+            "mem_percent": "61.82%",
+            "net_io": "1.13GB / 2.326GB",
+            "block_io": "0B / 0B",
+            "pids": "125"
+          },
+          {
+            "id": "621618e3206b",
+            "name": "club-capacity-test_redis_1",
+            "cpu_time": "1m53.123972s",
+            "cpu_percent": "0.26%",
+            "avg_cpu": "0.26%",
+            "mem_usage": "8.475MB / 201.3MB",
+            "mem_percent": "4.21%",
+            "net_io": "140.9MB / 1.099GB",
+            "block_io": "0B / 0B",
+            "pids": "6"
+          },
+          {
+            "id": "bdee21a25cd2",
+            "name": "club-capacity-test_api_1",
+            "cpu_time": "27m19.539866s",
+            "cpu_percent": "12.50%",
+            "avg_cpu": "12.50%",
+            "mem_usage": "548.7MB / 943.7MB",
+            "mem_percent": "58.14%",
+            "net_io": "2.367GB / 2.031GB",
+            "block_io": "0B / 0B",
+            "pids": "26"
+          },
+          {
+            "id": "e349e82d9de6",
+            "name": "club-capacity-test_worker_1",
+            "cpu_time": "1m40.142312s",
+            "cpu_percent": "0.76%",
+            "avg_cpu": "0.76%",
+            "mem_usage": "65.27MB / 201.3MB",
+            "mem_percent": "32.42%",
+            "net_io": "78.25MB / 68.78MB",
+            "block_io": "0B / 0B",
+            "pids": "2"
+          },
+          {
+            "id": "266a58804856",
+            "name": "club-capacity-test_nginx_1",
+            "cpu_time": "3m2.820529s",
+            "cpu_percent": "1.39%",
+            "avg_cpu": "1.39%",
+            "mem_usage": "91.66MB / 536.9MB",
+            "mem_percent": "17.07%",
+            "net_io": "1.369GB / 281.5MB",
+            "block_io": "0B / 0B",
+            "pids": "5"
+          },
+          {
+            "id": "7541a067a79a",
+            "name": "club-capacity-test_edge_probe",
+            "cpu_time": "5.8989s",
+            "cpu_percent": "3.93%",
+            "avg_cpu": "3.93%",
+            "mem_usage": "195.9MB / 536.9MB",
+            "mem_percent": "36.50%",
+            "net_io": "0B / 0B",
+            "block_io": "0B / 0B",
+            "pids": "5"
+          }
+        ],
+        "cgroups": {
+          "mysql": {
+            "memory.current": "1206607872",
+            "memory.peak": "1208229888",
+            "memory.events": "low 0\nhigh 0\nmax 536\noom 0\noom_kill 0\noom_group_kill 0\nsock_throttled 0",
+            "cpu.stat": "usage_usec 1006616476\nuser_usec 660677765\nsystem_usec 345938711\nnice_usec 0\ncore_sched.force_idle_usec 0\nnr_periods 0\nnr_throttled 0\nthrottled_usec 0\nnr_bursts 0\nburst_usec 0"
+          },
+          "redis": {
+            "memory.current": "8441856",
+            "memory.peak": "53493760",
+            "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\nsock_throttled 0",
+            "cpu.stat": "usage_usec 113127220\nuser_usec 55872369\nsystem_usec 57254850\nnice_usec 0\ncore_sched.force_idle_usec 0\nnr_periods 0\nnr_throttled 0\nthrottled_usec 0\nnr_bursts 0\nburst_usec 0"
+          },
+          "api": {
+            "memory.current": "548315136",
+            "memory.peak": "742621184",
+            "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\nsock_throttled 0",
+            "cpu.stat": "usage_usec 1639540842\nuser_usec 1500223978\nsystem_usec 139316863\nnice_usec 0\ncore_sched.force_idle_usec 0\nnr_periods 0\nnr_throttled 0\nthrottled_usec 0\nnr_bursts 0\nburst_usec 0"
+          },
+          "worker": {
+            "memory.current": "65224704",
+            "memory.peak": "67751936",
+            "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\nsock_throttled 0",
+            "cpu.stat": "usage_usec 100143626\nuser_usec 87998975\nsystem_usec 12144650\nnice_usec 0\ncore_sched.force_idle_usec 0\nnr_periods 0\nnr_throttled 0\nthrottled_usec 0\nnr_bursts 0\nburst_usec 0"
+          },
+          "nginx": {
+            "memory.current": "106913792",
+            "memory.peak": "233775104",
+            "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\nsock_throttled 0",
+            "cpu.stat": "usage_usec 182820529\nuser_usec 108446967\nsystem_usec 74373561\nnice_usec 0\ncore_sched.force_idle_usec 0\nnr_periods 0\nnr_throttled 0\nthrottled_usec 0\nnr_bursts 0\nburst_usec 0"
+          },
+          "budget_total": {
+            "memory.current": "2136104960",
+            "memory.peak": "2220556288",
+            "memory.events": "low 0\nhigh 0\nmax 3674\noom 11\noom_kill 4\noom_group_kill 0\nsock_throttled 3606",
+            "cpu.stat": "usage_usec 5594627970\nuser_usec 4752433285\nsystem_usec 842194685\nnice_usec 0\ncore_sched.force_idle_usec 0\nnr_periods 451066\nnr_throttled 703\nthrottled_usec 404761298\nnr_bursts 0\nburst_usec 0",
+            "cpu.max": "800000 100000",
+            "memory.max": "4294967296"
+          }
+        },
+        "host_load_average": [
+          1.26513671875,
+          0.79638671875,
+          0.59765625
+        ],
+        "host_cpu_ticks": "cpu  2825378 3667949 2750443 1581259107 3411945 0 78440 0 0 0",
+        "host_pressure": {
+          "cpu": "some avg10=3.18 avg60=4.75 avg300=5.14 total=41796637301\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=0",
+          "memory": "some avg10=0.00 avg60=0.00 avg300=0.00 total=20809\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=20783",
+          "io": "some avg10=0.81 avg60=1.00 avg300=1.00 total=10184723914\nfull avg10=0.73 avg60=0.94 avg300=0.95 total=10091215529"
+        },
+        "budget": "CPUQuotaPerSecUSec=8s\nMemoryMax=4294967296\nMemorySwapMax=0\n",
+        "network_helpers_observed": [
+          {
+            "pid": 300402,
+            "name": "rootlessport",
+            "cpu_seconds": 121.0,
+            "rss_bytes": 74477568,
+            "inside_test_budget": false,
+            "attribution": "same-user helper; may serve other rootless containers"
+          },
+          {
+            "pid": 4053978,
+            "name": "slirp4netns",
+            "cpu_seconds": 1.6,
+            "rss_bytes": 3907584,
+            "inside_test_budget": false,
+            "attribution": "same-user helper; may serve other rootless containers"
+          }
+        ]
+      },
+      "generator_cpu_percent": 17.1,
+      "generator_rss": 360845312
+    },
+    {
+      "at": 1790577829.4483001,
+      "server": {
+        "containers": [
+          {
+            "id": "3f25a86c45a7",
+            "name": "club-capacity-test_mysql_1",
+            "cpu_time": "16m46.793488s",
+            "cpu_percent": "2.22%",
+            "avg_cpu": "2.22%",
+            "mem_usage": "747.8MB / 1.208GB",
+            "mem_percent": "61.91%",
+            "net_io": "1.131GB / 2.327GB",
+            "block_io": "0B / 0B",
+            "pids": "125"
+          },
+          {
+            "id": "621618e3206b",
+            "name": "club-capacity-test_redis_1",
+            "cpu_time": "1m53.149599s",
+            "cpu_percent": "0.26%",
+            "avg_cpu": "0.26%",
+            "mem_usage": "8.471MB / 201.3MB",
+            "mem_percent": "4.21%",
+            "net_io": "140.9MB / 1.099GB",
+            "block_io": "0B / 0B",
+            "pids": "6"
+          },
+          {
+            "id": "bdee21a25cd2",
+            "name": "club-capacity-test_api_1",
+            "cpu_time": "27m20.237562s",
+            "cpu_percent": "12.49%",
+            "avg_cpu": "12.49%",
+            "mem_usage": "549.3MB / 943.7MB",
+            "mem_percent": "58.21%",
+            "net_io": "2.368GB / 2.032GB",
+            "block_io": "0B / 0B",
+            "pids": "26"
+          },
+          {
+            "id": "e349e82d9de6",
+            "name": "club-capacity-test_worker_1",
+            "cpu_time": "1m40.201136s",
+            "cpu_percent": "0.76%",
+            "avg_cpu": "0.76%",
+            "mem_usage": "65.75MB / 201.3MB",
+            "mem_percent": "32.66%",
+            "net_io": "78.29MB / 68.81MB",
+            "block_io": "0B / 0B",
+            "pids": "2"
+          },
+          {
+            "id": "266a58804856",
+            "name": "club-capacity-test_nginx_1",
+            "cpu_time": "3m2.968276s",
+            "cpu_percent": "1.39%",
+            "avg_cpu": "1.39%",
+            "mem_usage": "92.77MB / 536.9MB",
+            "mem_percent": "17.28%",
+            "net_io": "1.37GB / 282MB",
+            "block_io": "0B / 0B",
+            "pids": "5"
+          },
+          {
+            "id": "7541a067a79a",
+            "name": "club-capacity-test_edge_probe",
+            "cpu_time": "6.072175s",
+            "cpu_percent": "3.78%",
+            "avg_cpu": "3.78%",
+            "mem_usage": "197.5MB / 536.9MB",
+            "mem_percent": "36.79%",
+            "net_io": "0B / 0B",
+            "block_io": "0B / 0B",
+            "pids": "5"
+          }
+        ],
+        "cgroups": {
+          "mysql": {
+            "memory.current": "1206353920",
+            "memory.peak": "1208229888",
+            "memory.events": "low 0\nhigh 0\nmax 536\noom 0\noom_kill 0\noom_group_kill 0\nsock_throttled 0",
+            "cpu.stat": "usage_usec 1006794760\nuser_usec 660808031\nsystem_usec 345986728\nnice_usec 0\ncore_sched.force_idle_usec 0\nnr_periods 0\nnr_throttled 0\nthrottled_usec 0\nnr_bursts 0\nburst_usec 0"
+          },
+          "redis": {
+            "memory.current": "8429568",
+            "memory.peak": "53493760",
+            "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\nsock_throttled 0",
+            "cpu.stat": "usage_usec 113149749\nuser_usec 55880927\nsystem_usec 57268822\nnice_usec 0\ncore_sched.force_idle_usec 0\nnr_periods 0\nnr_throttled 0\nthrottled_usec 0\nnr_bursts 0\nburst_usec 0"
+          },
+          "api": {
+            "memory.current": "549113856",
+            "memory.peak": "742621184",
+            "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\nsock_throttled 0",
+            "cpu.stat": "usage_usec 1640279415\nuser_usec 1500853487\nsystem_usec 139425928\nnice_usec 0\ncore_sched.force_idle_usec 0\nnr_periods 0\nnr_throttled 0\nthrottled_usec 0\nnr_bursts 0\nburst_usec 0"
+          },
+          "worker": {
+            "memory.current": "65228800",
+            "memory.peak": "67751936",
+            "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\nsock_throttled 0",
+            "cpu.stat": "usage_usec 100202648\nuser_usec 88051780\nsystem_usec 12150867\nnice_usec 0\ncore_sched.force_idle_usec 0\nnr_periods 0\nnr_throttled 0\nthrottled_usec 0\nnr_bursts 0\nburst_usec 0"
+          },
+          "nginx": {
+            "memory.current": "107954176",
+            "memory.peak": "233775104",
+            "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\nsock_throttled 0",
+            "cpu.stat": "usage_usec 182974222\nuser_usec 108494093\nsystem_usec 74480128\nnice_usec 0\ncore_sched.force_idle_usec 0\nnr_periods 0\nnr_throttled 0\nthrottled_usec 0\nnr_bursts 0\nburst_usec 0"
+          },
+          "budget_total": {
+            "memory.current": "2139475968",
+            "memory.peak": "2220556288",
+            "memory.events": "low 0\nhigh 0\nmax 3674\noom 11\noom_kill 4\noom_group_kill 0\nsock_throttled 3606",
+            "cpu.stat": "usage_usec 5595998500\nuser_usec 4753425022\nsystem_usec 842573477\nnice_usec 0\ncore_sched.force_idle_usec 0\nnr_periods 451169\nnr_throttled 703\nthrottled_usec 404761298\nnr_bursts 0\nburst_usec 0",
+            "cpu.max": "800000 100000",
+            "memory.max": "4294967296"
+          }
+        },
+        "host_load_average": [
+          1.0703125,
+          0.76953125,
+          0.5908203125
+        ],
+        "host_cpu_ticks": "cpu  2825534 3668008 2750550 1581283387 3412030 0 78452 0 0 0",
+        "host_pressure": {
+          "cpu": "some avg10=3.95 avg60=4.70 avg300=5.12 total=41797069210\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=0",
+          "memory": "some avg10=0.00 avg60=0.00 avg300=0.00 total=20809\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=20783",
+          "io": "some avg10=0.93 avg60=1.00 avg300=1.00 total=10184844203\nfull avg10=0.90 avg60=0.95 avg300=0.95 total=10091334421"
+        },
+        "budget": "CPUQuotaPerSecUSec=8s\nMemoryMax=4294967296\nMemorySwapMax=0\n",
+        "network_helpers_observed": [
+          {
+            "pid": 300402,
+            "name": "rootlessport",
+            "cpu_seconds": 121.2,
+            "rss_bytes": 74477568,
+            "inside_test_budget": false,
+            "attribution": "same-user helper; may serve other rootless containers"
+          },
+          {
+            "pid": 4053978,
+            "name": "slirp4netns",
+            "cpu_seconds": 1.6,
+            "rss_bytes": 3907584,
+            "inside_test_budget": false,
+            "attribution": "same-user helper; may serve other rootless containers"
+          }
+        ]
+      },
+      "generator_cpu_percent": 6.0,
+      "generator_rss": 360697856
+    },
+    {
+      "at": 1790577839.760857,
+      "server": {
+        "containers": [
+          {
+            "id": "3f25a86c45a7",
+            "name": "club-capacity-test_mysql_1",
+            "cpu_time": "16m47.252385s",
+            "cpu_percent": "2.22%",
+            "avg_cpu": "2.22%",
+            "mem_usage": "747.1MB / 1.208GB",
+            "mem_percent": "61.85%",
+            "net_io": "1.132GB / 2.331GB",
+            "block_io": "0B / 0B",
+            "pids": "125"
+          },
+          {
+            "id": "621618e3206b",
+            "name": "club-capacity-test_redis_1",
+            "cpu_time": "1m53.168497s",
+            "cpu_percent": "0.26%",
+            "avg_cpu": "0.26%",
+            "mem_usage": "8.151MB / 201.3MB",
+            "mem_percent": "4.05%",
+            "net_io": "140.9MB / 1.099GB",
+            "block_io": "0B / 0B",
+            "pids": "6"
+          },
+          {
+            "id": "bdee21a25cd2",
+            "name": "club-capacity-test_api_1",
+            "cpu_time": "27m21.87806s",
+            "cpu_percent": "12.49%",
+            "avg_cpu": "12.49%",
+            "mem_usage": "550.3MB / 943.7MB",
+            "mem_percent": "58.31%",
+            "net_io": "2.372GB / 2.036GB",
+            "block_io": "0B / 0B",
+            "pids": "26"
+          },
+          {
+            "id": "e349e82d9de6",
+            "name": "club-capacity-test_worker_1",
+            "cpu_time": "1m40.261579s",
+            "cpu_percent": "0.76%",
+            "avg_cpu": "0.76%",
+            "mem_usage": "65.76MB / 201.3MB",
+            "mem_percent": "32.66%",
+            "net_io": "78.32MB / 68.85MB",
+            "block_io": "0B / 0B",
+            "pids": "2"
+          },
+          {
+            "id": "266a58804856",
+            "name": "club-capacity-test_nginx_1",
+            "cpu_time": "3m3.112828s",
+            "cpu_percent": "1.39%",
+            "avg_cpu": "1.39%",
+            "mem_usage": "93.25MB / 536.9MB",
+            "mem_percent": "17.37%",
+            "net_io": "1.372GB / 282.4MB",
+            "block_io": "0B / 0B",
+            "pids": "5"
+          },
+          {
+            "id": "7541a067a79a",
+            "name": "club-capacity-test_edge_probe",
+            "cpu_time": "6.164224s",
+            "cpu_percent": "3.61%",
+            "avg_cpu": "3.61%",
+            "mem_usage": "196.9MB / 536.9MB",
+            "mem_percent": "36.68%",
+            "net_io": "0B / 0B",
+            "block_io": "0B / 0B",
+            "pids": "5"
+          }
+        ],
+        "cgroups": {
+          "mysql": {
+            "memory.current": "1204682752",
+            "memory.peak": "1208229888",
+            "memory.events": "low 0\nhigh 0\nmax 536\noom 0\noom_kill 0\noom_group_kill 0\nsock_throttled 0",
+            "cpu.stat": "usage_usec 1007255140\nuser_usec 661082324\nsystem_usec 346172816\nnice_usec 0\ncore_sched.force_idle_usec 0\nnr_periods 0\nnr_throttled 0\nthrottled_usec 0\nnr_bursts 0\nburst_usec 0"
+          },
+          "redis": {
+            "memory.current": "8097792",
+            "memory.peak": "53493760",
+            "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\nsock_throttled 0",
+            "cpu.stat": "usage_usec 113168637\nuser_usec 55887124\nsystem_usec 57281512\nnice_usec 0\ncore_sched.force_idle_usec 0\nnr_periods 0\nnr_throttled 0\nthrottled_usec 0\nnr_bursts 0\nburst_usec 0"
+          },
+          "api": {
+            "memory.current": "549355520",
+            "memory.peak": "742621184",
+            "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\nsock_throttled 0",
+            "cpu.stat": "usage_usec 1641918734\nuser_usec 1502273594\nsystem_usec 139645139\nnice_usec 0\ncore_sched.force_idle_usec 0\nnr_periods 0\nnr_throttled 0\nthrottled_usec 0\nnr_bursts 0\nburst_usec 0"
+          },
+          "worker": {
+            "memory.current": "65224704",
+            "memory.peak": "67751936",
+            "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\nsock_throttled 0",
+            "cpu.stat": "usage_usec 100263222\nuser_usec 88105294\nsystem_usec 12157928\nnice_usec 0\ncore_sched.force_idle_usec 0\nnr_periods 0\nnr_throttled 0\nthrottled_usec 0\nnr_bursts 0\nburst_usec 0"
+          },
+          "nginx": {
+            "memory.current": "108101632",
+            "memory.peak": "233775104",
+            "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\nsock_throttled 0",
+            "cpu.stat": "usage_usec 183117536\nuser_usec 108565801\nsystem_usec 74551734\nnice_usec 0\ncore_sched.force_idle_usec 0\nnr_periods 0\nnr_throttled 0\nthrottled_usec 0\nnr_bursts 0\nburst_usec 0"
+          },
+          "budget_total": {
+            "memory.current": "2137534464",
+            "memory.peak": "2220556288",
+            "memory.events": "low 0\nhigh 0\nmax 3681\noom 11\noom_kill 4\noom_group_kill 0\nsock_throttled 3606",
+            "cpu.stat": "usage_usec 5598425007\nuser_usec 4755301508\nsystem_usec 843123499\nnice_usec 0\ncore_sched.force_idle_usec 0\nnr_periods 451273\nnr_throttled 703\nthrottled_usec 404761298\nnr_bursts 0\nburst_usec 0",
+            "cpu.max": "800000 100000",
+            "memory.max": "4294967296"
+          }
+        },
+        "host_load_average": [
+          0.9052734375,
+          0.74365234375,
+          0.583984375
+        ],
+        "host_cpu_ticks": "cpu  2825797 3668067 2750677 1581307547 3412125 0 78470 0 0 0",
+        "host_pressure": {
+          "cpu": "some avg10=4.85 avg60=4.74 avg300=5.10 total=41797672859\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=0",
+          "memory": "some avg10=0.00 avg60=0.00 avg300=0.00 total=20820\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=20794",
+          "io": "some avg10=1.01 avg60=1.00 avg300=1.00 total=10185006007\nfull avg10=1.00 avg60=0.96 avg300=0.96 total=10091493009"
+        },
+        "budget": "CPUQuotaPerSecUSec=8s\nMemoryMax=4294967296\nMemorySwapMax=0\n",
+        "network_helpers_observed": [
+          {
+            "pid": 300402,
+            "name": "rootlessport",
+            "cpu_seconds": 121.28,
+            "rss_bytes": 74477568,
+            "inside_test_budget": false,
+            "attribution": "same-user helper; may serve other rootless containers"
+          },
+          {
+            "pid": 4053978,
+            "name": "slirp4netns",
+            "cpu_seconds": 1.6,
+            "rss_bytes": 3907584,
+            "inside_test_budget": false,
+            "attribution": "same-user helper; may serve other rootless containers"
+          }
+        ]
+      },
+      "generator_cpu_percent": 5.5,
+      "generator_rss": 360734720
+    },
+    {
+      "at": 1790577850.1143777,
+      "server": {
+        "containers": [
+          {
+            "id": "3f25a86c45a7",
+            "name": "club-capacity-test_mysql_1",
+            "cpu_time": "16m47.604666s",
+            "cpu_percent": "2.22%",
+            "avg_cpu": "2.22%",
+            "mem_usage": "748.4MB / 1.208GB",
+            "mem_percent": "61.95%",
+            "net_io": "1.133GB / 2.333GB",
+            "block_io": "0B / 0B",
+            "pids": "125"
+          },
+          {
+            "id": "621618e3206b",
+            "name": "club-capacity-test_redis_1",
+            "cpu_time": "1m53.184913s",
+            "cpu_percent": "0.26%",
+            "avg_cpu": "0.26%",
+            "mem_usage": "8.385MB / 201.3MB",
+            "mem_percent": "4.16%",
+            "net_io": "140.9MB / 1.099GB",
+            "block_io": "0B / 0B",
+            "pids": "6"
+          },
+          {
+            "id": "bdee21a25cd2",
+            "name": "club-capacity-test_api_1",
+            "cpu_time": "27m26.952842s",
+            "cpu_percent": "12.52%",
+            "avg_cpu": "12.52%",
+            "mem_usage": "727.9MB / 943.7MB",
+            "mem_percent": "77.13%",
+            "net_io": "2.375GB / 2.039GB",
+            "block_io": "0B / 0B",
+            "pids": "29"
+          },
+          {
+            "id": "e349e82d9de6",
+            "name": "club-capacity-test_worker_1",
+            "cpu_time": "1m40.322923s",
+            "cpu_percent": "0.76%",
+            "avg_cpu": "0.76%",
+            "mem_usage": "65.48MB / 201.3MB",
+            "mem_percent": "32.52%",
+            "net_io": "78.36MB / 68.88MB",
+            "block_io": "0B / 0B",
+            "pids": "2"
+          },
+          {
+            "id": "266a58804856",
+            "name": "club-capacity-test_nginx_1",
+            "cpu_time": "3m3.333952s",
+            "cpu_percent": "1.39%",
+            "avg_cpu": "1.39%",
+            "mem_usage": "93.58MB / 536.9MB",
+            "mem_percent": "17.43%",
+            "net_io": "1.374GB / 283.1MB",
+            "block_io": "0B / 0B",
+            "pids": "5"
+          },
+          {
+            "id": "7541a067a79a",
+            "name": "club-capacity-test_edge_probe",
+            "cpu_time": "6.373891s",
+            "cpu_percent": "3.52%",
+            "avg_cpu": "3.52%",
+            "mem_usage": "197.8MB / 536.9MB",
+            "mem_percent": "36.84%",
+            "net_io": "0B / 0B",
+            "block_io": "0B / 0B",
+            "pids": "5"
+          }
+        ],
+        "cgroups": {
+          "mysql": {
+            "memory.current": "1204842496",
+            "memory.peak": "1208229888",
+            "memory.events": "low 0\nhigh 0\nmax 536\noom 0\noom_kill 0\noom_group_kill 0\nsock_throttled 0",
+            "cpu.stat": "usage_usec 1007606092\nuser_usec 661296264\nsystem_usec 346309827\nnice_usec 0\ncore_sched.force_idle_usec 0\nnr_periods 0\nnr_throttled 0\nthrottled_usec 0\nnr_bursts 0\nburst_usec 0"
+          },
+          "redis": {
+            "memory.current": "8097792",
+            "memory.peak": "53493760",
+            "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\nsock_throttled 0",
+            "cpu.stat": "usage_usec 113185054\nuser_usec 55894790\nsystem_usec 57290264\nnice_usec 0\ncore_sched.force_idle_usec 0\nnr_periods 0\nnr_throttled 0\nthrottled_usec 0\nnr_bursts 0\nburst_usec 0"
+          },
+          "api": {
+            "memory.current": "742154240",
+            "memory.peak": "742678528",
+            "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\nsock_throttled 0",
+            "cpu.stat": "usage_usec 1647385782\nuser_usec 1507358877\nsystem_usec 140026905\nnice_usec 0\ncore_sched.force_idle_usec 0\nnr_periods 0\nnr_throttled 0\nthrottled_usec 0\nnr_bursts 0\nburst_usec 0"
+          },
+          "worker": {
+            "memory.current": "65224704",
+            "memory.peak": "67751936",
+            "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\nsock_throttled 0",
+            "cpu.stat": "usage_usec 100324555\nuser_usec 88157162\nsystem_usec 12167393\nnice_usec 0\ncore_sched.force_idle_usec 0\nnr_periods 0\nnr_throttled 0\nthrottled_usec 0\nnr_bursts 0\nburst_usec 0"
+          },
+          "nginx": {
+            "memory.current": "108142592",
+            "memory.peak": "233775104",
+            "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\nsock_throttled 0",
+            "cpu.stat": "usage_usec 183336727\nuser_usec 108637860\nsystem_usec 74698867\nnice_usec 0\ncore_sched.force_idle_usec 0\nnr_periods 0\nnr_throttled 0\nthrottled_usec 0\nnr_bursts 0\nburst_usec 0"
+          },
+          "budget_total": {
+            "memory.current": "2220359680",
+            "memory.peak": "2336026624",
+            "memory.events": "low 0\nhigh 0\nmax 3683\noom 11\noom_kill 4\noom_group_kill 0\nsock_throttled 3606",
+            "cpu.stat": "usage_usec 5605136249\nuser_usec 4761201412\nsystem_usec 843934836\nnice_usec 0\ncore_sched.force_idle_usec 0\nnr_periods 451376\nnr_throttled 703\nthrottled_usec 404761298\nnr_bursts 0\nburst_usec 0",
+            "cpu.max": "800000 100000",
+            "memory.max": "4294967296"
+          }
+        },
+        "host_load_average": [
+          0.765625,
+          0.71875,
+          0.5771484375
+        ],
+        "host_cpu_ticks": "cpu  2826410 3668125 2750828 1581331301 3412202 0 78493 0 0 0",
+        "host_pressure": {
+          "cpu": "some avg10=5.24 avg60=4.84 avg300=5.11 total=41798258489\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=0",
+          "memory": "some avg10=0.00 avg60=0.00 avg300=0.00 total=20822\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=20796",
+          "io": "some avg10=0.77 avg60=0.94 avg300=0.98 total=10185110971\nfull avg10=0.77 avg60=0.91 avg300=0.95 total=10091594299"
+        },
+        "budget": "CPUQuotaPerSecUSec=8s\nMemoryMax=4294967296\nMemorySwapMax=0\n",
+        "network_helpers_observed": [
+          {
+            "pid": 300402,
+            "name": "rootlessport",
+            "cpu_seconds": 121.51,
+            "rss_bytes": 74477568,
+            "inside_test_budget": false,
+            "attribution": "same-user helper; may serve other rootless containers"
+          },
+          {
+            "pid": 4053978,
+            "name": "slirp4netns",
+            "cpu_seconds": 1.6,
+            "rss_bytes": 3907584,
+            "inside_test_budget": false,
+            "attribution": "same-user helper; may serve other rootless containers"
+          }
+        ]
+      },
+      "generator_cpu_percent": 7.1,
+      "generator_rss": 360751104
+    }
+  ],
+  "errors": [],
+  "parts": [
+    {
+      "file": "edge512-probe-login-10mbps.parts/round-1-part-1.json",
+      "sha256": "87f077ecb2e9a6123eaec589e558a4c6bc1c6d59fc5ac835271c6f91f3deca37"
+    },
+    {
+      "file": "edge512-probe-login-10mbps.parts/round-1-part-2.json",
+      "sha256": "4355d7e2442fd443c2faea30a8223147b8c8edb51961da542af98e6c77f6f390"
+    },
+    {
+      "file": "edge512-probe-login-10mbps.parts/round-1-part-3.json",
+      "sha256": "7af3dd3f210607f50c47b0815752fc0cff842010e8e626f146f40b8064b34fd6"
+    }
+  ],
+  "production_capacity_verified": false,
+  "network_scope": "LAN, TLS per student, external shaping; no WAN RTT/loss",
+  "cpu_scope": "Pod quota excludes some rootless networking helpers; not physical-core equivalence",
+  "generator_scope": "3 independent Python processes, disjoint student accounts",
+  "application_sha256": "008149badf738d77276c761570906c6b0a8d3517fc944af922b15d1ccc9a48aa",
+  "api_image_id": "01f9fbb7208b5151785ef5f12c1cceee32a1fa6be17038ba5ff1ab8e0c6ccc75",
+  "api_command": [
+    "uvicorn",
+    "club.api:app",
+    "--host",
+    "0.0.0.0",
+    "--port",
+    "8000",
+    "--workers",
+    "4",
+    "--no-access-log"
+  ],
+  "runtime_settings": {
+    "pool_size": 15,
+    "pool_overflow": 3,
+    "read_pool_size": 4,
+    "password_storage": "plaintext"
+  },
+  "test_ca_sha256": "db539aebce1f86478a6829fc6ececfdd8ea1de820857de9c21ad77dd29a62c2b",
+  "deployment_config_sha256": {
+    "deploy/nginx.conf": "a11fe0b0ddaece850b0ef3c0b0b940e00325d91ecb4d5420fba4b3e7a4e2cfb1",
+    "deploy/nginx.test.conf": "a12e6de44e2e9ec1f254f48606d7bc52164c7c5db7d6c2a83bd06d3aa8123499",
+    ".local/nginx.test.tls.conf": "251eb461c1f664cdb834fe37a3e96da96e9abd16016655969d4d034ba36aa606",
+    "deploy/compose.test.yml": "2ef6decb1ce30086c88191b7c73c4e372f0b1ad139e497581cec934458355de0",
+    "deploy/compose.test.tls.yml": "2a4fe9ac4f83975c6e9525a95c002756da2f62c8f66a2cd44f6c137e4a1fbe4b",
+    "uv.lock": "0d301e9e835f07d5368aeb0a3ebbd4672b6b2c6bd428a0d82e3e7c4343a72b39"
+  },
+  "opening_guard_s": 0.05
+}

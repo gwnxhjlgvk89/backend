@@ -15,6 +15,7 @@ import shlex
 import ssl
 import hashlib
 import time
+import uuid
 
 import aiohttp
 import psutil
@@ -312,8 +313,12 @@ async def run(args):
                     begin = time.monotonic()
                     status, code, data, server, size = 0, "UNKNOWN", None, None, 0
                     trace = {}
+                    probe_id = uuid.uuid4().hex
+                    error_errno = None
+                    api_request_id = None
                     headers_received = None
                     headers = {"Authorization": "Bearer " + tokens[i]} if tokens[i] else {}
+                    headers["X-Load-Request-ID"] = probe_id
                     if key:
                         headers["Idempotency-Key"] = key
                     try:
@@ -321,6 +326,7 @@ async def run(args):
                             method, "/api/v1" + endpoint, json=body, headers=headers, trace_request_ctx=trace
                         ) as r:
                             headers_received = time.monotonic()
+                            api_request_id = r.headers.get("X-Request-ID")
                             raw = await r.read()
                             size = len(raw)
                             status = r.status
@@ -343,6 +349,7 @@ async def run(args):
                                 server = float(header.split("dur=")[1]) / 1000
                     except (aiohttp.ClientError, TimeoutError, ValueError) as exc:
                         code = type(exc).__name__
+                        error_errno = getattr(getattr(exc, "os_error", exc), "errno", None)
                     records[stage].append(
                         (
                             status,
@@ -356,6 +363,9 @@ async def run(args):
                             headers_received - trace["sent_at"]
                             if headers_received and "sent_at" in trace
                             else None,
+                            probe_id,
+                            error_errno,
+                            api_request_id,
                         )
                     )
                     last_codes[(i, stage)] = code

@@ -1,0 +1,45 @@
+import asyncio
+import json
+from pathlib import Path
+import shlex
+
+ROOT = Path('reports/wired-diagnosis')
+TARGET = ['ssh', '-S', '/private/tmp/club-test-current-ssh', '-o', 'BatchMode=yes', 'gg1214@192.168.100.130']
+LOAD = ['ssh', '-S', '/private/tmp/club-load20-ssh', '-o', 'BatchMode=yes', 'GG1214@192.168.100.20']
+
+async def run(argv):
+    p = await asyncio.create_subprocess_exec(*argv, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE)
+    out, err = await p.communicate()
+    if p.returncode:
+        raise RuntimeError(f'Command failed {p.returncode}: {err.decode()[-300:]}')
+    return out.decode()
+
+async def target(cmd):
+    return await run(TARGET + ['cd ~/club-system-test/backend && ' + cmd])
+
+async def case(mode, mbps):
+    name = f'edge512-repeat-{mode}-{mbps}mbps'
+    try:
+        (ROOT/f'{name}-shaping-before.json').write_text(await target(f'python3 deploy/shape-test-egress.py limit --mbps {mbps} --port 8080'))
+        args = ['.venv/bin/python', 'scripts/load_distributed_journey.py', '--url', 'https://192.168.100.130:18083', '--ca-cert', 'private/test-ca.crt', '--ssh', 'gg1214@192.168.100.130', '--control', '/tmp/club-target-test-ssh', '--users', '1500', '--processes', '3', '--client-profile', 'connected_first', '--mode', mode, '--scenario', 'uniform', '--rounds', '3', '--hold-seconds', '45', '--report', f'reports/{name}.json']
+        print('START '+name, flush=True)
+        p = await asyncio.create_subprocess_exec(*LOAD, 'cd ~/club-load-test && ulimit -n 16384 && '+shlex.join(args))
+        code = await p.wait()
+        # Copy only reports and raw JSON parts, never tokens, logs or private material.
+        await run(['scp', '-C', '-o', 'ControlPath=/private/tmp/club-load20-ssh', '-o', 'BatchMode=yes', f'GG1214@192.168.100.20:club-load-test/reports/{name}.json', str(ROOT)])
+        parts = ROOT/f'{name}.parts'
+        parts.mkdir(exist_ok=True)
+        await run(['scp', '-C', '-o', 'ControlPath=/private/tmp/club-load20-ssh', '-o', 'BatchMode=yes', f'GG1214@192.168.100.20:club-load-test/reports/{name}.parts/*.json', str(parts)])
+        if code:
+            raise RuntimeError(f'Journey failed {code}; retained report')
+    finally:
+        try:
+            (ROOT/f'{name}-shaping-after.json').write_text(await target('python3 deploy/shape-test-egress.py show'))
+        finally:
+            (ROOT/f'{name}-shaping-restored.json').write_text(await target('python3 deploy/shape-test-egress.py clear'))
+
+async def main():
+    await case('login', 10)
+    (ROOT/'final-resources.json').write_text(await target('python3 deploy/metrics-test.py'))
+
+asyncio.run(main())

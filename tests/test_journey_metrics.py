@@ -1,6 +1,20 @@
 from scripts.load_journey import summary
 
 
+def test_oom_gate_counts_new_failures_without_erasing_historical_evidence():
+    from scripts.check_journey import oom_changes
+
+    def sample(kills):
+        return {"server": {"cgroups": {"budget_total": {"memory.events": f"oom 0\noom_kill {kills}"}}}}
+
+    assert oom_changes([sample(4), sample(4)]) == (True, {"budget_total": {"oom": 0, "oom_kill": 0}})
+    assert not oom_changes([sample(4), sample(5)])[0]
+    assert not oom_changes([sample(4), sample(0)])[0]
+    assert not oom_changes([sample(4)])[0]
+    assert not oom_changes([sample(4), {"server": {"cgroups": {}}}])[0]
+    assert not oom_changes([])[0]
+
+
 def test_failed_and_timed_out_requests_are_in_latency_and_error_denominator():
     rows = [
         (200, "OK", 0.1, 0, 0.05, 100),

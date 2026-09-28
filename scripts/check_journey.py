@@ -12,6 +12,27 @@ except ModuleNotFoundError:
     from load_journey import journey_gates
 
 
+def oom_changes(samples):
+    """Cgroup counters are cumulative; retain history but reject new OOMs or resets."""
+    groups = {}
+    for sample in samples:
+        for name, group in sample["server"]["cgroups"].items():
+            if "memory.events" in group:
+                counters = dict(line.split() for line in group["memory.events"].splitlines())
+                groups.setdefault(name, []).append({key: int(counters[key]) for key in ("oom", "oom_kill")})
+    deltas = {
+        name: {key: rows[-1][key] - rows[0][key] for key in ("oom", "oom_kill")}
+        for name, rows in groups.items()
+    }
+    valid = bool(groups) and all(
+        len(rows) == len(samples)
+        and len(rows) >= 2
+        and all(b[key] == a[key] for a, b in zip(rows, rows[1:]) for key in ("oom", "oom_kill"))
+        for rows in groups.values()
+    )
+    return valid, deltas
+
+
 def evaluate(path):
     path = Path(path)
     data = json.loads(path.read_text())
@@ -27,20 +48,7 @@ def evaluate(path):
     restored = proofs["egress-restored"].get("qdiscs", [])
     params = data["parameters"]
     resources = [r["server"]["cgroups"]["budget_total"] for r in data.get("resources", [])]
-    all_groups = [
-        group
-        for sample in data.get("resources", [])
-        for group in sample["server"]["cgroups"].values()
-        if "memory.events" in group
-    ]
-    no_oom = bool(all_groups) and all(
-        all(
-            int(line.split()[1]) == 0
-            for line in r["memory.events"].splitlines()
-            if line.split()[0] in {"oom", "oom_kill"}
-        )
-        for r in all_groups
-    )
+    no_oom, oom_deltas = oom_changes(data.get("resources", []))
     evidence = {
         "explicitly_completed": data.get("completed") is True,
         "requested_rounds_present": len(data["runs"]) == params["rounds"],
@@ -64,6 +72,7 @@ def evaluate(path):
         "scenario": params["scenario"],
         "hold_seconds": params["hold_seconds"],
         "evidence_gates": evidence,
+        "oom_counter_deltas": oom_deltas,
         "peak_pod_memory_mib": round(max((int(r["memory.peak"]) for r in resources), default=0) / 2**20, 1),
         "rounds": [
             {
