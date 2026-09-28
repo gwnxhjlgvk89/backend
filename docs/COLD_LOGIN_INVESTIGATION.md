@@ -1,5 +1,7 @@
 # 同时冷登录超时：只读调研
 
+后续已实际分阶段测试，并确认Mac通过Surge内置WireGuard访问该私有IP；用户提供了Surge暂停压测进程连接的提示。见 [COLD_LOGIN_PHASE_TESTS.md](COLD_LOGIN_PHASE_TESTS.md)。
+
 结论：现有失败主要发生在客户端到API之间的建连、传输及调度路径，不能归为密码校验CPU不足，也没有证据证明单纯升级公网带宽就能解决。已经能定位到业务处理之外的等待；尚不能把责任唯一归到隧道、Wi-Fi、rootless转发、Nginx TLS或发压机中的某一项。
 
 本次未改业务代码、服务配置、路由或配额，未重新运行并发压测、未操作生产。读取8CPU报告与当前测试机配置，并做5次串行健康检查和1次TLS连接。测试环境仍为8CPU额度/4GiB、4API进程与4Nginx进程。以下代码位置对应后端547aab2、前端b5b1d90；原始压测证据提交8c4460c。衍生统计及源文件SHA256见 [cold-login-investigation.json](../reports/cold-login-investigation.json)。

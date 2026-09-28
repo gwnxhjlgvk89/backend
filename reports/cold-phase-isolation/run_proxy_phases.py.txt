@@ -1,0 +1,28 @@
+import asyncio,json,sys,time,shlex
+from pathlib import Path
+sys.path.insert(0,'scripts')
+from load_connection_phases import summarize
+SSH=['ssh','-S','/private/tmp/club-test-current-ssh','-o','BatchMode=yes','gg1214@192.168.100.130'];BASE='cd ~/club-system-test/backend && ';ROOT=Path('reports/cold-phase-isolation')
+async def command(args):
+ p=await asyncio.create_subprocess_exec(*args,stdout=asyncio.subprocess.PIPE,stderr=asyncio.subprocess.PIPE);o,e=await p.communicate()
+ if p.returncode:raise RuntimeError(f'command failed {p.returncode}: '+e.decode()[-300:])
+ return o.decode()
+async def remote(cmd):return await command(SSH+[BASE+cmd])
+async def case(mode,rate,round_no):
+ name=f'mac-explicit-proxy-{mode}-1500-{rate}mbps-r{round_no}';d=ROOT/name;d.mkdir();print('START '+name,flush=True);shaped=False
+ try:
+  if rate:
+   v=await remote(f'python3 deploy/shape-test-egress.py limit --mbps {rate} --port 8443');shaped=True;(d/'egress-before.json').write_text(v)
+  monitor=asyncio.create_task(remote('python3 .local/cold-phase-monitor.py --seconds 23'));epoch=time.time()+5
+  jobs=[command([sys.executable,'scripts/load_explicit_proxy.py','--mode',mode,'--users','500','--offset',str(i*500),'--epoch',str(epoch),'--ca','.local/test-ecdsa-ca.crt','--report',str(d/f'part-{i}.json')]) for i in range(3)]
+  results=await asyncio.gather(*jobs,return_exceptions=True);(d/'monitor.json').write_text(await monitor)
+  rows=sum([json.loads(p.read_text())['rows'] for p in d.glob('part-*.json')],[])
+  data={'name':name,'mode':mode,'users':1500,'mbps':rate,'load_location':'Mac-explicit-HTTP-CONNECT-Surge-WireGuard','shards':3,'errors':[str(x) for x in results if isinstance(x,Exception)],'summary':summarize(rows) if rows else {}}
+  (d/'summary.json').write_text(json.dumps(data,indent=2)+'\n');print(json.dumps(data),flush=True)
+ finally:
+  if shaped:
+   try:(d/'egress-after.json').write_text(await remote('python3 deploy/shape-test-egress.py show'))
+   finally:(d/'egress-restored.json').write_text(await remote('python3 deploy/shape-test-egress.py clear'))
+async def main():
+ for mode,rate in [('health',0),('login',0),('login',50),('login',10)]:await case(mode,rate,1)
+asyncio.run(main())

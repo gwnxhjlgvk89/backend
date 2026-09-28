@@ -1,0 +1,157 @@
+{
+  "shaping": {
+    "target": "club-capacity-test_nginx_1",
+    "namespace": "/run/user/1000/netns/netns-84fe8872-d2b8-0b10-78df-9f0594db625b",
+    "qdiscs": [
+      {
+        "kind": "noqueue",
+        "handle": "0:",
+        "root": true,
+        "refcnt": 2,
+        "options": {},
+        "bytes": 0,
+        "packets": 0,
+        "drops": 0,
+        "overlimits": 0,
+        "requeues": 0,
+        "backlog": 0,
+        "qlen": 0
+      }
+    ],
+    "filters": []
+  },
+  "resources": {
+    "containers": [
+      {
+        "id": "3f25a86c45a7",
+        "name": "club-capacity-test_mysql_1",
+        "cpu_time": "14m31.514766s",
+        "cpu_percent": "2.06%",
+        "avg_cpu": "2.06%",
+        "mem_usage": "729.7MB / 1.208GB",
+        "mem_percent": "60.41%",
+        "net_io": "876.1MB / 1.786GB",
+        "block_io": "0B / 0B",
+        "pids": "119"
+      },
+      {
+        "id": "621618e3206b",
+        "name": "club-capacity-test_redis_1",
+        "cpu_time": "1m41.435182s",
+        "cpu_percent": "0.25%",
+        "avg_cpu": "0.25%",
+        "mem_usage": "7.586MB / 201.3MB",
+        "mem_percent": "3.77%",
+        "net_io": "97.47MB / 782.1MB",
+        "block_io": "0B / 0B",
+        "pids": "6"
+      },
+      {
+        "id": "bdee21a25cd2",
+        "name": "club-capacity-test_api_1",
+        "cpu_time": "16m52.701837s",
+        "cpu_percent": "10.00%",
+        "avg_cpu": "10.00%",
+        "mem_usage": "511.7MB / 943.7MB",
+        "mem_percent": "54.22%",
+        "net_io": "1.422GB / 1.232GB",
+        "block_io": "0B / 0B",
+        "pids": "26"
+      },
+      {
+        "id": "e349e82d9de6",
+        "name": "club-capacity-test_worker_1",
+        "cpu_time": "1m16.561644s",
+        "cpu_percent": "0.76%",
+        "avg_cpu": "0.76%",
+        "mem_usage": "65.48MB / 201.3MB",
+        "mem_percent": "32.53%",
+        "net_io": "54.02MB / 49.17MB",
+        "block_io": "0B / 0B",
+        "pids": "2"
+      },
+      {
+        "id": "266a58804856",
+        "name": "club-capacity-test_nginx_1",
+        "cpu_time": "2m0.287975s",
+        "cpu_percent": "1.19%",
+        "avg_cpu": "1.19%",
+        "mem_usage": "34.09MB / 536.9MB",
+        "mem_percent": "6.35%",
+        "net_io": "847.6MB / 169.6MB",
+        "block_io": "0B / 0B",
+        "pids": "5"
+      }
+    ],
+    "cgroups": {
+      "mysql": {
+        "memory.current": "1205215232",
+        "memory.peak": "1208229888",
+        "memory.events": "low 0\nhigh 0\nmax 381\noom 0\noom_kill 0\noom_group_kill 0\nsock_throttled 0",
+        "cpu.stat": "usage_usec 871514842\nuser_usec 567138520\nsystem_usec 304376321\nnice_usec 0\ncore_sched.force_idle_usec 0\nnr_periods 0\nnr_throttled 0\nthrottled_usec 0\nnr_bursts 0\nburst_usec 0"
+      },
+      "redis": {
+        "memory.current": "7270400",
+        "memory.peak": "53493760",
+        "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\nsock_throttled 0",
+        "cpu.stat": "usage_usec 101435301\nuser_usec 50125223\nsystem_usec 51310078\nnice_usec 0\ncore_sched.force_idle_usec 0\nnr_periods 0\nnr_throttled 0\nthrottled_usec 0\nnr_bursts 0\nburst_usec 0"
+      },
+      "api": {
+        "memory.current": "511688704",
+        "memory.peak": "714670080",
+        "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\nsock_throttled 0",
+        "cpu.stat": "usage_usec 1012702628\nuser_usec 927578946\nsystem_usec 85123681\nnice_usec 0\ncore_sched.force_idle_usec 0\nnr_periods 0\nnr_throttled 0\nthrottled_usec 0\nnr_bursts 0\nburst_usec 0"
+      },
+      "worker": {
+        "memory.current": "65486848",
+        "memory.peak": "67751936",
+        "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\nsock_throttled 0",
+        "cpu.stat": "usage_usec 76562889\nuser_usec 67168333\nsystem_usec 9394555\nnice_usec 0\ncore_sched.force_idle_usec 0\nnr_periods 0\nnr_throttled 0\nthrottled_usec 0\nnr_bursts 0\nburst_usec 0"
+      },
+      "nginx": {
+        "memory.current": "34074624",
+        "memory.peak": "233775104",
+        "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\nsock_throttled 0",
+        "cpu.stat": "usage_usec 120287975\nuser_usec 72534394\nsystem_usec 47753580\nnice_usec 0\ncore_sched.force_idle_usec 0\nnr_periods 0\nnr_throttled 0\nthrottled_usec 0\nnr_bursts 0\nburst_usec 0"
+      },
+      "budget_total": {
+        "memory.current": "1828782080",
+        "memory.peak": "2219384832",
+        "memory.events": "low 0\nhigh 0\nmax 1819\noom 0\noom_kill 0\noom_group_kill 0\nsock_throttled 0",
+        "cpu.stat": "usage_usec 4715402342\nuser_usec 4011311026\nsystem_usec 704091316\nnice_usec 0\ncore_sched.force_idle_usec 0\nnr_periods 421269\nnr_throttled 703\nthrottled_usec 404761298\nnr_bursts 0\nburst_usec 0",
+        "cpu.max": "800000 100000",
+        "memory.max": "4294967296"
+      }
+    },
+    "host_load_average": [
+      0.0390625,
+      0.08837890625,
+      0.08447265625
+    ],
+    "host_cpu_ticks": "cpu  2738487 3651120 2718808 1574248912 3387951 0 74205 0 0 0",
+    "host_pressure": {
+      "cpu": "some avg10=4.67 avg60=4.74 avg300=4.97 total=41629912824\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=0",
+      "memory": "some avg10=0.00 avg60=0.00 avg300=0.00 total=17478\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=17465",
+      "io": "some avg10=1.19 avg60=1.41 avg300=1.31 total=10141427110\nfull avg10=1.19 avg60=1.38 avg300=1.27 total=10049120725"
+    },
+    "budget": "CPUQuotaPerSecUSec=8s\nMemoryMax=4294967296\nMemorySwapMax=0\n",
+    "network_helpers_observed": [
+      {
+        "pid": 300402,
+        "name": "rootlessport",
+        "cpu_seconds": 76.29,
+        "rss_bytes": 49872896,
+        "inside_test_budget": false,
+        "attribution": "same-user helper; may serve other rootless containers"
+      },
+      {
+        "pid": 4053978,
+        "name": "slirp4netns",
+        "cpu_seconds": 1.5,
+        "rss_bytes": 3907584,
+        "inside_test_budget": false,
+        "attribution": "same-user helper; may serve other rootless containers"
+      }
+    ]
+  }
+}

@@ -1,0 +1,49 @@
+import asyncio,json,sys,time,shlex,hashlib
+from pathlib import Path
+sys.path.insert(0,'scripts')
+from load_connection_phases import summarize
+SSH=['ssh','-S','/private/tmp/club-test-current-ssh','-o','BatchMode=yes','gg1214@192.168.100.130']
+BASE='cd ~/club-system-test/backend && '
+ROOT=Path('reports/cold-phase-isolation');ROOT.mkdir(exist_ok=True)
+async def command(args):
+ p=await asyncio.create_subprocess_exec(*args,stdout=asyncio.subprocess.PIPE,stderr=asyncio.subprocess.PIPE);out,err=await p.communicate()
+ if p.returncode:raise RuntimeError(f'command failed {p.returncode}: '+err.decode()[-400:])
+ return out.decode()
+async def remote(cmd):return await command(SSH+[BASE+cmd])
+async def case(label,mode,users,mbps=0,local=False,timeout=10):
+ name=f'{label}-{mode}-{users}-{mbps}mbps';dest=ROOT/name;dest.mkdir(); shards=3
+ print('START '+name,flush=True)
+ shaped=False
+ try:
+  if mbps:
+   before=await remote(f'python3 deploy/shape-test-egress.py limit --mbps {mbps} --port 8443');shaped=True;(dest/'egress-before.json').write_text(before)
+  mon=asyncio.create_task(remote('python3 .local/cold-phase-monitor.py --seconds 23'))
+  epoch=time.time()+5
+  jobs=[]
+  for n in range(shards):
+   count=users//shards+(n<users%shards);offset=sum(users//shards+(i<users%shards) for i in range(n));part=dest/f'part-{n}.json'
+   args=['python3' if local else sys.executable,'scripts/load_connection_phases.py','--mode',mode,'--users',str(count),'--offset',str(offset),'--epoch',str(epoch),'--timeout',str(timeout),'--ca','.local/cold-phase-ca.crt' if local else '.local/test-ecdsa-ca.crt','--report',f'.local/{name}-{n}.json' if local else str(part)]
+   args.append('--ssh-tunnel')
+   jobs.append(asyncio.create_task(remote(shlex.join(args)) if local else command(args)))
+  outcomes=await asyncio.gather(*jobs,return_exceptions=True)
+  if local:
+   for n in range(shards):
+    try:(dest/f'part-{n}.json').write_text(await remote(f'cat .local/{name}-{n}.json'))
+    except Exception:pass
+  (dest/'monitor.json').write_text(await mon)
+  errors=[str(x) for x in outcomes if isinstance(x,Exception)]
+  rows=[]
+  for p in dest.glob('part-*.json'):rows+=json.loads(p.read_text())['rows']
+  result={'name':name,'mode':mode,'users':users,'mbps':mbps,'load_location':'target-host-diagnostic' if local else 'Mac-loopback-SSH-Surge-WireGuard','errors':errors,'shards':shards,'summary':summarize(rows) if rows else {},'driver_sha256':hashlib.sha256(Path('scripts/load_connection_phases.py').read_bytes()).hexdigest()}
+  (dest/'summary.json').write_text(json.dumps(result,indent=2)+'\n');print(json.dumps(result),flush=True)
+ finally:
+  if shaped:
+   try:(dest/'egress-after.json').write_text(await remote('python3 deploy/shape-test-egress.py show'))
+   finally:(dest/'egress-restored.json').write_text(await remote('python3 deploy/shape-test-egress.py clear'))
+async def main():
+ try:
+  for mode in ('tls','health','login'):await case('mac-ssh-unshaped',mode,1500)
+  for rate in (50,10):await case('mac-ssh-shaped','login',1500,rate)
+ finally:
+  print('Phase diagnostics complete; forward retained for full-flow comparison',flush=True)
+asyncio.run(main())

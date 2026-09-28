@@ -1,0 +1,19 @@
+import json
+from pathlib import Path
+out=[]
+def cpu(s):return int(dict(x.split() for x in s.splitlines())['usage_usec'])/1e6
+for p in sorted(Path('reports/cold-phase-isolation').glob('*/summary.json')):
+ d=json.loads(p.read_text());m=json.loads((p.parent/'monitor.json').read_text())['samples'];row={'name':d['name'],'summary':d['summary'],'load_location':d['load_location'],'errors':d['errors']}
+ row['tcp_delta']={k:m[-1]['tcp'][k]-m[0]['tcp'][k] for k in m[0].get('tcp',{})}
+ row['max_budget_cpu_cores']=max((cpu(b['cgroups']['budget_total']['cpu.stat'])-cpu(a['cgroups']['budget_total']['cpu.stat']))/(b['epoch']-a['epoch']) for a,b in zip(m,m[1:]))
+ row['max_nginx_cpu_cores']=max((cpu(b['cgroups']['club-capacity-test_nginx_1']['cpu.stat'])-cpu(a['cgroups']['club-capacity-test_nginx_1']['cpu.stat']))/(b['epoch']-a['epoch']) for a,b in zip(m,m[1:]))
+ row['max_memory_bytes']=max(int(s['cgroups']['budget_total']['memory.current']) for s in m)
+ row['generator_max_gap_s']=max(((b['epoch']-a['epoch']) for pp in p.parent.glob('part-*.json') for v in [json.loads(pp.read_text())] for a,b in zip(v['samples'],v['samples'][1:])), default=None)
+ row['helper_peak_cores']={}
+ for a,b in zip(m,m[1:]):
+  for pid,v in b['processes'].items():
+   if pid in a['processes'] and v['name'] in ('rootlessport','slirp4netns','pasta'):
+    row['helper_peak_cores'][v['name']]=max(row['helper_peak_cores'].get(v['name'],0),(v['cpu_s']-a['processes'][pid]['cpu_s'])/(b['epoch']-a['epoch']))
+ out.append(row)
+ print(d['name'],d['summary'].get('outcomes'), 'p95',d['summary'].get('total_s',{}).get('p95'),'nginxCPU',round(row['max_nginx_cpu_cores'],2),'lag',row['generator_max_gap_s'],'TCP',row['tcp_delta'])
+Path('reports/cold-phase-isolation/summary.json').write_text(json.dumps(out,indent=2)+'\n')
