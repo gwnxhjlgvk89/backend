@@ -11,6 +11,7 @@ from sqlalchemy import select
 
 from club.config import settings
 from club.errors import fail
+from club.initial_passwords import initial_password
 from club.models import Activity, Audit, Club, Enrollment, Job, User, utcnow
 from club.schemas import StudentInput
 from club.services import mutable_activity
@@ -55,9 +56,10 @@ def parse_students(content):
             for field in expected[:5]:
                 data[field] = str(data.get(field) or "").strip()
             data["reserved_club_id"] = data.get("reserved_club_id") or None
+            data["password"] = data["password"] or initial_password(data["name"])
             validated = StudentInput.model_validate(data)
-            if not validated.password or validated.username in seen:
-                fail(422, "INVALID_ROW", f"第{number}行密码缺失或账号重复")
+            if validated.username in seen:
+                fail(422, "INVALID_ROW", f"第{number}行账号重复")
             seen.add(validated.username)
             result.append(validated.model_dump())
         book.close()
@@ -98,13 +100,11 @@ async def run_one(factory):
         job.state = "running"
     try:
         if kind == "import_preview":
-            from club.security import hash_password
-
             path = upload_path(job_id)
             content = await asyncio.to_thread(path.read_bytes)
             rows = await asyncio.to_thread(parse_students, upload_cipher().decrypt(content))
             for row in rows:
-                row["password_hash"] = await hash_password(row.pop("password"))
+                row["password_ciphertext"] = upload_cipher().encrypt(row.pop("password").encode()).decode()
             async with factory() as db, db.begin():
                 await mutable_activity(db)
                 existing = set(
@@ -144,8 +144,14 @@ async def run_one(factory):
             async with factory() as db, db.begin():
                 await mutable_activity(db)
                 for row in payload["rows"]:
-                    body = StudentInput.model_validate({k: v for k, v in row.items() if k != "password_hash"})
-                    await save_student(db, body, row["password_hash"])
+                    if "password_ciphertext" not in row:
+                        fail(409, "IMPORT_REUPLOAD_REQUIRED", "旧版导入预览需重新上传并确认")
+                    body = StudentInput.model_validate(
+                        {k: v for k, v in row.items() if k != "password_ciphertext"}
+                    )
+                    await save_student(
+                        db, body, upload_cipher().decrypt(row["password_ciphertext"].encode()).decode()
+                    )
                 db.add(
                     Audit(
                         actor_id=job.actor_id,

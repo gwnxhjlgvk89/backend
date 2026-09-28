@@ -91,7 +91,9 @@ async def test_permissions_and_no_sensitive_fields(env):
     r = await client.get("/api/v1/admin/students", headers=headers(tokens, 100))
     assert r.status_code == 200
     assert len(r.json()["data"]["items"]) == 30
-    assert "password_hash" not in r.text and "token_version" not in r.text
+    assert (
+        "password_hash" not in r.text and "password_plaintext" not in r.text and "token_version" not in r.text
+    )
     assert (
         await client.post(
             "/api/v1/admin/activity/state", json={"state": "paused"}, headers=headers(tokens, 100)

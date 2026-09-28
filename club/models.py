@@ -17,7 +17,7 @@ class User(Base):
     __tablename__ = "v2_users"
     id: Mapped[int] = mapped_column(primary_key=True)
     username: Mapped[str] = mapped_column(String(64), unique=True)
-    password_hash: Mapped[str] = mapped_column(String(255))
+    password_plaintext: Mapped[str] = mapped_column(String(72))
     name: Mapped[str] = mapped_column(String(64))
     role: Mapped[str] = mapped_column(String(16), default="student", index=True)
     major: Mapped[str] = mapped_column(String(64), default="", index=True)

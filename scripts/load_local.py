@@ -29,7 +29,7 @@ from redis.asyncio import Redis
 from sqlalchemy import delete, select, text
 from club.db import make_engine, sessions
 from club.models import Activity, Base, Club, Enrollment, Favorite, Idempotency, Outbox, User, utcnow
-from club.security import hash_password, token
+from club.security import token
 from club.services import consistency
 
 
@@ -57,7 +57,6 @@ async def main(args):
         await c.run_sync(Base.metadata.drop_all)
         await c.run_sync(Base.metadata.create_all)
     await redis.flushdb()
-    hashed = await hash_password("SyntheticLoad2026!")
     async with factory() as db, db.begin():
         db.add(
             Activity(
@@ -72,7 +71,7 @@ async def main(args):
                 id=i,
                 username=f"load{i:04d}",
                 name=f"Synthetic {i}",
-                password_hash=hashed,
+                password_plaintext="SyntheticLoad2026!",
                 must_change_password=False,
             )
             for i in range(1, args.users + 1)

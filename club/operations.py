@@ -237,7 +237,8 @@ async def run(args):
                     or actor.role != "super_admin"
                     or not actor.active
                     or not await verify_password(
-                        getpass.getpass("Super admin password: "), actor.password_hash
+                        getpass.getpass("Super admin password: "),
+                        actor.password_plaintext,
                     )
                 ):
                     raise ValueError("Super admin authentication failed")

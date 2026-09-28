@@ -12,7 +12,7 @@ from sqlalchemy.engine import make_url
 from club.config import settings
 from club.db import make_engine, sessions
 from club.models import Activity, Club, Enrollment, Favorite, Idempotency, Outbox, User, utcnow
-from club.security import hash_password
+from club.security import set_password
 from club.services import consistency
 
 
@@ -36,14 +36,13 @@ async def main(args):
             if args.action == "seed":
                 if await db.scalar(select(func.count()).select_from(User)):
                     raise ValueError("Seed needs empty users")
-                hashed = await hash_password("SyntheticLoad2026!")
                 db.add_all(
                     [
                         User(
                             id=i,
                             username=f"load{i:04d}",
                             name=f"Synthetic {i}",
-                            password_hash=hashed,
+                            password_plaintext="SyntheticLoad2026!",
                             must_change_password=False,
                         )
                         for i in range(1, 3001)
@@ -60,11 +59,11 @@ async def main(args):
                 a.starts_at = utcnow() - timedelta(hours=1)
                 a.ends_at = utcnow() + timedelta(days=1)
             elif args.action == "passwords":
-                # Explicit TEST fixture only: unique salts, never reuse a hash across accounts.
+                # Explicit TEST fixture only; follows the current plaintext account policy.
                 users = list((await db.scalars(select(User).order_by(User.id))).all())
                 for user in users:
-                    user.password_hash = await hash_password("SyntheticLoad2026!")
-                print(json.dumps({"synthetic_passwords_updated": len(users), "algorithm": "argon2id"}))
+                    set_password(user, "SyntheticLoad2026!")
+                print(json.dumps({"synthetic_passwords_updated": len(users), "algorithm": "plaintext"}))
             elif args.action == "details":
                 import random
 

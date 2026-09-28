@@ -44,7 +44,7 @@ async def test_response_contract_legacy_and_shared_network_limits(env):
     r = await client.get("/api/v1/bootstrap", headers=headers(tokens, 100))
     assert r.status_code == 200
     assert "Server-Timing" in r.headers and "X-Request-ID" in r.headers
-    assert not any(key in r.text for key in ("password_hash", "token_version"))
+    assert not any(key in r.text for key in ("password_hash", "password_plaintext", "token_version"))
 
 
 async def test_metrics_report_durable_backlog_without_personal_data(env):
@@ -59,4 +59,4 @@ async def test_metrics_report_durable_backlog_without_personal_data(env):
     assert "club_database_available 1" in response.text
     assert "club_redis_available 1" in response.text
     assert "SyntheticPass2026!" not in response.text
-    assert "password_hash" not in response.text
+    assert "password_hash" not in response.text and "password_plaintext" not in response.text

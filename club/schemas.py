@@ -66,14 +66,14 @@ class StudentInput(Input):
     major: str = Field(default="", max_length=64)
     class_name: str = Field(default="", max_length=64)
     active: bool = True
-    password: str | None = Field(default=None, min_length=10, max_length=72)
+    password: str | None = Field(default=None, min_length=1, max_length=72)
     reserved_club_id: int | None = Field(default=None, gt=0)
 
 
 class AdminInput(Input):
     username: str = Field(min_length=1, max_length=64)
     name: str = Field(min_length=1, max_length=64)
-    password: str = Field(min_length=10, max_length=72)
+    password: str | None = Field(default=None, min_length=1, max_length=72)
     role: Literal["admin", "super_admin"] = "admin"
 
 

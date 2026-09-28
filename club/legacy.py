@@ -8,6 +8,7 @@ from zoneinfo import ZoneInfo
 
 from sqlalchemy import func, select, text
 
+from club.initial_passwords import initial_password
 from club.models import Activity, Club, Enrollment, Favorite, User
 
 TABLES = (
@@ -82,8 +83,6 @@ def plan_legacy(data):
                     "created_at": s.get("selected_at"),
                 }
             )
-        if not str(s.get("password_hash", "")).startswith(("$2a$", "$2b$", "$2y$")):
-            issues.append({"code": "UNSUPPORTED_PASSWORD_HASH", "student_id": sid})
     count = Counter(e["club_name"] for e in enrolled)
     reserved_count = Counter(e["club_name"] for e in enrolled if e["source"] == "reserved")
     for name, c in clubs.items():
@@ -103,9 +102,7 @@ def plan_legacy(data):
         if c.get("has_major_limit") and not limits[name]:
             issues.append({"code": "EMPTY_MAJOR_RESTRICTION", "club_name": name})
     for a in data["admin_users"]:
-        if a.get("role") not in (1, 2) or not str(a.get("password_hash", "")).startswith(
-            ("$2a$", "$2b$", "$2y$")
-        ):
+        if a.get("role") not in (1, 2):
             issues.append({"code": "INVALID_ADMIN", "admin_id": a.get("admin_id")})
     if not any(a.get("role") == 2 and a.get("is_active") for a in data["admin_users"]):
         issues.append({"code": "NO_ACTIVE_SUPER_ADMIN"})
@@ -138,6 +135,10 @@ async def apply_legacy(db, data, reviewed_fingerprint, timezone="Asia/Shanghai")
         select(func.count()).select_from(Club)
     ):
         raise ValueError("Migration requires empty v2 users and clubs")
+    passwords = {str(s["student_id"]): initial_password(s["name"]) for s in data["students"]}
+    passwords.update(
+        {a["username"]: initial_password(a.get("real_name") or a["username"]) for a in data["admin_users"]}
+    )
     cids, uids = {}, {}
     restrictions = defaultdict(list)
     for r in data["club_major_restrictions"]:
@@ -162,12 +163,12 @@ async def apply_legacy(db, data, reviewed_fingerprint, timezone="Asia/Shanghai")
         new = User(
             username=str(s["student_id"]),
             name=s["name"],
-            password_hash=s["password_hash"],
+            password_plaintext=passwords[str(s["student_id"])],
             role="student",
             major=s["major_name"],
             class_name=s["class_name"],
             active=bool(s["account_status"]),
-            must_change_password=not bool(s["is_pwd_changed"]),
+            must_change_password=True,
             avatar=s.get("avatar") or "",
             phone=s.get("phone") or "",
             email=s.get("email") or "",
@@ -181,7 +182,7 @@ async def apply_legacy(db, data, reviewed_fingerprint, timezone="Asia/Shanghai")
             User(
                 username=a["username"],
                 name=a.get("real_name") or a["username"],
-                password_hash=a["password_hash"],
+                password_plaintext=passwords[a["username"]],
                 role="super_admin" if a["role"] == 2 else "admin",
                 active=bool(a["is_active"]),
                 must_change_password=True,

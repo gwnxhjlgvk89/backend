@@ -34,7 +34,7 @@ async def test_password_work_releases_connection_and_rechecks_account(env, monke
                 if change == "disable":
                     user.active = False
                 else:
-                    user.password_hash = "changed-while-verifying"
+                    user.password_plaintext = "changed-while-verifying"
         release.set()
         response = await task
         assert response.status_code == (401 if change else 200)

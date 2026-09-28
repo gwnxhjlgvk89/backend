@@ -165,6 +165,9 @@ async def test_import_success_and_private_export(env):
     await run_one(app.state.sessions)
     async with app.state.sessions() as db:
         assert (await db.get(Job, jid)).state == "done"
+        user = await db.scalar(select(User).where(User.username == "new1"))
+        assert user.password_plaintext == "SyntheticPass2026!"
+        assert (await db.get(Job, jid)).payload == {}
         assert await consistency(db) == []
     r = await client.post("/api/v1/admin/jobs/export", headers=headers(tokens, 100))
     jid = r.json()["data"]["id"]
@@ -178,6 +181,41 @@ async def test_import_success_and_private_export(env):
     assert (
         await client.get(f"/api/v1/admin/jobs/{jid}/download", headers=headers(tokens, 100))
     ).status_code == 200
+
+
+async def test_old_import_preview_requires_reupload_without_partial_users(env):
+    from club.jobs import upload_cipher
+
+    app, client, tokens = env
+    await pause(client, tokens)
+    common = {"name": "Synthetic", "major": "CS", "class_name": "A", "reserved_club_id": None}
+    async with app.state.sessions() as db, db.begin():
+        job = Job(
+            id="synthetic-old-preview",
+            actor_id=100,
+            kind="import_students",
+            state="queued",
+            payload={
+                "rows": [
+                    {
+                        **common,
+                        "username": "pending-new",
+                        "password_ciphertext": upload_cipher().encrypt(b"SyntheticPass2026!").decode(),
+                    },
+                    {**common, "username": "pending-old", "password_hash": "$argon2id$old-preview"},
+                ]
+            },
+        )
+        db.add(job)
+    await run_one(app.state.sessions)
+    async with app.state.sessions() as db:
+        job = await db.get(Job, "synthetic-old-preview")
+        assert job.state == "failed" and job.payload == {}
+        assert "重新上传" in job.result["message"]
+        assert (
+            await db.scalar(select(func.count()).select_from(User).where(User.username.like("pending-%")))
+            == 0
+        )
 
 
 async def test_hub_deduplicates_events_and_preserves_new_session():

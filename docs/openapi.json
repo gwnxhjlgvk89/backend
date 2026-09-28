@@ -1463,9 +1463,16 @@
             "title": "Name"
           },
           "password": {
-            "type": "string",
-            "maxLength": 72,
-            "minLength": 10,
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 72,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
             "title": "Password"
           },
           "role": {
@@ -1482,8 +1489,7 @@
         "type": "object",
         "required": [
           "username",
-          "name",
-          "password"
+          "name"
         ],
         "title": "AdminInput"
       },
@@ -2086,7 +2092,7 @@
               {
                 "type": "string",
                 "maxLength": 72,
-                "minLength": 10
+                "minLength": 1
               },
               {
                 "type": "null"

@@ -46,7 +46,6 @@ services:
       POOL_SIZE: ${TEST_POOL_SIZE:-15}
       POOL_OVERFLOW: ${TEST_POOL_OVERFLOW:-3}
       READ_POOL_SIZE: 4
-      PASSWORD_CONCURRENCY: ${TEST_PASSWORD_CONCURRENCY:-1}
     depends_on:
       mysql: {condition: service_healthy}
       redis: {condition: service_healthy}

@@ -41,10 +41,9 @@ from club.schemas import (
 from club.security import (
     current_user,
     enrollment_identity,
-    hash_password,
     issue_ticket,
     public_user,
-    password_needs_upgrade,
+    set_password,
     rate_limit,
     student,
     token,
@@ -256,20 +255,15 @@ async def login(body: Login, request: Request):
     u = await request.app.state.login_accounts.get(body.username)
     if not u or not u.active:
         fail(401, "INVALID_CREDENTIALS", "账号或密码错误")
-    verified_hash = u.password_hash
+    verified_plaintext = u.password_plaintext
     uid = u.id
-    # Slow password work (including thread admission) must not hold a DB checkout.
-    if not await verify_password(body.password, verified_hash):
+    if not await verify_password(body.password, verified_plaintext):
         fail(401, "INVALID_CREDENTIALS", "账号或密码错误")
-    upgraded_hash = (
-        await hash_password(body.password) if password_needs_upgrade(verified_hash) else verified_hash
-    )
     async with request.app.state.sessions() as db, db.begin():
         # Re-read after verification: an admin may have disabled/reset this user.
         u = await db.get(User, uid, with_for_update=True)
-        if not u or not u.active or u.password_hash != verified_hash:
+        if not u or not u.active or u.password_plaintext != verified_plaintext:
             fail(401, "INVALID_CREDENTIALS", "账号或密码错误")
-        u.password_hash = upgraded_hash
         u.token_version += 1
         event(db, {"event": "session_revoked", "user_id": u.id, "version": u.token_version})
     return ok({"token": token(u), "user": public_user(u)})
@@ -289,14 +283,14 @@ async def logout(request: Request, user=Depends(current_user)):
 @app.post("/api/v1/auth/password", response_model=Envelope[LoginOutput])
 async def password(body: PasswordChange, request: Request, user=Depends(current_user)):
     await rate_limit(request, "password", user.id, 5, 60)
-    if not await verify_password(body.old_password, user.password_hash):
+    if not await verify_password(body.old_password, user.password_plaintext):
         fail(400, "PASSWORD_INCORRECT", "原密码错误")
-    hashed = await hash_password(body.new_password)
     async with request.app.state.sessions() as db, db.begin():
         u = await db.get(User, user.id, with_for_update=True)
         if u.token_version != user.token_version:
             fail(401, "SESSION_EXPIRED", "登录已失效")
-        u.password_hash, u.must_change_password = hashed, False
+        set_password(u, body.new_password)
+        u.must_change_password = False
         u.token_version += 1
         event(db, {"event": "session_revoked", "user_id": u.id, "version": u.token_version})
     return ok({"token": token(u), "user": public_user(u)})

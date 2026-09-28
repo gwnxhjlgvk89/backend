@@ -4,9 +4,10 @@ from fastapi import APIRouter, Depends, File, Query, Request, UploadFile
 from sqlalchemy import delete, func, or_, select, update
 
 from club.errors import fail
+from club.initial_passwords import initial_password
 from club.models import Activity, Audit, Club, Enrollment, Favorite, Idempotency, Job, User, utcnow
 from club.schemas import ActivityInput, ActivityState, AdminInput, AdminRoleInput, ClubInput, StudentInput
-from club.security import admin, hash_password, public_user, super_admin
+from club.security import admin, set_password, public_user, super_admin
 from club.services import activity_data, club_data, consistency, event, mutable_activity
 
 router = APIRouter(dependencies=[Depends(admin)])
@@ -167,19 +168,19 @@ async def delete_club(club_id: int, request: Request, user=Depends(admin)):
     return {"data": None}
 
 
-async def save_student(db, body, hashed, user_id=None):
+async def save_student(db, body, password, user_id=None):
     u = await db.get(User, user_id, with_for_update=True) if user_id else None
     if user_id and (not u or u.role != "student"):
         fail(404, "NOT_FOUND", "学生不存在")
     if not u:
-        if not hashed:
-            fail(422, "PASSWORD_REQUIRED", "新学生需要初始密码")
-        u = User(role="student", password_hash=hashed)
+        password = password or initial_password(body.name)
+        u = User(role="student")
         db.add(u)
     for key in ("username", "name", "major", "class_name", "active"):
         setattr(u, key, getattr(body, key))
-    if hashed:
-        u.password_hash, u.must_change_password = hashed, True
+    if password:
+        set_password(u, password)
+        u.must_change_password = True
     if user_id:
         u.token_version += 1
         event(db, {"event": "session_revoked", "user_id": u.id, "version": u.token_version})
@@ -209,10 +210,9 @@ async def save_student(db, body, hashed, user_id=None):
 
 @router.post("/students")
 async def create_student(body: StudentInput, request: Request, user=Depends(admin)):
-    hashed = await hash_password(body.password) if body.password else None
     async with request.app.state.sessions() as db, db.begin():
         await mutable_activity(db)
-        u = await save_student(db, body, hashed)
+        u = await save_student(db, body, body.password)
         audit(db, user, "student.create", u.id)
         changed(db)
     return {"data": public_user(u)}
@@ -220,10 +220,9 @@ async def create_student(body: StudentInput, request: Request, user=Depends(admi
 
 @router.put("/students/{user_id}")
 async def edit_student(user_id: int, body: StudentInput, request: Request, user=Depends(admin)):
-    hashed = await hash_password(body.password) if body.password else None
     async with request.app.state.sessions() as db, db.begin():
         await mutable_activity(db)
-        u = await save_student(db, body, hashed, user_id)
+        u = await save_student(db, body, body.password, user_id)
         audit(db, user, "student.update", u.id)
         changed(db)
     return {"data": public_user(u)}
@@ -255,9 +254,13 @@ async def delete_student(user_id: int, request: Request, user=Depends(admin)):
 
 @router.post("/administrators")
 async def create_admin(body: AdminInput, request: Request, user=Depends(super_admin)):
-    hashed = await hash_password(body.password)
     async with request.app.state.sessions() as db, db.begin():
-        u = User(username=body.username, name=body.name, password_hash=hashed, role=body.role)
+        u = User(
+            username=body.username,
+            name=body.name,
+            password_plaintext=body.password or initial_password(body.name),
+            role=body.role,
+        )
         db.add(u)
         await db.flush()
         audit(db, user, "admin.create", u.id, {"role": u.role})

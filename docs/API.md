@@ -19,10 +19,12 @@
 
 WebSocket `/api/v1/ws?ticket=...` 使用登录后申请的30秒一次性票据，不把长期Token放URL。`quota_delta` 为新版紧凑批次，`rows` 是 `[club_id,remaining,version]` 三元组数组；批次带 `event_id` 与整数Unix毫秒 `t`（批次最早入队）、`p`（发布），用于保守测量延迟。客户端保留对早期 `quota` / `quotas.items` 对象事件的兼容；后端紧凑协议必须搭配支持 `quota_delta` 的前端提交。客户端忽略较小版本；`activity/catalog/enrollment/resync` 提示获取权威状态。`ping/pong` 心跳；每进程每10秒批量核对当前连接的数据库账号状态及会话版本，Pub/Sub即时撤销作为快路径，连续校验失败会断开重连，账号撤销会关闭连接；断线重新申请票据并同步快照。
 
-服务端 OpenAPI 为最新字段依据：`/api/v1/openapi.json`，交互文档 `/api/v1/docs`。公开响应使用字段白名单和显式模型；不输出密码哈希和会话版本。
+服务端 OpenAPI 为最新字段依据：`/api/v1/openapi.json`，交互文档 `/api/v1/docs`。公开响应使用字段白名单和显式模型；不输出任何密码字段和会话版本。
 
 头像功能已取消：公开用户字段不再包含avatar；原上传和本地头像媒体路由返回404。数据库历史字段/文件保留供后续审核清理。小程序以姓名首字绘制圆形文字头像，不发起图片请求。
 
 公网带宽优化：名额增量每1秒合并一次，个人状态/会话事件仍按250ms投递循环处理。延迟中的名额事件保留在MySQL outbox，发布成功后才标记完成；报名HTTP响应不等待广播。
 
 本次交付字段快照：[openapi.json](openapi.json)。开发中的最终字段以同版本服务生成的OpenAPI为准。
+
+账号创建的 `password` 可省略或为 null，默认姓名小写拼音；显式初始密码为1–72字符且UTF-8不超过72字节。学生编辑密码留空表示不修改。用户改密的新密码仍至少10字符，见 `PASSWORDS.md`。

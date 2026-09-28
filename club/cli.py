@@ -1,15 +1,14 @@
 import argparse
 import asyncio
-import getpass
 from datetime import timedelta
 import json
 
 from sqlalchemy import func, select
 
 from club.config import settings
+from club.initial_passwords import initial_password
 from club.db import make_engine, sessions
 from club.models import Activity, Club, User, utcnow
-from club.security import hash_password
 from club.services import consistency
 
 
@@ -22,15 +21,13 @@ async def main(args):
                 if not await db.get(Activity, 1):
                     db.add(Activity(id=1))
             elif args.action == "admin":
-                password = getpass.getpass("管理员初始密码（至少10位）: ")
-                if len(password) < 10 or len(password.encode()) > 72:
-                    raise SystemExit("Invalid password length")
+                password = initial_password(args.name)
                 db.add(
                     User(
                         username=args.username,
-                        name="管理员",
+                        name=args.name,
                         role="super_admin",
-                        password_hash=await hash_password(password),
+                        password_plaintext=password,
                     )
                 )
             elif args.action == "seed":
@@ -38,13 +35,12 @@ async def main(args):
                     raise SystemExit("Seeding production is forbidden")
                 if await db.scalar(select(func.count()).select_from(User)):
                     raise SystemExit("Seed requires an empty v2 database; existing data was not changed")
-                hashed = await hash_password("ClubDemo2026!")
                 db.add(
                     User(
                         username="admin",
                         name="本地管理员",
                         role="super_admin",
-                        password_hash=hashed,
+                        password_plaintext="ClubDemo2026!",
                         must_change_password=False,
                     )
                 )
@@ -56,7 +52,7 @@ async def main(args):
                             role="student",
                             major="计算机",
                             class_name="测试一班",
-                            password_hash=hashed,
+                            password_plaintext="ClubDemo2026!",
                             must_change_password=False,
                         )
                     )
@@ -97,4 +93,5 @@ if __name__ == "__main__":
     p.add_argument("action", choices=["init", "seed", "admin", "check"])
     p.add_argument("--students", type=int, default=1500)
     p.add_argument("--username", default="admin")
+    p.add_argument("--name", default="管理员")
     asyncio.run(main(p.parse_args()))

@@ -16,19 +16,10 @@ DB_QUERY = Histogram(
 )
 CONNECTIONS = Gauge("club_ws_connections", "Current WebSocket connections", multiprocess_mode="livesum")
 LOOP_LAG = Gauge("club_event_loop_lag_seconds", "Event loop scheduling delay", multiprocess_mode="livemax")
-PASSWORD_WAIT = Histogram(
-    "club_password_wait_seconds", "Password work admission wait", buckets=(0.01, 0.1, 0.3, 1, 2, 3, 5, 10, 30)
-)
 READ_POOL_WAIT = Histogram(
     "club_read_pool_wait_seconds",
     "Identity read pool admission wait",
     buckets=(0.001, 0.005, 0.01, 0.05, 0.1, 0.3, 1, 2, 3, 5),
-)
-PASSWORD_EXECUTION = Histogram(
-    "club_password_execution_seconds",
-    "Password task duration including executor and event-loop scheduling",
-    ["operation"],
-    buckets=(0.005, 0.01, 0.025, 0.05, 0.1, 0.3, 1),
 )
 
 
@@ -49,11 +40,3 @@ def after_cursor(conn, cursor, statement, parameters, context, executemany):
     DB_QUERY.labels(verb if verb in {"SELECT", "INSERT", "UPDATE", "DELETE"} else "OTHER").observe(
         time.perf_counter() - context.club_started
     )
-
-
-PASSWORD_NATIVE = Histogram(
-    "club_password_native_seconds",
-    "Password function duration inside its native worker thread",
-    ["operation"],
-    buckets=(0.005, 0.01, 0.025, 0.05, 0.1, 0.3, 1),
-)

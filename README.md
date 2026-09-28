@@ -43,3 +43,5 @@ cp .env.example .env
 管理员说明：[docs/ADMIN.md](docs/ADMIN.md)；接口：[docs/API.md](docs/API.md)；迁移与回滚：[docs/OPERATIONS.md](docs/OPERATIONS.md)。
 
 最新现有环境实测结论、通过项及未达标项：[容量验收摘要](docs/CURRENT_ACCEPTANCE.md)。本项目尚未完成生产容量验收。
+
+密码规则更新：新建账号留空初始密码时使用姓名全小写拼音；已有库升级0004会重置所有账号并要求首次改密。上面的固定演示密码仅适用于重新执行合成 seed 创建的数据，不适用于已迁移账号。迁移和回滚边界见 [PASSWORDS.md](docs/PASSWORDS.md)。

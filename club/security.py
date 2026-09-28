@@ -1,13 +1,8 @@
-import asyncio
 import hashlib
 import secrets
-import time
 from types import SimpleNamespace
 from datetime import datetime, timedelta, timezone
 
-import bcrypt
-from argon2 import PasswordHasher, Type, extract_parameters
-from argon2.exceptions import InvalidHashError, VerificationError
 import jwt
 from fastapi import Depends, Request
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
@@ -16,68 +11,16 @@ from redis.exceptions import RedisError
 from club.config import settings
 from club.errors import fail
 from club.models import User
-from club.metrics import PASSWORD_EXECUTION, PASSWORD_WAIT, PASSWORD_NATIVE
 
 bearer = HTTPBearer(auto_error=False)
-password_slots = asyncio.Semaphore(settings().password_concurrency)
-# OWASP-listed tradeoff: 7 MiB, five passes, one lane. Bcrypt remains readable.
-password_hasher = PasswordHasher(time_cost=5, memory_cost=7168, parallelism=1, type=Type.ID)
 
 
-async def password_work(operation, function, *args):
-    waiting = time.monotonic()
-    await password_slots.acquire()
-    PASSWORD_WAIT.observe(time.monotonic() - waiting)
-    started = time.monotonic()
-
-    def native():
-        native_started = time.monotonic()
-        try:
-            return function(*args)
-        finally:
-            PASSWORD_NATIVE.labels(operation).observe(time.monotonic() - native_started)
-
-    task = asyncio.create_task(asyncio.to_thread(native))
-
-    def completed(done):
-        if not done.cancelled():
-            done.exception()  # Retrieve errors even if the HTTP task was cancelled.
-        PASSWORD_EXECUTION.labels(operation).observe(time.monotonic() - started)
-        password_slots.release()
-
-    task.add_done_callback(completed)
-    # Cancellation cannot release the slot while its native thread is still working.
-    return await asyncio.shield(task)
+def set_password(user: User, value: str):
+    user.password_plaintext = value
 
 
-async def hash_password(value: str):
-    return await password_work("argon2_hash", password_hasher.hash, value)
-
-
-async def verify_password(value: str, hashed: str):
-    try:
-        if hashed.startswith("$argon2id$"):
-            return await password_work("argon2_verify", password_hasher.verify, hashed, value)
-        if hashed.startswith(("$2a$", "$2b$", "$2y$")):
-            return await password_work("bcrypt_verify", bcrypt.checkpw, value.encode(), hashed.encode())
-        return False
-    except (ValueError, InvalidHashError, VerificationError):
-        return False
-
-
-def password_needs_upgrade(hashed):
-    if not hashed.startswith("$argon2id$"):
-        return True
-    parameters = extract_parameters(hashed)
-    # Keep existing OWASP-listed or stronger profiles; never demote a stronger hash.
-    profiles = ((47104, 1), (19456, 2), (12288, 3), (9216, 4), (7168, 5))
-    return (
-        parameters.hash_len < 32
-        or parameters.salt_len < 16
-        or not any(
-            parameters.memory_cost >= memory and parameters.time_cost >= passes for memory, passes in profiles
-        )
-    )
+async def verify_password(value: str, plaintext: str):
+    return secrets.compare_digest(value.encode("utf-8"), plaintext.encode("utf-8"))
 
 
 def token(user: User):

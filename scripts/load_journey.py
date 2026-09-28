@@ -148,7 +148,7 @@ async def run(args):
             raise RuntimeError("Test service did not become ready")
         await fixture(args, "check")
         code = "from pathlib import Path; import hashlib; f=sorted(Path('club').glob('*.py')); print(hashlib.sha256(b''.join(p.name.encode()+bytes([0])+p.read_bytes() for p in f)).hexdigest())"
-        selected = "import json; from club.config import settings; from club.security import password_hasher; s=settings(); v={k:getattr(s,k) for k in ('password_concurrency','pool_size','pool_overflow','read_pool_size')}; v['argon2id']={'memory_kib':password_hasher.memory_cost,'passes':password_hasher.time_cost,'parallelism':password_hasher.parallelism}; print(json.dumps(v))"
+        selected = "import json; from club.config import settings; from club.models import User; assert hasattr(User,'password_plaintext') and not hasattr(User,'password_hash'), 'Deploy plaintext-only TEST build before using this driver'; s=settings(); v={k:getattr(s,k) for k in ('pool_size','pool_overflow','read_pool_size')}; v['password_storage']='plaintext'; print(json.dumps(v))"
         report["runtime_settings"] = json.loads(
             await ssh(args, "podman exec club-capacity-test_api_1 python -c " + shlex.quote(selected))
         )
