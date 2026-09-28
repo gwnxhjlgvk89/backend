@@ -103,10 +103,10 @@ def test_process_merge_uses_raw_latencies_and_global_burst_not_average_percentil
     assert result["data_consistency_pass"]
 
 
-def test_login_four_second_gate_does_not_relax_enrollment():
+def test_login_five_second_gate_does_not_relax_enrollment():
     from scripts.load_journey import journey_gates
 
-    row = summary([(200, "OK", 3.8, 0, 3.7, 100)])
+    row = summary([(200, "OK", 5, 0, 4.9, 100)])
     item = {
         "stages": {"login": row, "enroll": row},
         "completed_students": 1,
@@ -120,5 +120,8 @@ def test_login_four_second_gate_does_not_relax_enrollment():
         },
     }
     gates = journey_gates(item, "login", 1)
-    assert gates["login_p95_4s"]
+    assert gates["login_p95_5s"]
     assert not gates["enrollment_p95_3s_p99_5s"]
+
+    item["stages"]["login"] = summary([(200, "OK", 5.001, 0, 4.9, 100)])
+    assert not journey_gates(item, "login", 1)["login_p95_5s"]

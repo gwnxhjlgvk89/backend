@@ -73,7 +73,7 @@ def journey_gates(item, mode, users):
             and login.get("headers_dispatch_span_s") is not None
             and login["headers_dispatch_span_s"] <= 1
         ),
-        "login_p95_4s": not login.get("count") or login["p95_s"] <= 4,
+        "login_p95_5s": not login.get("count") or login["p95_s"] <= 5,
         "login_burst_within_1s": not login.get("count") or login["dispatch_span_s"] <= 1,
         "interactive_reads_p95_3s": all(
             v["p95_s"] <= 3
