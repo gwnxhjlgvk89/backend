@@ -1,0 +1,24 @@
+"""Bounded synthetic download; counts actual payload bytes, discards content."""
+import json,subprocess,sys,time,selectors,os,statistics
+size=64*1024*1024; rounds=[]
+for i in range(3):
+ start=time.monotonic(); count=0; timed_out=False
+ p=subprocess.Popen(['ssh','-S',sys.argv[1],'-o','BatchMode=yes','ubuntu@43.142.19.144',f'head -c {size} /dev/urandom'],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+ sel=selectors.DefaultSelector();sel.register(p.stdout,selectors.EVENT_READ)
+ while True:
+  remaining=30-(time.monotonic()-start)
+  if remaining<=0:timed_out=True;break
+  events=sel.select(min(1,remaining))
+  if not events:continue
+  block=os.read(p.stdout.fileno(),262144)
+  if not block:break
+  count+=len(block)
+ elapsed=time.monotonic()-start
+ if timed_out:p.terminate()
+ try:p.wait(timeout=5)
+ except subprocess.TimeoutExpired:p.kill();p.wait()
+ sel.close();p.stdout.close();error=p.stderr.read().decode();p.stderr.close()
+ rounds.append({'round':i+1,'received_bytes':count,'requested_bytes':size,'seconds':elapsed,'mbps':count*8/elapsed/1e6,'complete':count==size and p.returncode==0,'timed_out':timed_out,'exit_code':p.returncode,'stderr':error[:300]})
+ if not rounds[-1]['complete']:break
+ time.sleep(1)
+print(json.dumps({'origin':sys.argv[2],'epoch':time.time(),'method':'64MiB random incompressible bytes per round via existing SSH control; counted and discarded; 30-second deadline; up to three sequential rounds; SSH/protocol overhead included','rounds':rounds,'median_mbps':statistics.median(r['mbps'] for r in rounds)},indent=2))

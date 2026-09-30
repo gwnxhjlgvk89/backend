@@ -1,0 +1,141 @@
+{
+  "recorded_at": "2026-09-30T03:28:42.029093+00:00",
+  "scope": "Native single-thread synthetic CPU probe; no HTTP or database workload",
+  "cpu_model": "AMD EPYC 7K62 48-Core Processor",
+  "kernel": "5.15.0-190-generic",
+  "allowed_cpus_before": [
+    0,
+    1,
+    2,
+    3
+  ],
+  "pinned_cpu": 1,
+  "nice": 19,
+  "binary_sha256": "8532b7bd4e812c83eb9f762c8c1694c23cbfa00a5ca7fe08a7584014b957d1d3",
+  "native_packages": "libc6 2.35-0ubuntu3.13",
+  "argon_library_sha256": "3c593c01d1c3497b1276537a1002c90ce3beb729a3520087608838cf8bbd847d",
+  "before": {
+    "load": [
+      0.00390625,
+      0.119140625,
+      0.09423828125
+    ],
+    "cpu_stat": [
+      "cpu  5306 723 3493 209905 2234 0 166 0 0 0",
+      "cpu0 1824 290 806 51759 702 0 47 0 0 0",
+      "cpu1 1481 189 885 52404 467 0 32 0 0 0",
+      "cpu2 1046 132 851 52927 479 0 37 0 0 0",
+      "cpu3 954 111 949 52813 584 0 49 0 0 0"
+    ],
+    "memory": {
+      "MemTotal": 7931212,
+      "MemAvailable": 7368048,
+      "SwapTotal": 0,
+      "SwapFree": 0
+    },
+    "cpu_pressure": "some avg10=0.00 avg60=0.00 avg300=0.10 total=2894543\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=0"
+  },
+  "baseline": {
+    "load": [
+      0.00390625,
+      0.119140625,
+      0.09423828125
+    ],
+    "cpu_stat": [
+      "cpu  5306 723 3494 210303 2234 0 166 0 0 0",
+      "cpu0 1824 290 807 51859 703 0 47 0 0 0",
+      "cpu1 1481 189 885 52504 467 0 32 0 0 0",
+      "cpu2 1047 132 851 53027 479 0 37 0 0 0",
+      "cpu3 954 111 950 52913 584 0 49 0 0 0"
+    ],
+    "memory": {
+      "MemTotal": 7931212,
+      "MemAvailable": 7368056,
+      "SwapTotal": 0,
+      "SwapFree": 0
+    },
+    "cpu_pressure": "some avg10=0.00 avg60=0.00 avg300=0.10 total=2895256\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=0"
+  },
+  "after": {
+    "load": [
+      0.1513671875,
+      0.14599609375,
+      0.10302734375
+    ],
+    "cpu_stat": [
+      "cpu  5324 1925 3511 216265 2236 0 178 0 0 0",
+      "cpu0 1828 290 811 53648 703 0 56 0 0 0",
+      "cpu1 1483 1391 886 53100 467 0 32 0 0 0",
+      "cpu2 1052 132 858 54815 479 0 40 0 0 0",
+      "cpu3 959 111 955 54701 585 0 50 0 0 0"
+    ],
+    "memory": {
+      "MemTotal": 7931212,
+      "MemAvailable": 7364348,
+      "SwapTotal": 0,
+      "SwapFree": 0
+    },
+    "cpu_pressure": "some avg10=0.00 avg60=0.00 avg300=0.10 total=2902484\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=0"
+  },
+  "benchmark": {
+    "round_seconds": 2,
+    "rounds": 3,
+    "argon2id": {
+      "memory_kib": 7168,
+      "passes": 5,
+      "parallelism": 1
+    },
+    "samples": [
+      {
+        "round": 1,
+        "workload": "integer_dependency_chain",
+        "count": 646100000,
+        "wall_s": 2.00008,
+        "cpu_s": 1.999979,
+        "per_second": 323037029.901727
+      },
+      {
+        "round": 1,
+        "workload": "argon2id",
+        "count": 102,
+        "wall_s": 2.013759,
+        "cpu_s": 2.013693,
+        "per_second": 50.651538
+      },
+      {
+        "round": 2,
+        "workload": "integer_dependency_chain",
+        "count": 646200000,
+        "wall_s": 2.000109,
+        "cpu_s": 2.000074,
+        "per_second": 323082371.010417
+      },
+      {
+        "round": 2,
+        "workload": "argon2id",
+        "count": 102,
+        "wall_s": 2.00295,
+        "cpu_s": 2.002909,
+        "per_second": 50.924893
+      },
+      {
+        "round": 3,
+        "workload": "integer_dependency_chain",
+        "count": 645700000,
+        "wall_s": 2.00016,
+        "cpu_s": 2.000139,
+        "per_second": 322824148.403614
+      },
+      {
+        "round": 3,
+        "workload": "argon2id",
+        "count": 102,
+        "wall_s": 2.00415,
+        "cpu_s": 2.004111,
+        "per_second": 50.894402
+      }
+    ],
+    "integer_checksum": "234548981112727460",
+    "synthetic_argon_digest": "20c244f5aba992a8870449335a0c8c8b3efb1beba43af9f91518ff748c39d40e"
+  }
+}
