@@ -47,6 +47,9 @@ def main():
         raise SystemExit("Existing club database user found")
     if not (RELEASE / ".venv/bin/python").exists():
         raise SystemExit("Fixed release and Python dependencies must exist first")
+    commands = subprocess.check_output(["redis-cli", "--raw", "COMMAND", "INFO", "GETDEL"], text=True)
+    if "getdel" not in commands.splitlines():
+        raise SystemExit("Redis GETDEL support is required (Redis >=6.2); upgrade before provisioning")
 
     run(["install", "-d", "-m", "700", "/etc/club"])
     if subprocess.run(["id", "club"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL).returncode:
