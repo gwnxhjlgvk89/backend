@@ -22,7 +22,33 @@ except ModuleNotFoundError:
     from load_remote import fixture, ssh
 
 
+def driver_command(args):
+    try:
+        from scripts.load_native import enabled, target
+    except ModuleNotFoundError:
+        from load_native import enabled, target
+    native = enabled()
+    if native:
+        target(args)  # Validate before preparing or resetting any fixture.
+    elif not args.ca_cert:
+        raise ValueError("The isolated container target requires its explicit CA")
+    command = [
+        sys.executable,
+        str(Path(__file__).with_name("load_distributed_journey.py" if native else "run_journey_case.py")),
+        "--url", args.url, "--ssh", args.ssh, "--control", args.control,
+        "--users", "1500", "--processes", "3", "--mode", "login",
+        "--rounds", "1", "--hold-seconds", "45", "--first-password-change",
+        "--report", args.report,
+    ]
+    if args.ca_cert:
+        command += ["--ca-cert", args.ca_cert]
+    if not native:
+        command += ["--cpus", "16", "--mbps", "50"]
+    return command
+
+
 async def main(args):
+    command = driver_command(args)
     report = Path(args.report)
     report.parent.mkdir(parents=True, exist_ok=True)
     proof = report.with_name(report.stem + "-first-login-fixture.json")
@@ -62,35 +88,6 @@ asyncio.run(f())""".replace("REQUIRED", repr(required))
         await set_required(True)
         status["prepared"] = True
         proof.write_text(json.dumps(status, indent=2) + "\n")
-        command = [
-            sys.executable,
-            str(Path(__file__).with_name("run_journey_case.py")),
-            "--url",
-            args.url,
-            "--ca-cert",
-            args.ca_cert,
-            "--ssh",
-            args.ssh,
-            "--control",
-            args.control,
-            "--cpus",
-            "16",
-            "--mbps",
-            "50",
-            "--users",
-            "1500",
-            "--processes",
-            "3",
-            "--mode",
-            "login",
-            "--rounds",
-            "1",
-            "--hold-seconds",
-            "45",
-            "--first-password-change",
-            "--report",
-            args.report,
-        ]
         child = await asyncio.create_subprocess_exec(*command, start_new_session=True)
         if await child.wait():
             raise RuntimeError("First-login driver failed; evidence retained")
@@ -124,7 +121,7 @@ asyncio.run(f())""".replace("REQUIRED", repr(required))
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--url", required=True)
-    parser.add_argument("--ca-cert", required=True)
+    parser.add_argument("--ca-cert")
     parser.add_argument("--report", required=True)
     parser.add_argument("--ssh", default="gg1214@192.168.100.130")
     parser.add_argument("--control", default="/private/tmp/club-test-ssh")
