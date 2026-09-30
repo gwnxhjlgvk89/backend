@@ -49,7 +49,7 @@ from club.security import (
     token,
     verify_password,
 )
-from club.services import CLUB_KEYS, club_data, enrollment_data, event, iso, mutate_enrollment
+from club.services import CLUB_KEYS, enrollment_data, event, iso, mutate_enrollment
 
 install()
 logger = logging.getLogger("club")
@@ -68,6 +68,7 @@ async def lifespan(app):
     app.state.engine = make_engine()
     app.state.sessions = sessions(app.state.engine)
     app.state.catalog_lock = asyncio.Lock()
+    app.state.catalog_local = None
     # Enrollment transactions queue here, bounded below the write pool so login
     # and other writes keep the overflow connections.
     app.state.enrollment_slots = asyncio.Semaphore(s.pool_size)
@@ -151,17 +152,20 @@ class Observe:
                 headers["X-Request-ID"] = request_id
                 headers["Server-Timing"] = f"app;dur={elapsed * 1000:.2f}"
                 headers["Cache-Control"] = "no-store"
-                logger.info(
-                    json.dumps(
-                        {
-                            "request_id": request_id,
-                            "route": route,
-                            "method": scope["method"],
-                            "status": status,
-                            "ms": round(elapsed * 1000),
-                        }
+                # nginx keeps the full access log; per-request journal writes cost
+                # measurable CPU during the opening burst, so keep only outliers.
+                if status >= 500 or elapsed >= 1:
+                    logger.warning(
+                        json.dumps(
+                            {
+                                "request_id": request_id,
+                                "route": route,
+                                "method": scope["method"],
+                                "status": status,
+                                "ms": round(elapsed * 1000),
+                            }
+                        )
                     )
-                )
             await send(message)
 
         await self.app(scope, receive, observed_send)
@@ -306,32 +310,54 @@ async def ws_ticket(request: Request, user=Depends(current_user)):
     return ok({"ticket": await issue_ticket(request, user)})
 
 
-async def clubs_cached(request):
+CATALOG_COLUMNS = [getattr(Club, k) for k in CLUB_KEYS if k not in {"remaining", "version"}]
+# Club fields change only while registration is closed (admin edits require it),
+# so a few seconds of per-process reuse cannot serve a stale catalog mid-burst.
+CATALOG_LOCAL_SECONDS = 5
+
+
+def raw_json(body: str):
+    # Hot read endpoints are assembled as JSON text: the response_model stays
+    # for documentation, but returning a Response skips re-validating it.
+    return Response(body, media_type="application/json")
+
+
+def dumps(value):
+    return json.dumps(value, ensure_ascii=False, separators=(",", ":"))
+
+
+async def catalog_json(request):
+    """The active catalog as a JSON array string, reused without re-parsing."""
+    state = request.app.state
+    cached = getattr(state, "catalog_local", None)
+    if cached and time.monotonic() - cached[0] < CATALOG_LOCAL_SECONDS:
+        return cached[1]
     key = f"{settings().redis_prefix}:catalog"
     try:
-        value = await request.app.state.redis.get(key)
-        if value:
-            return json.loads(value)
+        value = await state.redis.get(key)
     except RedisError:
-        pass
-    # Coalesce a cold catalog miss within each process; quota reads stay separate.
-    async with request.app.state.catalog_lock:
-        try:
-            value = await request.app.state.redis.get(key)
-            if value:
-                return json.loads(value)
-        except RedisError:
-            pass
-        async with request.app.state.read_sessions() as db:
-            rows = list((await db.scalars(select(Club).where(Club.active.is_(True)).order_by(Club.id))).all())
-            data = [
-                {k: v for k, v in club_data(c).items() if k not in {"remaining", "version"}} for c in rows
-            ]
-        try:
-            await request.app.state.redis.set(key, json.dumps(data), ex=60)
-        except RedisError:
-            pass
-        return data
+        value = None
+    if not value:
+        # Coalesce a cold catalog miss within each process; quota reads stay separate.
+        async with state.catalog_lock:
+            try:
+                value = await state.redis.get(key)
+            except RedisError:
+                value = None
+            if not value:
+                async with state.read_sessions() as db:
+                    rows = (
+                        await db.execute(
+                            select(*CATALOG_COLUMNS).where(Club.active.is_(True)).order_by(Club.id)
+                        )
+                    ).all()
+                value = dumps([row._asdict() for row in rows])
+                try:
+                    await state.redis.set(key, value, ex=60)
+                except RedisError:
+                    pass
+    state.catalog_local = (time.monotonic(), value)
+    return value
 
 
 async def quota_snapshot(request):
@@ -343,19 +369,14 @@ async def quota_snapshot(request):
 @app.get("/api/v1/bootstrap", response_model=Envelope[BootstrapOutput])
 async def bootstrap(request: Request, user=Depends(current_user)):
     snapshot = await request.app.state.bootstrap_reads.get(user.id)
-    return ok(
-        {
-            "user": public_user(user),
-            "server_time": iso(utcnow()),
-            "clubs": await clubs_cached(request),
-            **snapshot,
-        }
-    )
+    catalog = await catalog_json(request)
+    personal = dumps({"user": public_user(user), "server_time": iso(utcnow()), **snapshot})
+    return raw_json('{"data":' + personal[:-1] + ',"clubs":' + catalog + "}}")
 
 
 @app.get("/api/v1/clubs/quotas", response_model=Envelope[list[QuotaOutput]])
 async def quotas(request: Request, user=Depends(current_user)):
-    return ok(await quota_snapshot(request))
+    return raw_json(dumps(ok(await quota_snapshot(request))))
 
 
 DETAIL_COLUMNS = [getattr(Club, k) for k in CLUB_KEYS + ("description",)]
@@ -367,7 +388,7 @@ async def detail(club_id: int, request: Request, user=Depends(current_user)):
         club = (await db.execute(select(*DETAIL_COLUMNS).where(Club.id == club_id))).first()
     if not club or not club.active:
         fail(404, "CLUB_NOT_FOUND", "社团不存在")
-    return ok(club._asdict())
+    return raw_json(dumps(ok(club._asdict())))
 
 
 @app.put("/api/v1/favorites/{club_id}")

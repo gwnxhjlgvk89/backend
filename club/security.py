@@ -1,5 +1,6 @@
 import hashlib
 import secrets
+import time
 from types import SimpleNamespace
 from datetime import datetime, timedelta, timezone
 
@@ -38,7 +39,24 @@ def token(user: User):
     )
 
 
+# Verified claims keyed by the exact token string. Every request re-presents the
+# same few thousand tokens; a hit still enforces expiry below.
+VERIFIED = {}
+VERIFIED_LIMIT = 8192
+
+
 def claims(value):
+    cached = VERIFIED.get(value)
+    if cached and cached["exp"] > time.time():
+        return cached
+    data = decode(value)
+    if len(VERIFIED) >= VERIFIED_LIMIT:
+        VERIFIED.pop(next(iter(VERIFIED)))
+    VERIFIED[value] = data
+    return data
+
+
+def decode(value):
     try:
         return jwt.decode(
             value,

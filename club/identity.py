@@ -89,5 +89,7 @@ class IdentityReader(BatchReader):
                 await db.connection()
             finally:
                 READ_POOL_WAIT.observe(time.monotonic() - waiting)
-            rows = (await db.scalars(select(User).where(self.column.in_(keys)))).all()
+            # Plain rows expose the same attributes without building ORM
+            # instances for every account in a login or bootstrap burst.
+            rows = (await db.execute(select(User.__table__).where(self.column.in_(keys)))).all()
             return {getattr(row, self.column.key): row for row in rows}
