@@ -1,0 +1,1044 @@
+{
+  "generator": "apple4@10.77.0.14 (Wi-Fi, proxy stopped, direct via company gateway)",
+  "target": "43.142.19.144 4 vCPU/8GiB, 4 API workers",
+  "application_commit": "53fc191af98204305294a583f2a1f87bd554315c",
+  "pools": {
+    "POOL_SIZE": 12,
+    "POOL_OVERFLOW": 3,
+    "READ_POOL_SIZE": 8
+  },
+  "cases": [
+    {
+      "case": "smoke",
+      "completed": 30,
+      "db_enrollments": 30,
+      "data_consistency_pass": true,
+      "outcomes": {
+        "enroll_http_200": 30
+      },
+      "websocket": {
+        "open_at_end": 30,
+        "unexpected_close": 0,
+        "notification_p95_s": 0.6041
+      },
+      "failed_gates": [],
+      "stages": {
+        "active_detail": {
+          "statuses": {
+            "200:OK": 24
+          },
+          "p50_s": 0.0279,
+          "p95_s": 0.0541,
+          "p99_s": 0.0655,
+          "server_p95_s": 0.0063,
+          "connect_tls_p95_s": null
+        },
+        "periodic_quotas": {
+          "statuses": {
+            "200:OK": 12
+          },
+          "p50_s": 0.0291,
+          "p95_s": 0.0774,
+          "p99_s": 0.0774,
+          "server_p95_s": 0.0054,
+          "connect_tls_p95_s": null
+        },
+        "burst_bootstrap": {
+          "statuses": {
+            "200:OK": 30
+          },
+          "p50_s": 0.04,
+          "p95_s": 0.0571,
+          "p99_s": 0.0574,
+          "server_p95_s": 0.0113,
+          "connect_tls_p95_s": null
+        },
+        "detail": {
+          "statuses": {
+            "200:OK": 30
+          },
+          "p50_s": 0.0299,
+          "p95_s": 0.0562,
+          "p99_s": 0.0695,
+          "server_p95_s": 0.0107,
+          "connect_tls_p95_s": null
+        },
+        "enroll": {
+          "statuses": {
+            "200:OK": 30
+          },
+          "p50_s": 0.0308,
+          "p95_s": 0.04,
+          "p99_s": 0.0407,
+          "server_p95_s": 0.0148,
+          "connect_tls_p95_s": null
+        },
+        "journey": {
+          "statuses": {
+            "200:COMPLETE": 30
+          },
+          "p50_s": 5.3305,
+          "p95_s": 5.34,
+          "p99_s": 5.3406,
+          "server_p95_s": null,
+          "connect_tls_p95_s": null
+        },
+        "event_enrollment": {
+          "statuses": {
+            "200:OK": 30
+          },
+          "p50_s": 0.0256,
+          "p95_s": 0.0313,
+          "p99_s": 0.0337,
+          "server_p95_s": 0.0111,
+          "connect_tls_p95_s": null
+        },
+        "login": {
+          "statuses": {},
+          "p50_s": null,
+          "p95_s": null,
+          "p99_s": null,
+          "server_p95_s": null,
+          "connect_tls_p95_s": null
+        }
+      }
+    },
+    {
+      "case": "cold",
+      "completed": 1500,
+      "db_enrollments": 1500,
+      "data_consistency_pass": true,
+      "outcomes": {
+        "enroll_http_200": 1500
+      },
+      "websocket": {
+        "open_at_end": 1500,
+        "unexpected_close": 0,
+        "notification_p95_s": 0.8435
+      },
+      "failed_gates": [
+        "enrollment_p95_3s_p99_5s"
+      ],
+      "stages": {
+        "login": {
+          "statuses": {
+            "200:OK": 1500
+          },
+          "p50_s": 1.826,
+          "p95_s": 4.9554,
+          "p99_s": 6.67,
+          "server_p95_s": 0.631,
+          "connect_tls_p95_s": 4.4966
+        },
+        "ws_ticket": {
+          "statuses": {
+            "200:OK": 1500
+          },
+          "p50_s": 0.7634,
+          "p95_s": 1.4708,
+          "p99_s": 2.6531,
+          "server_p95_s": 1.0919,
+          "connect_tls_p95_s": null
+        },
+        "ws_connect": {
+          "statuses": {
+            "101:OK": 1500
+          },
+          "p50_s": 0.4827,
+          "p95_s": 1.2025,
+          "p99_s": 2.5413,
+          "server_p95_s": null,
+          "connect_tls_p95_s": null
+        },
+        "event_bootstrap": {
+          "statuses": {
+            "200:OK": 1449
+          },
+          "p50_s": 0.4537,
+          "p95_s": 1.8088,
+          "p99_s": 2.6633,
+          "server_p95_s": 0.4927,
+          "connect_tls_p95_s": 1.0514
+        },
+        "detail": {
+          "statuses": {
+            "200:OK": 1500
+          },
+          "p50_s": 0.1914,
+          "p95_s": 0.5998,
+          "p99_s": 1.9719,
+          "server_p95_s": 0.3004,
+          "connect_tls_p95_s": null
+        },
+        "bootstrap": {
+          "statuses": {
+            "200:OK": 76
+          },
+          "p50_s": 0.4137,
+          "p95_s": 2.5749,
+          "p99_s": 2.9667,
+          "server_p95_s": 0.7069,
+          "connect_tls_p95_s": 0.8011
+        },
+        "enroll": {
+          "statuses": {
+            "200:OK": 1500
+          },
+          "p50_s": 1.784,
+          "p95_s": 3.8383,
+          "p99_s": 4.0085,
+          "server_p95_s": 2.2138,
+          "connect_tls_p95_s": null
+        },
+        "journey": {
+          "statuses": {
+            "200:COMPLETE": 1500
+          },
+          "p50_s": 7.6737,
+          "p95_s": 9.4319,
+          "p99_s": 9.7367,
+          "server_p95_s": null,
+          "connect_tls_p95_s": null
+        },
+        "event_enrollment": {
+          "statuses": {
+            "200:OK": 1500
+          },
+          "p50_s": 0.2984,
+          "p95_s": 1.9322,
+          "p99_s": 2.1146,
+          "server_p95_s": 0.462,
+          "connect_tls_p95_s": 0.0869
+        },
+        "active_detail": {
+          "statuses": {
+            "200:OK": 1481
+          },
+          "p50_s": 0.0228,
+          "p95_s": 0.0695,
+          "p99_s": 0.1403,
+          "server_p95_s": 0.0077,
+          "connect_tls_p95_s": null
+        }
+      }
+    },
+    {
+      "case": "ready",
+      "completed": 1500,
+      "db_enrollments": 1500,
+      "data_consistency_pass": true,
+      "outcomes": {
+        "enroll_http_200": 1500
+      },
+      "websocket": {
+        "open_at_end": 1500,
+        "unexpected_close": 0,
+        "notification_p95_s": 1.3977
+      },
+      "failed_gates": [
+        "enrollment_p95_3s_p99_5s"
+      ],
+      "stages": {
+        "active_detail": {
+          "statuses": {
+            "200:OK": 2933
+          },
+          "p50_s": 0.0303,
+          "p95_s": 0.2535,
+          "p99_s": 0.5764,
+          "server_p95_s": 0.1105,
+          "connect_tls_p95_s": 0.2522
+        },
+        "periodic_quotas": {
+          "statuses": {
+            "200:OK": 1280
+          },
+          "p50_s": 0.0317,
+          "p95_s": 0.3959,
+          "p99_s": 1.4448,
+          "server_p95_s": 0.212,
+          "connect_tls_p95_s": 0.1795
+        },
+        "burst_bootstrap": {
+          "statuses": {
+            "200:OK": 1500
+          },
+          "p50_s": 0.2732,
+          "p95_s": 0.6568,
+          "p99_s": 0.7531,
+          "server_p95_s": 0.3998,
+          "connect_tls_p95_s": 0.0864
+        },
+        "detail": {
+          "statuses": {
+            "200:OK": 1500
+          },
+          "p50_s": 0.236,
+          "p95_s": 0.553,
+          "p99_s": 0.7119,
+          "server_p95_s": 0.3952,
+          "connect_tls_p95_s": null
+        },
+        "enroll": {
+          "statuses": {
+            "200:OK": 1500
+          },
+          "p50_s": 2.269,
+          "p95_s": 4.1017,
+          "p99_s": 4.2392,
+          "server_p95_s": 2.0943,
+          "connect_tls_p95_s": 0.1278
+        },
+        "journey": {
+          "statuses": {
+            "200:COMPLETE": 1500
+          },
+          "p50_s": 7.5674,
+          "p95_s": 9.4016,
+          "p99_s": 9.5392,
+          "server_p95_s": null,
+          "connect_tls_p95_s": null
+        },
+        "event_enrollment": {
+          "statuses": {
+            "200:OK": 1500
+          },
+          "p50_s": 0.2838,
+          "p95_s": 2.1357,
+          "p99_s": 2.5388,
+          "server_p95_s": 0.4066,
+          "connect_tls_p95_s": 0.1516
+        },
+        "login": {
+          "statuses": {},
+          "p50_s": null,
+          "p95_s": null,
+          "p99_s": null,
+          "server_p95_s": null,
+          "connect_tls_p95_s": null
+        }
+      }
+    },
+    {
+      "case": "hot",
+      "completed": 1500,
+      "db_enrollments": 100,
+      "data_consistency_pass": true,
+      "outcomes": {
+        "enroll_http_200": 100,
+        "enroll_http_409": 1400
+      },
+      "websocket": {
+        "open_at_end": 1500,
+        "unexpected_close": 0,
+        "notification_p95_s": 1.1367
+      },
+      "failed_gates": [],
+      "stages": {
+        "active_detail": {
+          "statuses": {
+            "200:OK": 2936
+          },
+          "p50_s": 0.0282,
+          "p95_s": 0.2138,
+          "p99_s": 0.29,
+          "server_p95_s": 0.0524,
+          "connect_tls_p95_s": 0.5816
+        },
+        "periodic_quotas": {
+          "statuses": {
+            "200:OK": 1280
+          },
+          "p50_s": 0.0245,
+          "p95_s": 0.1901,
+          "p99_s": 0.4102,
+          "server_p95_s": 0.0349,
+          "connect_tls_p95_s": 0.2226
+        },
+        "burst_bootstrap": {
+          "statuses": {
+            "200:OK": 1500
+          },
+          "p50_s": 0.2637,
+          "p95_s": 0.6277,
+          "p99_s": 1.0271,
+          "server_p95_s": 0.2543,
+          "connect_tls_p95_s": 1.2263
+        },
+        "detail": {
+          "statuses": {
+            "200:OK": 1500
+          },
+          "p50_s": 0.2381,
+          "p95_s": 0.5973,
+          "p99_s": 0.9928,
+          "server_p95_s": 0.2766,
+          "connect_tls_p95_s": null
+        },
+        "enroll": {
+          "statuses": {
+            "200:OK": 100,
+            "409:CLUB_FULL": 1400
+          },
+          "p50_s": 1.2614,
+          "p95_s": 1.6972,
+          "p99_s": 1.7198,
+          "server_p95_s": 1.5101,
+          "connect_tls_p95_s": 0.2613
+        },
+        "journey": {
+          "statuses": {
+            "200:COMPLETE": 1500
+          },
+          "p50_s": 6.5641,
+          "p95_s": 6.9966,
+          "p99_s": 7.0207,
+          "server_p95_s": null,
+          "connect_tls_p95_s": null
+        },
+        "event_enrollment": {
+          "statuses": {
+            "200:OK": 100
+          },
+          "p50_s": 0.1417,
+          "p95_s": 0.3816,
+          "p99_s": 0.4013,
+          "server_p95_s": 0.2153,
+          "connect_tls_p95_s": null
+        },
+        "login": {
+          "statuses": {},
+          "p50_s": null,
+          "p95_s": null,
+          "p99_s": null,
+          "server_p95_s": null,
+          "connect_tls_p95_s": null
+        }
+      }
+    },
+    {
+      "case": "last",
+      "completed": 1500,
+      "db_enrollments": 1,
+      "data_consistency_pass": true,
+      "outcomes": {
+        "enroll_http_200": 1,
+        "enroll_http_409": 1499
+      },
+      "websocket": {
+        "open_at_end": 1500,
+        "unexpected_close": 0,
+        "notification_p95_s": 1.3028
+      },
+      "failed_gates": [],
+      "stages": {
+        "active_detail": {
+          "statuses": {
+            "200:OK": 2935
+          },
+          "p50_s": 0.0271,
+          "p95_s": 0.1136,
+          "p99_s": 0.532,
+          "server_p95_s": 0.0164,
+          "connect_tls_p95_s": 0.9919
+        },
+        "periodic_quotas": {
+          "statuses": {
+            "200:OK": 1279
+          },
+          "p50_s": 0.027,
+          "p95_s": 0.2645,
+          "p99_s": 1.0151,
+          "server_p95_s": 0.0763,
+          "connect_tls_p95_s": 1.2821
+        },
+        "burst_bootstrap": {
+          "statuses": {
+            "200:OK": 1500
+          },
+          "p50_s": 0.4258,
+          "p95_s": 1.0115,
+          "p99_s": 1.1994,
+          "server_p95_s": 0.2164,
+          "connect_tls_p95_s": 1.1816
+        },
+        "detail": {
+          "statuses": {
+            "200:OK": 1500
+          },
+          "p50_s": 0.2373,
+          "p95_s": 0.7631,
+          "p99_s": 1.0924,
+          "server_p95_s": 0.1646,
+          "connect_tls_p95_s": null
+        },
+        "enroll": {
+          "statuses": {
+            "200:OK": 1,
+            "409:CLUB_FULL": 1499
+          },
+          "p50_s": 0.8037,
+          "p95_s": 1.3054,
+          "p99_s": 1.4671,
+          "server_p95_s": 0.6063,
+          "connect_tls_p95_s": 0.5026
+        },
+        "journey": {
+          "statuses": {
+            "200:COMPLETE": 1500
+          },
+          "p50_s": 6.1039,
+          "p95_s": 6.6004,
+          "p99_s": 6.7671,
+          "server_p95_s": null,
+          "connect_tls_p95_s": null
+        },
+        "event_enrollment": {
+          "statuses": {
+            "200:OK": 1
+          },
+          "p50_s": 0.5091,
+          "p95_s": 0.5091,
+          "p99_s": 0.5091,
+          "server_p95_s": 0.1169,
+          "connect_tls_p95_s": null
+        },
+        "login": {
+          "statuses": {},
+          "p50_s": null,
+          "p95_s": null,
+          "p99_s": null,
+          "server_p95_s": null,
+          "connect_tls_p95_s": null
+        }
+      }
+    },
+    {
+      "case": "online-600",
+      "completed": 1494,
+      "db_enrollments": 1494,
+      "data_consistency_pass": true,
+      "outcomes": {
+        "setup_failed": 6,
+        "enroll_http_200": 1494
+      },
+      "websocket": {
+        "open_at_end": 1489,
+        "unexpected_close": 5,
+        "notification_p95_s": 0.8905
+      },
+      "failed_gates": [
+        "all_students_completed",
+        "data_correct",
+        "all_final_quota_snapshots_current",
+        "all_websockets_online",
+        "no_unexpected_ws_close",
+        "enrollment_p95_3s_p99_5s"
+      ],
+      "stages": {
+        "active_detail": {
+          "statuses": {
+            "200:OK": 29948
+          },
+          "p50_s": 0.0262,
+          "p95_s": 0.0772,
+          "p99_s": 0.2935,
+          "server_p95_s": 0.0076,
+          "connect_tls_p95_s": 0.4702
+        },
+        "periodic_quotas": {
+          "statuses": {
+            "200:OK": 14965
+          },
+          "p50_s": 0.0258,
+          "p95_s": 0.0751,
+          "p99_s": 0.2522,
+          "server_p95_s": 0.0072,
+          "connect_tls_p95_s": 0.5119
+        },
+        "burst_bootstrap": {
+          "statuses": {
+            "200:OK": 1494
+          },
+          "p50_s": 0.3575,
+          "p95_s": 1.128,
+          "p99_s": 1.2175,
+          "server_p95_s": 0.1904,
+          "connect_tls_p95_s": 1.2376
+        },
+        "detail": {
+          "statuses": {
+            "200:OK": 1494
+          },
+          "p50_s": 0.2255,
+          "p95_s": 1.0407,
+          "p99_s": 1.1211,
+          "server_p95_s": 0.1767,
+          "connect_tls_p95_s": null
+        },
+        "enroll": {
+          "statuses": {
+            "200:OK": 1494
+          },
+          "p50_s": 2.1069,
+          "p95_s": 3.7454,
+          "p99_s": 3.9803,
+          "server_p95_s": 2.3632,
+          "connect_tls_p95_s": 0.2487
+        },
+        "journey": {
+          "statuses": {
+            "200:COMPLETE": 1494
+          },
+          "p50_s": 7.4066,
+          "p95_s": 9.0462,
+          "p99_s": 9.2801,
+          "server_p95_s": null,
+          "connect_tls_p95_s": null
+        },
+        "event_enrollment": {
+          "statuses": {
+            "200:OK": 1489
+          },
+          "p50_s": 0.2713,
+          "p95_s": 2.1351,
+          "p99_s": 2.2306,
+          "server_p95_s": 0.3519,
+          "connect_tls_p95_s": 0.1297
+        },
+        "login": {
+          "statuses": {},
+          "p50_s": null,
+          "p95_s": null,
+          "p99_s": null,
+          "server_p95_s": null,
+          "connect_tls_p95_s": null
+        }
+      }
+    },
+    {
+      "case": "mixed",
+      "completed": 1291,
+      "db_enrollments": 1291,
+      "data_consistency_pass": true,
+      "outcomes": {
+        "setup_failed": 10,
+        "enroll_http_200": 1291,
+        "login_failed": 49,
+        "bootstrap_failed": 135,
+        "detail_failed": 15
+      },
+      "websocket": {
+        "open_at_end": 1428,
+        "unexpected_close": 13,
+        "notification_p95_s": 1.3869
+      },
+      "failed_gates": [
+        "all_students_completed",
+        "data_correct",
+        "all_final_quota_snapshots_current",
+        "all_websockets_online",
+        "no_unexpected_ws_close",
+        "login_p95_5s",
+        "interactive_reads_p95_3s",
+        "unexpected_errors_under_0_1_percent"
+      ],
+      "stages": {
+        "active_detail": {
+          "statuses": {
+            "200:OK": 2502,
+            "0:TimeoutError": 7
+          },
+          "p50_s": 0.0268,
+          "p95_s": 2.9668,
+          "p99_s": 8.634,
+          "server_p95_s": 0.1525,
+          "connect_tls_p95_s": 8.8508
+        },
+        "burst_bootstrap": {
+          "statuses": {
+            "200:OK": 1062,
+            "0:TimeoutError": 128
+          },
+          "p50_s": 7.0577,
+          "p95_s": 10.0007,
+          "p99_s": 10.0022,
+          "server_p95_s": 0.2263,
+          "connect_tls_p95_s": 9.6469
+        },
+        "detail": {
+          "statuses": {
+            "200:OK": 1291,
+            "0:TimeoutError": 15
+          },
+          "p50_s": 0.5565,
+          "p95_s": 7.5645,
+          "p99_s": 10.0002,
+          "server_p95_s": 0.6161,
+          "connect_tls_p95_s": null
+        },
+        "login": {
+          "statuses": {
+            "200:OK": 251,
+            "0:TimeoutError": 49
+          },
+          "p50_s": 8.2642,
+          "p95_s": 10.001,
+          "p99_s": 10.0029,
+          "server_p95_s": 0.629,
+          "connect_tls_p95_s": 9.683
+        },
+        "ws_ticket": {
+          "statuses": {
+            "200:OK": 277
+          },
+          "p50_s": 0.2557,
+          "p95_s": 0.9299,
+          "p99_s": 1.1435,
+          "server_p95_s": 0.7046,
+          "connect_tls_p95_s": null
+        },
+        "ws_connect": {
+          "statuses": {
+            "101:OK": 251
+          },
+          "p50_s": 0.2283,
+          "p95_s": 0.7575,
+          "p99_s": 1.4615,
+          "server_p95_s": null,
+          "connect_tls_p95_s": null
+        },
+        "periodic_quotas": {
+          "statuses": {
+            "200:OK": 1095
+          },
+          "p50_s": 0.0242,
+          "p95_s": 0.6768,
+          "p99_s": 2.1717,
+          "server_p95_s": 0.2533,
+          "connect_tls_p95_s": 2.0399
+        },
+        "event_bootstrap": {
+          "statuses": {
+            "200:OK": 226,
+            "0:TimeoutError": 7
+          },
+          "p50_s": 1.1725,
+          "p95_s": 9.6363,
+          "p99_s": 10.0008,
+          "server_p95_s": 0.6601,
+          "connect_tls_p95_s": 8.2916
+        },
+        "enroll": {
+          "statuses": {
+            "200:OK": 1291
+          },
+          "p50_s": 0.4736,
+          "p95_s": 1.1272,
+          "p99_s": 2.0469,
+          "server_p95_s": 0.8837,
+          "connect_tls_p95_s": 3.4779
+        },
+        "journey": {
+          "statuses": {
+            "200:COMPLETE": 1291
+          },
+          "p50_s": 8.4511,
+          "p95_s": 10.9897,
+          "p99_s": 11.6096,
+          "server_p95_s": null,
+          "connect_tls_p95_s": null
+        },
+        "event_enrollment": {
+          "statuses": {
+            "200:OK": 1286
+          },
+          "p50_s": 0.3616,
+          "p95_s": 1.9743,
+          "p99_s": 4.0149,
+          "server_p95_s": 0.5933,
+          "connect_tls_p95_s": 4.1672
+        },
+        "bootstrap": {
+          "statuses": {
+            "200:OK": 18
+          },
+          "p50_s": 6.9441,
+          "p95_s": 9.7701,
+          "p99_s": 9.7701,
+          "server_p95_s": 0.7139,
+          "connect_tls_p95_s": 9.2572
+        }
+      }
+    },
+    {
+      "case": "reconnect",
+      "completed": 1489,
+      "db_enrollments": 1489,
+      "data_consistency_pass": true,
+      "outcomes": {
+        "setup_failed": 11,
+        "enroll_http_200": 1489
+      },
+      "websocket": {
+        "open_at_end": 1489,
+        "unexpected_close": 11,
+        "notification_p95_s": 1.0902
+      },
+      "failed_gates": [
+        "all_students_completed",
+        "data_correct",
+        "all_final_quota_snapshots_current",
+        "all_websockets_online",
+        "no_unexpected_ws_close",
+        "interactive_reads_p95_3s",
+        "enrollment_p95_3s_p99_5s"
+      ],
+      "stages": {
+        "active_detail": {
+          "statuses": {
+            "200:OK": 2880
+          },
+          "p50_s": 0.025,
+          "p95_s": 0.4008,
+          "p99_s": 2.1519,
+          "server_p95_s": 0.0466,
+          "connect_tls_p95_s": 1.7291
+        },
+        "periodic_quotas": {
+          "statuses": {
+            "200:OK": 1293
+          },
+          "p50_s": 0.0241,
+          "p95_s": 0.605,
+          "p99_s": 3.085,
+          "server_p95_s": 0.2779,
+          "connect_tls_p95_s": 2.6382
+        },
+        "ws_ticket": {
+          "statuses": {
+            "200:OK": 1509
+          },
+          "p50_s": 0.4829,
+          "p95_s": 1.2771,
+          "p99_s": 4.3745,
+          "server_p95_s": 0.1134,
+          "connect_tls_p95_s": 4.2977
+        },
+        "ws_connect": {
+          "statuses": {
+            "101:OK": 1489
+          },
+          "p50_s": 0.3121,
+          "p95_s": 1.4838,
+          "p99_s": 3.8863,
+          "server_p95_s": null,
+          "connect_tls_p95_s": null
+        },
+        "event_bootstrap": {
+          "statuses": {
+            "200:OK": 1421
+          },
+          "p50_s": 2.1642,
+          "p95_s": 4.8889,
+          "p99_s": 6.3314,
+          "server_p95_s": 0.3039,
+          "connect_tls_p95_s": 3.9658
+        },
+        "detail": {
+          "statuses": {
+            "200:OK": 1489
+          },
+          "p50_s": 0.1564,
+          "p95_s": 1.5292,
+          "p99_s": 3.1266,
+          "server_p95_s": 0.308,
+          "connect_tls_p95_s": 0.0481
+        },
+        "burst_bootstrap": {
+          "statuses": {
+            "200:OK": 106
+          },
+          "p50_s": 1.7136,
+          "p95_s": 4.0668,
+          "p99_s": 6.1882,
+          "server_p95_s": 0.1761,
+          "connect_tls_p95_s": 3.6195
+        },
+        "enroll": {
+          "statuses": {
+            "200:OK": 1489
+          },
+          "p50_s": 1.8195,
+          "p95_s": 4.0335,
+          "p99_s": 4.3055,
+          "server_p95_s": 2.5181,
+          "connect_tls_p95_s": 0.1301
+        },
+        "journey": {
+          "statuses": {
+            "200:COMPLETE": 1489
+          },
+          "p50_s": 7.6423,
+          "p95_s": 9.6221,
+          "p99_s": 10.2354,
+          "server_p95_s": null,
+          "connect_tls_p95_s": null
+        },
+        "event_enrollment": {
+          "statuses": {
+            "200:OK": 1489
+          },
+          "p50_s": 0.3474,
+          "p95_s": 1.7585,
+          "p99_s": 2.1492,
+          "server_p95_s": 0.4964,
+          "connect_tls_p95_s": 0.1232
+        },
+        "login": {
+          "statuses": {},
+          "p50_s": null,
+          "p95_s": null,
+          "p99_s": null,
+          "server_p95_s": null,
+          "connect_tls_p95_s": null
+        }
+      }
+    },
+    {
+      "case": "first-password",
+      "completed": 1483,
+      "db_enrollments": 1483,
+      "data_consistency_pass": true,
+      "outcomes": {
+        "enroll_http_200": 1483,
+        "bootstrap_failed": 17
+      },
+      "websocket": {
+        "open_at_end": 1500,
+        "unexpected_close": 0,
+        "notification_p95_s": 0.7177
+      },
+      "failed_gates": [
+        "all_students_completed",
+        "data_correct",
+        "enrollment_p95_3s_p99_5s",
+        "unexpected_errors_under_0_1_percent"
+      ],
+      "stages": {
+        "login": {
+          "statuses": {
+            "200:OK": 1500
+          },
+          "p50_s": 2.3282,
+          "p95_s": 4.2446,
+          "p99_s": 4.534,
+          "server_p95_s": 1.3951,
+          "connect_tls_p95_s": 2.7682
+        },
+        "first_password_change": {
+          "statuses": {
+            "200:OK": 1500
+          },
+          "p50_s": 1.2725,
+          "p95_s": 1.7059,
+          "p99_s": 1.7941,
+          "server_p95_s": 1.6483,
+          "connect_tls_p95_s": null
+        },
+        "ws_ticket": {
+          "statuses": {
+            "200:OK": 1500
+          },
+          "p50_s": 2.6581,
+          "p95_s": 3.7027,
+          "p99_s": 4.2411,
+          "server_p95_s": 3.6641,
+          "connect_tls_p95_s": null
+        },
+        "ws_connect": {
+          "statuses": {
+            "101:OK": 1500
+          },
+          "p50_s": 1.5957,
+          "p95_s": 3.1696,
+          "p99_s": 3.4632,
+          "server_p95_s": null,
+          "connect_tls_p95_s": null
+        },
+        "bootstrap": {
+          "statuses": {
+            "200:OK": 906,
+            "0:TimeoutError": 4
+          },
+          "p50_s": 0.4703,
+          "p95_s": 0.8905,
+          "p99_s": 1.5938,
+          "server_p95_s": 0.7125,
+          "connect_tls_p95_s": 0.1385
+        },
+        "event_bootstrap": {
+          "statuses": {
+            "200:OK": 1170,
+            "0:TimeoutError": 13
+          },
+          "p50_s": 0.3928,
+          "p95_s": 1.5207,
+          "p99_s": 10.0004,
+          "server_p95_s": 1.2588,
+          "connect_tls_p95_s": 0.1208
+        },
+        "detail": {
+          "statuses": {
+            "200:OK": 1483
+          },
+          "p50_s": 0.2368,
+          "p95_s": 0.589,
+          "p99_s": 0.7711,
+          "server_p95_s": 0.4937,
+          "connect_tls_p95_s": null
+        },
+        "enroll": {
+          "statuses": {
+            "200:OK": 1483
+          },
+          "p50_s": 2.0215,
+          "p95_s": 3.1624,
+          "p99_s": 3.4454,
+          "server_p95_s": 3.0928,
+          "connect_tls_p95_s": 0.0801
+        },
+        "journey": {
+          "statuses": {
+            "200:COMPLETE": 1483
+          },
+          "p50_s": 10.8905,
+          "p95_s": 13.2504,
+          "p99_s": 13.5366,
+          "server_p95_s": null,
+          "connect_tls_p95_s": null
+        },
+        "event_enrollment": {
+          "statuses": {
+            "200:OK": 1483
+          },
+          "p50_s": 0.3055,
+          "p95_s": 0.624,
+          "p99_s": 0.8258,
+          "server_p95_s": 0.5556,
+          "connect_tls_p95_s": 0.0947
+        },
+        "active_detail": {
+          "statuses": {
+            "200:OK": 1319
+          },
+          "p50_s": 0.0227,
+          "p95_s": 0.0891,
+          "p99_s": 0.2538,
+          "server_p95_s": 0.007,
+          "connect_tls_p95_s": null
+        }
+      }
+    }
+  ]
+}
