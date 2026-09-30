@@ -1,0 +1,84 @@
+{
+  "samples": 9,
+  "start_epoch": 1790746882.5549605,
+  "end_epoch": 1790746922.5745084,
+  "duration_s": 40.01954793930054,
+  "sample_note": "Approximately 5-second deltas, not instantaneous CPU peaks",
+  "service_cpu_cores_peak_5s": 1.5506099389732735,
+  "peak_interval": {
+    "start": 1790746892.5575142,
+    "end": 1790746897.5615335,
+    "seconds": 5.004019260406494,
+    "services": {
+      "club-api": 0.840919025491155,
+      "club-worker": 0.021853433072341274,
+      "mysql": 0.2618704948576779,
+      "redis-server": 0.015477358493162263,
+      "nginx": 0.4104896270589371
+    },
+    "sum": 1.5506099389732735,
+    "host_cpu_cores": 1.6390617520344664,
+    "host_iowait_cores": 0.04978458592628052,
+    "host_steal_cores": 0.0
+  },
+  "host_cpu_cores_peak_5s": 1.6390617520344664,
+  "host_iowait_cores_peak_5s": 0.04978458592628052,
+  "host_steal_cores_peak_5s": 0.0,
+  "min_available_memory_mib": 5866.2265625,
+  "oom_delta": 0,
+  "services": {
+    "club-api": {
+      "restarts_delta": 0,
+      "always_active": true,
+      "max_memory_mib": 454.4140625,
+      "process_identities_unchanged": true
+    },
+    "club-worker": {
+      "restarts_delta": 0,
+      "always_active": true,
+      "max_memory_mib": 55.9765625,
+      "process_identities_unchanged": true
+    },
+    "mysql": {
+      "restarts_delta": 0,
+      "always_active": true,
+      "max_memory_mib": 780.16796875,
+      "process_identities_unchanged": true
+    },
+    "redis-server": {
+      "restarts_delta": 0,
+      "always_active": true,
+      "max_memory_mib": 5.08984375,
+      "process_identities_unchanged": true
+    },
+    "nginx": {
+      "restarts_delta": 0,
+      "always_active": true,
+      "max_memory_mib": 232.26171875,
+      "process_identities_unchanged": true
+    }
+  },
+  "health": {
+    "local": {
+      "samples": 9,
+      "success": 9,
+      "errors": 0,
+      "max_success_seconds": 0.007689594998737448
+    },
+    "public": {
+      "samples": 9,
+      "success": 9,
+      "errors": 0,
+      "max_success_seconds": 0.2320082589994854
+    }
+  },
+  "outbox_max": 79.0,
+  "outbox_final": 0.0,
+  "network_counter_deltas": {
+    "TcpExt:ListenOverflows": 0,
+    "TcpExt:ListenDrops": 0,
+    "TcpExt:TCPBacklogDrop": 0,
+    "TcpExt:TCPSynRetrans": 310,
+    "Tcp:RetransSegs": 2930
+  }
+}
