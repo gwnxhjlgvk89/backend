@@ -26,6 +26,10 @@ except ModuleNotFoundError:
     from load_remote import fixture, p, ssh
 
 
+# The offset is measured about a minute before the burst; generator clocks were
+# seen drifting ~0.35s between rounds, which a 0.05s margin could not absorb.
+OPENING_GUARD_S = 0.3
+
 def summary(rows):
     times = [r[2] for r in rows]
     return {
@@ -183,7 +187,7 @@ async def run(args):
         # Capacity bursts start just inside the open window. Exact boundary
         # correctness belongs to transactional tests; clock midpoint uncertainty
         # must not turn this capacity case into accidental early submissions.
-        report["opening_guard_s"] = 0.05
+        report["opening_guard_s"] = OPENING_GUARD_S
         report["api_image_id"] = (
             await ssh(args, "podman inspect --format '{{.Image}}' club-capacity-test_api_1")
         ).strip()
@@ -660,7 +664,7 @@ async def run(args):
                         outcomes["detail_failed"] += 1
                         return
                     await asyncio.sleep(
-                        max(0, opening + 0.05 + i * args.burst_seconds / args.users - time.monotonic())
+                        max(0, opening + OPENING_GUARD_S + i * args.burst_seconds / args.users - time.monotonic())
                     )
                     key = f"journey-{args.mode}-{time.time_ns()}-{i}"
                     status, data = await request(i, "enroll", "POST", "/enrollment", {"club_id": cid}, key)
