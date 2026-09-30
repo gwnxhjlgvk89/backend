@@ -1,0 +1,1395 @@
+{
+  "schema": "student-journey-distributed-v1",
+  "completed": true,
+  "parameters": {
+    "url": "https://wjy-1214.cloud",
+    "ca_cert": null,
+    "ssh": "ubuntu@43.142.19.144",
+    "control": "/tmp/club-company-target-ssh",
+    "users": 1500,
+    "processes": 3,
+    "mode": "login",
+    "client_profile": "connected_first",
+    "scenario": "uniform",
+    "cache": "cold",
+    "rounds": 1,
+    "hold_seconds": 45,
+    "report": "reports/cold-1.json",
+    "first_password_change": false
+  },
+  "driver_sha256": "8d3e1cfacb5a5bc1729cfcae36f7294e8479af9172a24a31667124ba07b60fd0",
+  "child_driver_sha256": "df11b5cf154cf69d2843701b30de4ea5c7b70d80ca64e337c2e237bcf0690582",
+  "runs": [
+    {
+      "round": 1,
+      "stages": {
+        "login": {
+          "count": 1500,
+          "statuses": {
+            "0:ClientConnectorError": 704,
+            "200:OK": 664,
+            "0:TimeoutError": 132
+          },
+          "p50_s": 1.5068,
+          "p95_s": 10.0006,
+          "p99_s": 10.0022,
+          "max_s": 10.0055,
+          "server_p95_s": 0.0773,
+          "dispatch_span_s": 0.6546,
+          "unexpected_errors": 836,
+          "capacity_rejections": 0,
+          "response_bytes": 246366,
+          "headers_dispatch_span_s": 9.656,
+          "connect_tls_p95_s": 8.2831,
+          "before_headers_sent_p95_s": 8.2832,
+          "response_headers_p95_s": 2.0765,
+          "arrivals_per_second": {
+            "0": 1500
+          }
+        },
+        "ws_ticket": {
+          "count": 664,
+          "statuses": {
+            "200:OK": 664
+          },
+          "p50_s": 0.1774,
+          "p95_s": 1.1336,
+          "p99_s": 2.548,
+          "max_s": 4.805,
+          "server_p95_s": 0.0549,
+          "dispatch_span_s": 9.8311,
+          "unexpected_errors": 0,
+          "capacity_rejections": 0,
+          "response_bytes": 43160,
+          "headers_dispatch_span_s": 9.8312,
+          "connect_tls_p95_s": null,
+          "before_headers_sent_p95_s": 0.0002,
+          "response_headers_p95_s": 1.1335,
+          "arrivals_per_second": {
+            "0": 18,
+            "1": 67,
+            "2": 13,
+            "3": 10,
+            "4": 34,
+            "5": 72,
+            "6": 142,
+            "7": 119,
+            "8": 117,
+            "9": 59,
+            "10": 13
+          }
+        },
+        "ws_connect": {
+          "count": 664,
+          "statuses": {
+            "101:OK": 663,
+            "0:CONNECT_FAILED": 1
+          },
+          "p50_s": 0.1743,
+          "p95_s": 1.2403,
+          "p99_s": 2.7262,
+          "max_s": 10.0015,
+          "server_p95_s": null,
+          "dispatch_span_s": 12.1507,
+          "unexpected_errors": 1,
+          "capacity_rejections": 0,
+          "response_bytes": 0,
+          "headers_dispatch_span_s": null,
+          "connect_tls_p95_s": null,
+          "before_headers_sent_p95_s": null,
+          "response_headers_p95_s": null,
+          "arrivals_per_second": {
+            "0": 12,
+            "1": 38,
+            "2": 41,
+            "3": 12,
+            "4": 29,
+            "5": 57,
+            "6": 136,
+            "7": 94,
+            "8": 141,
+            "9": 68,
+            "10": 32,
+            "11": 2,
+            "13": 2
+          }
+        },
+        "event_bootstrap": {
+          "count": 632,
+          "statuses": {
+            "200:OK": 624,
+            "0:TimeoutError": 7,
+            "0:ClientConnectorError": 1
+          },
+          "p50_s": 2.0815,
+          "p95_s": 5.9937,
+          "p99_s": 10.0002,
+          "max_s": 10.0009,
+          "server_p95_s": 0.1197,
+          "dispatch_span_s": 11.631,
+          "unexpected_errors": 8,
+          "capacity_rejections": 0,
+          "response_bytes": 6374940,
+          "headers_dispatch_span_s": 10.6547,
+          "connect_tls_p95_s": 4.4525,
+          "before_headers_sent_p95_s": 4.4526,
+          "response_headers_p95_s": 1.738,
+          "arrivals_per_second": {
+            "1": 17,
+            "2": 59,
+            "3": 11,
+            "4": 20,
+            "5": 49,
+            "6": 101,
+            "7": 107,
+            "8": 105,
+            "9": 113,
+            "10": 37,
+            "11": 9,
+            "12": 2,
+            "13": 2
+          }
+        },
+        "bootstrap": {
+          "count": 39,
+          "statuses": {
+            "200:OK": 39
+          },
+          "p50_s": 2.3819,
+          "p95_s": 6.1051,
+          "p99_s": 7.2065,
+          "max_s": 7.2065,
+          "server_p95_s": 0.1266,
+          "dispatch_span_s": 9.2917,
+          "unexpected_errors": 0,
+          "capacity_rejections": 0,
+          "response_bytes": 398531,
+          "headers_dispatch_span_s": 7.8471,
+          "connect_tls_p95_s": 4.4419,
+          "before_headers_sent_p95_s": 4.4422,
+          "response_headers_p95_s": 3.3088,
+          "arrivals_per_second": {
+            "2": 6,
+            "3": 6,
+            "4": 2,
+            "5": 1,
+            "6": 2,
+            "7": 5,
+            "8": 9,
+            "9": 1,
+            "10": 6,
+            "11": 1
+          }
+        },
+        "detail": {
+          "count": 656,
+          "statuses": {
+            "200:OK": 656
+          },
+          "p50_s": 0.156,
+          "p95_s": 1.0259,
+          "p99_s": 1.8063,
+          "max_s": 6.3542,
+          "server_p95_s": 0.0857,
+          "dispatch_span_s": 10.0191,
+          "unexpected_errors": 0,
+          "capacity_rejections": 0,
+          "response_bytes": 1527400,
+          "headers_dispatch_span_s": 10.019,
+          "connect_tls_p95_s": null,
+          "before_headers_sent_p95_s": 0.0002,
+          "response_headers_p95_s": 1.0257,
+          "arrivals_per_second": {
+            "3": 1,
+            "4": 7,
+            "5": 28,
+            "6": 47,
+            "7": 45,
+            "8": 103,
+            "9": 151,
+            "10": 110,
+            "11": 81,
+            "12": 64,
+            "13": 19
+          }
+        },
+        "enroll": {
+          "count": 656,
+          "statuses": {
+            "200:OK": 656
+          },
+          "p50_s": 0.1664,
+          "p95_s": 0.7083,
+          "p99_s": 0.957,
+          "max_s": 2.6354,
+          "server_p95_s": 0.1136,
+          "dispatch_span_s": 8.926,
+          "unexpected_errors": 0,
+          "capacity_rejections": 0,
+          "response_bytes": 95460,
+          "headers_dispatch_span_s": 8.9261,
+          "connect_tls_p95_s": null,
+          "before_headers_sent_p95_s": 0.0003,
+          "response_headers_p95_s": 0.7081,
+          "arrivals_per_second": {
+            "5": 29,
+            "6": 38,
+            "7": 45,
+            "8": 73,
+            "9": 147,
+            "10": 139,
+            "11": 82,
+            "12": 74,
+            "13": 29
+          }
+        },
+        "journey": {
+          "count": 656,
+          "statuses": {
+            "200:COMPLETE": 656
+          },
+          "p50_s": 9.9488,
+          "p95_s": 12.6949,
+          "p99_s": 13.1757,
+          "max_s": 13.9502,
+          "server_p95_s": null,
+          "dispatch_span_s": 0.6545,
+          "unexpected_errors": 0,
+          "capacity_rejections": 0,
+          "response_bytes": 0,
+          "headers_dispatch_span_s": null,
+          "connect_tls_p95_s": null,
+          "before_headers_sent_p95_s": null,
+          "response_headers_p95_s": null,
+          "arrivals_per_second": {
+            "0": 656
+          }
+        },
+        "event_enrollment": {
+          "count": 655,
+          "statuses": {
+            "200:OK": 655
+          },
+          "p50_s": 0.173,
+          "p95_s": 1.9634,
+          "p99_s": 3.7584,
+          "max_s": 5.618,
+          "server_p95_s": 0.1013,
+          "dispatch_span_s": 8.7337,
+          "unexpected_errors": 0,
+          "capacity_rejections": 0,
+          "response_bytes": 72389,
+          "headers_dispatch_span_s": 8.7337,
+          "connect_tls_p95_s": 3.4631,
+          "before_headers_sent_p95_s": 1.48,
+          "response_headers_p95_s": 0.86,
+          "arrivals_per_second": {
+            "5": 22,
+            "6": 36,
+            "7": 44,
+            "8": 53,
+            "9": 126,
+            "10": 75,
+            "11": 159,
+            "12": 92,
+            "13": 46,
+            "14": 2
+          }
+        },
+        "active_detail": {
+          "count": 581,
+          "statuses": {
+            "200:OK": 581
+          },
+          "p50_s": 0.0954,
+          "p95_s": 0.4363,
+          "p99_s": 0.7367,
+          "max_s": 2.7506,
+          "server_p95_s": 0.0077,
+          "dispatch_span_s": 20.9905,
+          "unexpected_errors": 0,
+          "capacity_rejections": 0,
+          "response_bytes": 1352732,
+          "headers_dispatch_span_s": 20.99,
+          "connect_tls_p95_s": null,
+          "before_headers_sent_p95_s": 0.0003,
+          "response_headers_p95_s": 0.436,
+          "arrivals_per_second": {
+            "26": 1,
+            "27": 5,
+            "28": 4,
+            "29": 7,
+            "30": 9,
+            "31": 18,
+            "32": 33,
+            "33": 39,
+            "34": 35,
+            "35": 39,
+            "36": 32,
+            "37": 36,
+            "38": 31,
+            "39": 39,
+            "40": 33,
+            "41": 37,
+            "42": 37,
+            "43": 44,
+            "44": 33,
+            "45": 33,
+            "46": 33,
+            "47": 3
+          }
+        }
+      },
+      "steady_reads_after_20s": {
+        "count": 581,
+        "statuses": {
+          "200:OK": 581
+        },
+        "p50_s": 0.0954,
+        "p95_s": 0.4363,
+        "p99_s": 0.7367,
+        "max_s": 2.7506,
+        "server_p95_s": 0.0077,
+        "dispatch_span_s": 20.9905,
+        "unexpected_errors": 0,
+        "capacity_rejections": 0,
+        "response_bytes": 1352732,
+        "headers_dispatch_span_s": 20.99,
+        "connect_tls_p95_s": null,
+        "before_headers_sent_p95_s": 0.0003,
+        "response_headers_p95_s": 0.436,
+        "arrivals_per_second": {
+          "26": 1,
+          "27": 5,
+          "28": 4,
+          "29": 7,
+          "30": 9,
+          "31": 18,
+          "32": 33,
+          "33": 39,
+          "34": 35,
+          "35": 39,
+          "36": 32,
+          "37": 36,
+          "38": 31,
+          "39": 39,
+          "40": 33,
+          "41": 37,
+          "42": 37,
+          "43": 44,
+          "44": 33,
+          "45": 33,
+          "46": 33,
+          "47": 3
+        }
+      },
+      "completed_students": 656,
+      "confirmed_enrollments": 656,
+      "db": {
+        "enrollments": 656,
+        "inconsistencies": [],
+        "mysql": {
+          "Innodb_buffer_pool_wait_free": "0",
+          "Innodb_row_lock_time": "739628",
+          "Innodb_row_lock_waits": "8601",
+          "Max_used_connections": "91",
+          "Threads_connected": "80"
+        }
+      },
+      "expected_enrollments": 1500,
+      "data_consistency_pass": true,
+      "all_expected_enrolled": false,
+      "outcomes": {
+        "login_failed": 836,
+        "enroll_http_200": 656,
+        "bootstrap_failed": 8
+      },
+      "active_duration_s": 46.26,
+      "websocket": {
+        "open_at_end": 662,
+        "unexpected_close": 1,
+        "timed_deliveries": 119226,
+        "missing_final_quota_snapshots": 35154,
+        "notification_p95_s": 1.5403
+      },
+      "unfinished_students": 844,
+      "scope_gates": {
+        "all_students_completed": false,
+        "data_correct": false,
+        "all_final_quota_snapshots_current": false,
+        "all_websockets_online": false,
+        "no_unexpected_ws_close": false,
+        "ready_enrollment_burst_within_1s": true,
+        "warm_login_headers_within_1s": true,
+        "login_p95_5s": false,
+        "login_burst_within_1s": true,
+        "interactive_reads_p95_3s": false,
+        "notifications_p95_3s": true,
+        "enrollment_p95_3s_p99_5s": true,
+        "no_capacity_rejections": true,
+        "unexpected_errors_under_0_1_percent": false
+      },
+      "server_counter_deltas": {
+        "club_pool_wait_seconds_sum": 1.715566681981727,
+        "club_pool_wait_seconds_count": 656.0,
+        "club_read_pool_wait_seconds_sum": 5.053689823007517,
+        "club_read_pool_wait_seconds_count": 2149.0,
+        "club_http_seconds_sum{method=\"GET\",route=\"/health/live\"}": 0.0,
+        "club_http_seconds_count{method=\"GET\",route=\"/health/live\"}": 0.0,
+        "club_http_seconds_sum{method=\"POST\",route=\"/api/v1/auth/login\"}": 22.39405661501405,
+        "club_http_seconds_count{method=\"POST\",route=\"/api/v1/auth/login\"}": 690.0,
+        "club_http_seconds_sum{method=\"GET\",route=\"/api/v1/bootstrap\"}": 26.789045576006174,
+        "club_http_seconds_count{method=\"GET\",route=\"/api/v1/bootstrap\"}": 664.0,
+        "club_http_seconds_sum{method=\"GET\",route=\"/health/ready\"}": 0.17835084999842366,
+        "club_http_seconds_count{method=\"GET\",route=\"/health/ready\"}": 52.0,
+        "club_http_seconds_sum{method=\"GET\",route=\"/metrics\"}": 0.2187550269991334,
+        "club_http_seconds_count{method=\"GET\",route=\"/metrics\"}": 27.0,
+        "club_http_seconds_sum{method=\"POST\",route=\"/api/v1/auth/ws-ticket\"}": 13.540186741007346,
+        "club_http_seconds_count{method=\"POST\",route=\"/api/v1/auth/ws-ticket\"}": 664.0,
+        "club_http_seconds_sum{method=\"GET\",route=\"/api/v1/clubs/{club_id}\"}": 22.83464612699572,
+        "club_http_seconds_count{method=\"GET\",route=\"/api/v1/clubs/{club_id}\"}": 1237.0,
+        "club_http_seconds_sum{method=\"POST\",route=\"/api/v1/enrollment\"}": 26.328607293999085,
+        "club_http_seconds_count{method=\"POST\",route=\"/api/v1/enrollment\"}": 656.0,
+        "club_http_seconds_sum{method=\"GET\",route=\"/api/v1/enrollment\"}": 18.05356957198819,
+        "club_http_seconds_count{method=\"GET\",route=\"/api/v1/enrollment\"}": 655.0,
+        "club_http_seconds_sum{method=\"GET\",route=\"/api/v1/clubs/quotas\"}": 0.0,
+        "club_http_seconds_count{method=\"GET\",route=\"/api/v1/clubs/quotas\"}": 0.0,
+        "club_http_seconds_sum{method=\"POST\",route=\"/api/v1/auth/password\"}": 0.0,
+        "club_http_seconds_count{method=\"POST\",route=\"/api/v1/auth/password\"}": 0.0,
+        "club_db_query_seconds_sum{operation=\"SELECT\"}": 14.61510971702046,
+        "club_db_query_seconds_count{operation=\"SELECT\"}": 8470.0,
+        "club_db_query_seconds_sum{operation=\"INSERT\"}": 5.990351510981782,
+        "club_db_query_seconds_count{operation=\"INSERT\"}": 2658.0,
+        "club_db_query_seconds_sum{operation=\"UPDATE\"}": 2.7641378690132115,
+        "club_db_query_seconds_count{operation=\"UPDATE\"}": 1346.0
+      },
+      "measured_epoch": 1790745627.838648
+    }
+  ],
+  "resources": [
+    {
+      "at": 1790745622.559822,
+      "server": {
+        "at": 1790745623.1797845,
+        "services": {
+          "club-api": {
+            "MainPID": "40661",
+            "NRestarts": "0",
+            "ControlGroup": "/system.slice/club-api.service",
+            "ActiveState": "active",
+            "resources": {
+              "memory.current": "475398144",
+              "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0",
+              "cpu.stat": "usage_usec 781961206\nuser_usec 699660678\nsystem_usec 82300527\nnr_periods 0\nnr_throttled 0\nthrottled_usec 0"
+            },
+            "processes": [
+              {
+                "pid": 40661,
+                "start_ticks": 192637,
+                "comm": "uvicorn"
+              },
+              {
+                "pid": 40664,
+                "start_ticks": 192654,
+                "comm": "python"
+              },
+              {
+                "pid": 40665,
+                "start_ticks": 192654,
+                "comm": "python"
+              },
+              {
+                "pid": 40666,
+                "start_ticks": 192654,
+                "comm": "python"
+              },
+              {
+                "pid": 40667,
+                "start_ticks": 192655,
+                "comm": "python"
+              },
+              {
+                "pid": 40668,
+                "start_ticks": 192655,
+                "comm": "python"
+              }
+            ]
+          },
+          "club-worker": {
+            "MainPID": "40660",
+            "NRestarts": "0",
+            "ControlGroup": "/system.slice/club-worker.service",
+            "ActiveState": "active",
+            "resources": {
+              "memory.current": "58695680",
+              "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0",
+              "cpu.stat": "usage_usec 49723922\nuser_usec 44719294\nsystem_usec 5004628\nnr_periods 0\nnr_throttled 0\nthrottled_usec 0"
+            },
+            "processes": [
+              {
+                "pid": 40660,
+                "start_ticks": 192635,
+                "comm": "python"
+              }
+            ]
+          },
+          "mysql": {
+            "MainPID": "37574",
+            "NRestarts": "0",
+            "ControlGroup": "/system.slice/mysql.service",
+            "ActiveState": "active",
+            "resources": {
+              "memory.current": "792895488",
+              "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0",
+              "cpu.stat": "usage_usec 213148003\nuser_usec 156580304\nsystem_usec 56567698\nnr_periods 0\nnr_throttled 0\nthrottled_usec 0"
+            },
+            "processes": [
+              {
+                "pid": 37574,
+                "start_ticks": 142672,
+                "comm": "mysqld"
+              }
+            ]
+          },
+          "redis-server": {
+            "MainPID": "40650",
+            "NRestarts": "0",
+            "ControlGroup": "/system.slice/redis-server.service",
+            "ActiveState": "active",
+            "resources": {
+              "memory.current": "4542464",
+              "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0",
+              "cpu.stat": "usage_usec 15390597\nuser_usec 8344197\nsystem_usec 7046399\nnr_periods 0\nnr_throttled 0\nthrottled_usec 0"
+            },
+            "processes": [
+              {
+                "pid": 40650,
+                "start_ticks": 192629,
+                "comm": "redis-server"
+              }
+            ]
+          },
+          "nginx": {
+            "MainPID": "34135",
+            "NRestarts": "0",
+            "ControlGroup": "/system.slice/nginx.service",
+            "ActiveState": "active",
+            "resources": {
+              "memory.current": "241434624",
+              "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0",
+              "cpu.stat": "usage_usec 122003601\nuser_usec 88988925\nsystem_usec 33014676\nnr_periods 0\nnr_throttled 0\nthrottled_usec 0"
+            },
+            "processes": [
+              {
+                "pid": 34135,
+                "start_ticks": 94116,
+                "comm": "nginx"
+              },
+              {
+                "pid": 37870,
+                "start_ticks": 146366,
+                "comm": "nginx"
+              },
+              {
+                "pid": 37871,
+                "start_ticks": 146366,
+                "comm": "nginx"
+              },
+              {
+                "pid": 37872,
+                "start_ticks": 146366,
+                "comm": "nginx"
+              },
+              {
+                "pid": 37873,
+                "start_ticks": 146366,
+                "comm": "nginx"
+              }
+            ]
+          }
+        },
+        "health": {
+          "local": {
+            "status": 200,
+            "seconds": 0.006521686000269256
+          },
+          "public": {
+            "status": 200,
+            "seconds": 0.011038590000680415
+          }
+        },
+        "dependencies": {
+          "club_database_available": 1.0,
+          "club_outbox_pending": 0.0,
+          "club_redis_available": 1.0
+        },
+        "net_dev": "Inter-|   Receive                                                |  Transmit\n face |bytes    packets errs drop fifo frame compressed multicast|bytes    packets errs drop fifo colls carrier compressed\n    lo: 2082598391 5958318    0    0    0     0          0         0 2082598391 5958318    0    0    0     0       0          0\n  eth0: 656657882 1900686    0    0    0     0          0         0 896442353 1854742    0    0    0     0       0          0\n",
+        "netstat": "TcpExt: SyncookiesSent SyncookiesRecv SyncookiesFailed EmbryonicRsts PruneCalled RcvPruned OfoPruned OutOfWindowIcmps LockDroppedIcmps ArpFilter TW TWRecycled TWKilled PAWSActive PAWSEstab DelayedACKs DelayedACKLocked DelayedACKLost ListenOverflows ListenDrops TCPHPHits TCPPureAcks TCPHPAcks TCPRenoRecovery TCPSackRecovery TCPSACKReneging TCPSACKReorder TCPRenoReorder TCPTSReorder TCPFullUndo TCPPartialUndo TCPDSACKUndo TCPLossUndo TCPLostRetransmit TCPRenoFailures TCPSackFailures TCPLossFailures TCPFastRetrans TCPSlowStartRetrans TCPTimeouts TCPLossProbes TCPLossProbeRecovery TCPRenoRecoveryFail TCPSackRecoveryFail TCPRcvCollapsed TCPBacklogCoalesce TCPDSACKOldSent TCPDSACKOfoSent TCPDSACKRecv TCPDSACKOfoRecv TCPAbortOnData TCPAbortOnClose TCPAbortOnMemory TCPAbortOnTimeout TCPAbortOnLinger TCPAbortFailed TCPMemoryPressures TCPMemoryPressuresChrono TCPSACKDiscard TCPDSACKIgnoredOld TCPDSACKIgnoredNoUndo TCPSpuriousRTOs TCPMD5NotFound TCPMD5Unexpected TCPMD5Failure TCPSackShifted TCPSackMerged TCPSackShiftFallback TCPBacklogDrop PFMemallocDrop TCPMinTTLDrop TCPDeferAcceptDrop IPReversePathFilter TCPTimeWaitOverflow TCPReqQFullDoCookies TCPReqQFullDrop TCPRetransFail TCPRcvCoalesce TCPOFOQueue TCPOFODrop TCPOFOMerge TCPChallengeACK TCPSYNChallenge TCPFastOpenActive TCPFastOpenActiveFail TCPFastOpenPassive TCPFastOpenPassiveFail TCPFastOpenListenOverflow TCPFastOpenCookieReqd TCPFastOpenBlackhole TCPSpuriousRtxHostQueues BusyPollRxPackets TCPAutoCorking TCPFromZeroWindowAdv TCPToZeroWindowAdv TCPWantZeroWindowAdv TCPSynRetrans TCPOrigDataSent TCPHystartTrainDetect TCPHystartTrainCwnd TCPHystartDelayDetect TCPHystartDelayCwnd TCPACKSkippedSynRecv TCPACKSkippedPAWS TCPACKSkippedSeq TCPACKSkippedFinWait2 TCPACKSkippedTimeWait TCPACKSkippedChallenge TCPWinProbe TCPKeepAlive TCPMTUPFail TCPMTUPSuccess TCPDelivered TCPDeliveredCE TCPAckCompressed TCPZeroWindowDrop TCPRcvQDrop TCPWqueueTooBig TCPFastOpenPassiveAltKey TcpTimeoutRehash TcpDuplicateDataRehash TCPDSACKRecvSegs TCPDSACKIgnoredDubious TCPMigrateReqSuccess TCPMigrateReqFailure\nTcpExt: 0 0 0 92 0 0 0 0 0 0 51407 1407 0 0 388 607673 37 6914 0 0 3669944 857801 4081653 0 2073 0 924 0 23 2 23 379 141 1208 0 129 8 2796 367 5832 22922 2605 0 333 0 230 6922 36 11553 782 18780 2196 0 4 0 0 0 0 0 0 8013 6 0 0 0 318 634 5939 0 0 0 0 0 2338 0 0 0 73471 32481 0 36 33 29 0 0 0 0 0 0 0 0 0 13439 4 4 37 973 5600388 2 101 1 188 0 0 3 0 0 0 0 970 0 0 5653696 0 13365 0 0 0 0 4930 916 12338 0 0 0\nIpExt: InNoRoutes InTruncatedPkts InMcastPkts OutMcastPkts InBcastPkts OutBcastPkts InOctets OutOctets InMcastOctets OutMcastOctets InBcastOctets OutBcastOctets InCsumErrors InNoECTPkts InECT1Pkts InECT0Pkts InCEPkts ReasmOverlaps\nIpExt: 0 0 103 0 0 0 2702966105 2936210840 3708 0 0 0 0 7859001 0 0 0 0\nMPTcpExt: MPCapableSYNRX MPCapableSYNTX MPCapableSYNACKRX MPCapableACKRX MPCapableFallbackACK MPCapableFallbackSYNACK MPCapableEndpAttempt MPFallbackTokenInit MPTCPRetrans MPJoinNoTokenFound MPJoinSynRx MPJoinSynBackupRx MPJoinSynAckRx MPJoinSynAckBackupRx MPJoinSynAckHMacFailure MPJoinAckRx MPJoinAckHMacFailure DSSNotMatching DSSCorruptionFallback DSSCorruptionReset InfiniteMapRx DSSNoMatchTCP DataCsumErr OFOQueueTail OFOQueue OFOMerge NoDSSInWindow DuplicateData AddAddr EchoAdd PortAdd AddAddrDrop MPJoinPortSynRx MPJoinPortSynAckRx MPJoinPortAckRx MismatchPortSynRx MismatchPortAckRx RmAddr RmAddrDrop RmSubflow MPPrioTx MPPrioRx MPFailTx MPFailRx RcvPruned SubflowStale SubflowRecover\nMPTcpExt: 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0\n",
+        "snmp": "Ip: Forwarding DefaultTTL InReceives InHdrErrors InAddrErrors ForwDatagrams InUnknownProtos InDiscards InDelivers OutRequests OutDiscards OutNoRoutes ReasmTimeout ReasmReqds ReasmOKs ReasmFails FragOKs FragFails FragCreates\nIp: 2 64 7638478 0 2 0 0 0 7638454 7487885 0 0 0 0 0 0 0 0 0\nIcmp: InMsgs InErrors InCsumErrors InDestUnreachs InTimeExcds InParmProbs InSrcQuenchs InRedirects InEchos InEchoReps InTimestamps InTimestampReps InAddrMasks InAddrMaskReps OutMsgs OutErrors OutDestUnreachs OutTimeExcds OutParmProbs OutSrcQuenchs OutRedirects OutEchos OutEchoReps OutTimestamps OutTimestampReps OutAddrMasks OutAddrMaskReps\nIcmp: 5314 0 0 0 0 0 0 0 5314 0 0 0 0 0 5332 0 18 0 0 0 0 0 5314 0 0 0 0\nIcmpMsg: InType8 OutType0 OutType3\nIcmpMsg: 5314 5314 18\nTcp: RtoAlgorithm RtoMin RtoMax MaxConn ActiveOpens PassiveOpens AttemptFails EstabResets CurrEstab InSegs OutSegs RetransSegs InErrs OutRsts InCsumErrors\nTcp: 1 200 120000 -1 60138 110400 92 2301 465 7620807 7764584 31859 27 60084 0\nUdp: InDatagrams NoPorts InErrors OutDatagrams RcvbufErrors SndbufErrors InCsumErrors IgnoredMulti MemErrors\nUdp: 12230 0 0 12230 0 0 0 0 0\nUdpLite: InDatagrams NoPorts InErrors OutDatagrams RcvbufErrors SndbufErrors InCsumErrors IgnoredMulti MemErrors\nUdpLite: 0 0 0 0 0 0 0 0 0\n",
+        "sockstat": "sockets: used 706\nTCP: inuse 474 orphan 1 tw 85 alloc 478 mem 43\nUDP: inuse 4 mem 2\nUDPLITE: inuse 0\nRAW: inuse 0\nFRAG: inuse 0 memory 0\n",
+        "host_cpu_ticks": "cpu  140514 3654 26744 2712278 7788 0 10891 0 0 0",
+        "pressure": {
+          "cpu": "some avg10=0.00 avg60=0.00 avg300=0.04 total=62931626\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=0\n",
+          "memory": "some avg10=0.00 avg60=0.00 avg300=0.00 total=0\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=0\n",
+          "io": "some avg10=0.14 avg60=0.03 avg300=0.00 total=34768789\nfull avg10=0.14 avg60=0.03 avg300=0.00 total=22225996\n"
+        },
+        "host_memory": {
+          "MemTotal": "        7931212 kB",
+          "MemAvailable": "    5982908 kB",
+          "SwapTotal": "             0 kB",
+          "SwapFree": "              0 kB"
+        },
+        "host_oom_kills": 0
+      },
+      "generator_cpu_percent": 3.2,
+      "generator_rss": 47562752
+    },
+    {
+      "at": 1790745636.3397691,
+      "server": {
+        "at": 1790745633.6459398,
+        "services": {
+          "club-api": {
+            "MainPID": "40661",
+            "NRestarts": "0",
+            "ControlGroup": "/system.slice/club-api.service",
+            "ActiveState": "active",
+            "resources": {
+              "memory.current": "475779072",
+              "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0",
+              "cpu.stat": "usage_usec 783393910\nuser_usec 700918528\nsystem_usec 82475382\nnr_periods 0\nnr_throttled 0\nthrottled_usec 0"
+            },
+            "processes": [
+              {
+                "pid": 40661,
+                "start_ticks": 192637,
+                "comm": "uvicorn"
+              },
+              {
+                "pid": 40664,
+                "start_ticks": 192654,
+                "comm": "python"
+              },
+              {
+                "pid": 40665,
+                "start_ticks": 192654,
+                "comm": "python"
+              },
+              {
+                "pid": 40666,
+                "start_ticks": 192654,
+                "comm": "python"
+              },
+              {
+                "pid": 40667,
+                "start_ticks": 192655,
+                "comm": "python"
+              },
+              {
+                "pid": 40668,
+                "start_ticks": 192655,
+                "comm": "python"
+              }
+            ]
+          },
+          "club-worker": {
+            "MainPID": "40660",
+            "NRestarts": "0",
+            "ControlGroup": "/system.slice/club-worker.service",
+            "ActiveState": "active",
+            "resources": {
+              "memory.current": "58695680",
+              "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0",
+              "cpu.stat": "usage_usec 49841091\nuser_usec 44832349\nsystem_usec 5008741\nnr_periods 0\nnr_throttled 0\nthrottled_usec 0"
+            },
+            "processes": [
+              {
+                "pid": 40660,
+                "start_ticks": 192635,
+                "comm": "python"
+              }
+            ]
+          },
+          "mysql": {
+            "MainPID": "37574",
+            "NRestarts": "0",
+            "ControlGroup": "/system.slice/mysql.service",
+            "ActiveState": "active",
+            "resources": {
+              "memory.current": "792915968",
+              "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0",
+              "cpu.stat": "usage_usec 213564353\nuser_usec 156843794\nsystem_usec 56720559\nnr_periods 0\nnr_throttled 0\nthrottled_usec 0"
+            },
+            "processes": [
+              {
+                "pid": 37574,
+                "start_ticks": 142672,
+                "comm": "mysqld"
+              }
+            ]
+          },
+          "redis-server": {
+            "MainPID": "40650",
+            "NRestarts": "0",
+            "ControlGroup": "/system.slice/redis-server.service",
+            "ActiveState": "active",
+            "resources": {
+              "memory.current": "4698112",
+              "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0",
+              "cpu.stat": "usage_usec 15437361\nuser_usec 8383681\nsystem_usec 7053679\nnr_periods 0\nnr_throttled 0\nthrottled_usec 0"
+            },
+            "processes": [
+              {
+                "pid": 40650,
+                "start_ticks": 192629,
+                "comm": "redis-server"
+              }
+            ]
+          },
+          "nginx": {
+            "MainPID": "34135",
+            "NRestarts": "0",
+            "ControlGroup": "/system.slice/nginx.service",
+            "ActiveState": "active",
+            "resources": {
+              "memory.current": "215646208",
+              "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0",
+              "cpu.stat": "usage_usec 123104257\nuser_usec 90002962\nsystem_usec 33101295\nnr_periods 0\nnr_throttled 0\nthrottled_usec 0"
+            },
+            "processes": [
+              {
+                "pid": 34135,
+                "start_ticks": 94116,
+                "comm": "nginx"
+              },
+              {
+                "pid": 37870,
+                "start_ticks": 146366,
+                "comm": "nginx"
+              },
+              {
+                "pid": 37871,
+                "start_ticks": 146366,
+                "comm": "nginx"
+              },
+              {
+                "pid": 37872,
+                "start_ticks": 146366,
+                "comm": "nginx"
+              },
+              {
+                "pid": 37873,
+                "start_ticks": 146366,
+                "comm": "nginx"
+              }
+            ]
+          }
+        },
+        "health": {
+          "local": {
+            "status": 200,
+            "seconds": 0.006746949000444147
+          },
+          "public": {
+            "status": 200,
+            "seconds": 1.046510307999597
+          }
+        },
+        "dependencies": {
+          "club_database_available": 1.0,
+          "club_outbox_pending": 22.0,
+          "club_redis_available": 1.0
+        },
+        "net_dev": "Inter-|   Receive                                                |  Transmit\n face |bytes    packets errs drop fifo frame compressed multicast|bytes    packets errs drop fifo colls carrier compressed\n    lo: 2088565676 5978279    0    0    0     0          0         0 2088565676 5978279    0    0    0     0       0          0\n  eth0: 659478726 1909818    0    0    0     0          0         0 908772628 1869326    0    0    0     0       0          0\n",
+        "netstat": "TcpExt: SyncookiesSent SyncookiesRecv SyncookiesFailed EmbryonicRsts PruneCalled RcvPruned OfoPruned OutOfWindowIcmps LockDroppedIcmps ArpFilter TW TWRecycled TWKilled PAWSActive PAWSEstab DelayedACKs DelayedACKLocked DelayedACKLost ListenOverflows ListenDrops TCPHPHits TCPPureAcks TCPHPAcks TCPRenoRecovery TCPSackRecovery TCPSACKReneging TCPSACKReorder TCPRenoReorder TCPTSReorder TCPFullUndo TCPPartialUndo TCPDSACKUndo TCPLossUndo TCPLostRetransmit TCPRenoFailures TCPSackFailures TCPLossFailures TCPFastRetrans TCPSlowStartRetrans TCPTimeouts TCPLossProbes TCPLossProbeRecovery TCPRenoRecoveryFail TCPSackRecoveryFail TCPRcvCollapsed TCPBacklogCoalesce TCPDSACKOldSent TCPDSACKOfoSent TCPDSACKRecv TCPDSACKOfoRecv TCPAbortOnData TCPAbortOnClose TCPAbortOnMemory TCPAbortOnTimeout TCPAbortOnLinger TCPAbortFailed TCPMemoryPressures TCPMemoryPressuresChrono TCPSACKDiscard TCPDSACKIgnoredOld TCPDSACKIgnoredNoUndo TCPSpuriousRTOs TCPMD5NotFound TCPMD5Unexpected TCPMD5Failure TCPSackShifted TCPSackMerged TCPSackShiftFallback TCPBacklogDrop PFMemallocDrop TCPMinTTLDrop TCPDeferAcceptDrop IPReversePathFilter TCPTimeWaitOverflow TCPReqQFullDoCookies TCPReqQFullDrop TCPRetransFail TCPRcvCoalesce TCPOFOQueue TCPOFODrop TCPOFOMerge TCPChallengeACK TCPSYNChallenge TCPFastOpenActive TCPFastOpenActiveFail TCPFastOpenPassive TCPFastOpenPassiveFail TCPFastOpenListenOverflow TCPFastOpenCookieReqd TCPFastOpenBlackhole TCPSpuriousRtxHostQueues BusyPollRxPackets TCPAutoCorking TCPFromZeroWindowAdv TCPToZeroWindowAdv TCPWantZeroWindowAdv TCPSynRetrans TCPOrigDataSent TCPHystartTrainDetect TCPHystartTrainCwnd TCPHystartDelayDetect TCPHystartDelayCwnd TCPACKSkippedSynRecv TCPACKSkippedPAWS TCPACKSkippedSeq TCPACKSkippedFinWait2 TCPACKSkippedTimeWait TCPACKSkippedChallenge TCPWinProbe TCPKeepAlive TCPMTUPFail TCPMTUPSuccess TCPDelivered TCPDeliveredCE TCPAckCompressed TCPZeroWindowDrop TCPRcvQDrop TCPWqueueTooBig TCPFastOpenPassiveAltKey TcpTimeoutRehash TcpDuplicateDataRehash TCPDSACKRecvSegs TCPDSACKIgnoredDubious TCPMigrateReqSuccess TCPMigrateReqFailure\nTcpExt: 0 0 0 92 0 0 0 0 0 0 51419 1408 0 0 388 609076 37 7268 0 0 3682748 863620 4094594 0 2702 0 926 0 23 2 23 416 141 3841 0 291 464 3522 1412 8776 23845 2648 0 834 0 231 7276 36 11556 784 18780 2202 0 4 0 0 0 0 0 0 8013 6 0 0 0 318 634 6770 0 0 0 0 0 2338 0 0 0 73710 32482 0 36 34 30 0 0 0 0 0 0 0 0 0 13525 4 4 37 1495 5621418 2 101 1 188 0 0 4 0 0 0 0 970 0 0 5672911 0 13365 0 0 0 0 7751 931 12343 0 0 0\nIpExt: InNoRoutes InTruncatedPkts InMcastPkts OutMcastPkts InBcastPkts OutBcastPkts InOctets OutOctets InMcastOctets OutMcastOctets InBcastOctets OutBcastOctets InCsumErrors InNoECTPkts InECT1Pkts InECT0Pkts InCEPkts ReasmOverlaps\nIpExt: 0 0 103 0 0 0 2711581406 2954258300 3708 0 0 0 0 7888094 0 0 0 0\nMPTcpExt: MPCapableSYNRX MPCapableSYNTX MPCapableSYNACKRX MPCapableACKRX MPCapableFallbackACK MPCapableFallbackSYNACK MPCapableEndpAttempt MPFallbackTokenInit MPTCPRetrans MPJoinNoTokenFound MPJoinSynRx MPJoinSynBackupRx MPJoinSynAckRx MPJoinSynAckBackupRx MPJoinSynAckHMacFailure MPJoinAckRx MPJoinAckHMacFailure DSSNotMatching DSSCorruptionFallback DSSCorruptionReset InfiniteMapRx DSSNoMatchTCP DataCsumErr OFOQueueTail OFOQueue OFOMerge NoDSSInWindow DuplicateData AddAddr EchoAdd PortAdd AddAddrDrop MPJoinPortSynRx MPJoinPortSynAckRx MPJoinPortAckRx MismatchPortSynRx MismatchPortAckRx RmAddr RmAddrDrop RmSubflow MPPrioTx MPPrioRx MPFailTx MPFailRx RcvPruned SubflowStale SubflowRecover\nMPTcpExt: 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0\n",
+        "snmp": "Ip: Forwarding DefaultTTL InReceives InHdrErrors InAddrErrors ForwDatagrams InUnknownProtos InDiscards InDelivers OutRequests OutDiscards OutNoRoutes ReasmTimeout ReasmReqds ReasmOKs ReasmFails FragOKs FragFails FragCreates\nIp: 2 64 7666706 0 2 0 0 0 7666682 7521545 0 0 0 0 0 0 0 0 0\nIcmp: InMsgs InErrors InCsumErrors InDestUnreachs InTimeExcds InParmProbs InSrcQuenchs InRedirects InEchos InEchoReps InTimestamps InTimestampReps InAddrMasks InAddrMaskReps OutMsgs OutErrors OutDestUnreachs OutTimeExcds OutParmProbs OutSrcQuenchs OutRedirects OutEchos OutEchoReps OutTimestamps OutTimestampReps OutAddrMasks OutAddrMaskReps\nIcmp: 5322 0 0 0 0 0 0 0 5322 0 0 0 0 0 5340 0 18 0 0 0 0 0 5322 0 0 0 0\nIcmpMsg: InType8 OutType0 OutType3\nIcmpMsg: 5322 5322 18\nTcp: RtoAlgorithm RtoMin RtoMax MaxConn ActiveOpens PassiveOpens AttemptFails EstabResets CurrEstab InSegs OutSegs RetransSegs InErrs OutRsts InCsumErrors\nTcp: 1 200 120000 -1 60427 111618 92 2307 1830 7648997 7793795 37676 28 60090 0\nUdp: InDatagrams NoPorts InErrors OutDatagrams RcvbufErrors SndbufErrors InCsumErrors IgnoredMulti MemErrors\nUdp: 12260 0 0 12260 0 0 0 0 0\nUdpLite: InDatagrams NoPorts InErrors OutDatagrams RcvbufErrors SndbufErrors InCsumErrors IgnoredMulti MemErrors\nUdpLite: 0 0 0 0 0 0 0 0 0\n",
+        "sockstat": "sockets: used 2068\nTCP: inuse 1838 orphan 0 tw 134 alloc 1842 mem 2621\nUDP: inuse 4 mem 2\nUDPLITE: inuse 0\nRAW: inuse 0\nFRAG: inuse 0 memory 0\n",
+        "host_cpu_ticks": "cpu  141043 3658 26820 2716176 7821 0 10927 0 0 0",
+        "pressure": {
+          "cpu": "some avg10=1.04 avg60=0.22 avg300=0.09 total=63238632\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=0\n",
+          "memory": "some avg10=0.00 avg60=0.00 avg300=0.00 total=0\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=0\n",
+          "io": "some avg10=0.37 avg60=0.09 avg300=0.01 total=34916348\nfull avg10=0.22 avg60=0.05 avg300=0.01 total=22308252\n"
+        },
+        "host_memory": {
+          "MemTotal": "        7931212 kB",
+          "MemAvailable": "    6007716 kB",
+          "SwapTotal": "             0 kB",
+          "SwapFree": "              0 kB"
+        },
+        "host_oom_kills": 0
+      },
+      "generator_cpu_percent": 7.8,
+      "generator_rss": 266436608
+    },
+    {
+      "at": 1790745647.290148,
+      "server": {
+        "at": 1790745647.4810116,
+        "services": {
+          "club-api": {
+            "MainPID": "40661",
+            "NRestarts": "0",
+            "ControlGroup": "/system.slice/club-api.service",
+            "ActiveState": "active",
+            "resources": {
+              "memory.current": "476393472",
+              "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0",
+              "cpu.stat": "usage_usec 795887686\nuser_usec 711935216\nsystem_usec 83952470\nnr_periods 0\nnr_throttled 0\nthrottled_usec 0"
+            },
+            "processes": [
+              {
+                "pid": 40661,
+                "start_ticks": 192637,
+                "comm": "uvicorn"
+              },
+              {
+                "pid": 40664,
+                "start_ticks": 192654,
+                "comm": "python"
+              },
+              {
+                "pid": 40665,
+                "start_ticks": 192654,
+                "comm": "python"
+              },
+              {
+                "pid": 40666,
+                "start_ticks": 192654,
+                "comm": "python"
+              },
+              {
+                "pid": 40667,
+                "start_ticks": 192655,
+                "comm": "python"
+              },
+              {
+                "pid": 40668,
+                "start_ticks": 192655,
+                "comm": "python"
+              }
+            ]
+          },
+          "club-worker": {
+            "MainPID": "40660",
+            "NRestarts": "0",
+            "ControlGroup": "/system.slice/club-worker.service",
+            "ActiveState": "active",
+            "resources": {
+              "memory.current": "58687488",
+              "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0",
+              "cpu.stat": "usage_usec 50127368\nuser_usec 45091959\nsystem_usec 5035409\nnr_periods 0\nnr_throttled 0\nthrottled_usec 0"
+            },
+            "processes": [
+              {
+                "pid": 40660,
+                "start_ticks": 192635,
+                "comm": "python"
+              }
+            ]
+          },
+          "mysql": {
+            "MainPID": "37574",
+            "NRestarts": "0",
+            "ControlGroup": "/system.slice/mysql.service",
+            "ActiveState": "active",
+            "resources": {
+              "memory.current": "799105024",
+              "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0",
+              "cpu.stat": "usage_usec 216596478\nuser_usec 159000486\nsystem_usec 57595992\nnr_periods 0\nnr_throttled 0\nthrottled_usec 0"
+            },
+            "processes": [
+              {
+                "pid": 37574,
+                "start_ticks": 142672,
+                "comm": "mysqld"
+              }
+            ]
+          },
+          "redis-server": {
+            "MainPID": "40650",
+            "NRestarts": "0",
+            "ControlGroup": "/system.slice/redis-server.service",
+            "ActiveState": "active",
+            "resources": {
+              "memory.current": "5255168",
+              "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0",
+              "cpu.stat": "usage_usec 15624136\nuser_usec 8495916\nsystem_usec 7128219\nnr_periods 0\nnr_throttled 0\nthrottled_usec 0"
+            },
+            "processes": [
+              {
+                "pid": 40650,
+                "start_ticks": 192629,
+                "comm": "redis-server"
+              }
+            ]
+          },
+          "nginx": {
+            "MainPID": "34135",
+            "NRestarts": "0",
+            "ControlGroup": "/system.slice/nginx.service",
+            "ActiveState": "active",
+            "resources": {
+              "memory.current": "214306816",
+              "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0",
+              "cpu.stat": "usage_usec 124871418\nuser_usec 91361352\nsystem_usec 33510065\nnr_periods 0\nnr_throttled 0\nthrottled_usec 0"
+            },
+            "processes": [
+              {
+                "pid": 34135,
+                "start_ticks": 94116,
+                "comm": "nginx"
+              },
+              {
+                "pid": 37870,
+                "start_ticks": 146366,
+                "comm": "nginx"
+              },
+              {
+                "pid": 37871,
+                "start_ticks": 146366,
+                "comm": "nginx"
+              },
+              {
+                "pid": 37872,
+                "start_ticks": 146366,
+                "comm": "nginx"
+              },
+              {
+                "pid": 37873,
+                "start_ticks": 146366,
+                "comm": "nginx"
+              }
+            ]
+          }
+        },
+        "health": {
+          "local": {
+            "status": 200,
+            "seconds": 0.0062961730000097305
+          },
+          "public": {
+            "status": 200,
+            "seconds": 0.01762864400006947
+          }
+        },
+        "dependencies": {
+          "club_database_available": 1.0,
+          "club_outbox_pending": 0.0,
+          "club_redis_available": 1.0
+        },
+        "net_dev": "Inter-|   Receive                                                |  Transmit\n face |bytes    packets errs drop fifo frame compressed multicast|bytes    packets errs drop fifo colls carrier compressed\n    lo: 2124590316 6057196    0    0    0     0          0         0 2124590316 6057196    0    0    0     0       0          0\n  eth0: 663990984 1931712    0    0    0     0          0         0 925202514 1896330    0    0    0     0       0          0\n",
+        "netstat": "TcpExt: SyncookiesSent SyncookiesRecv SyncookiesFailed EmbryonicRsts PruneCalled RcvPruned OfoPruned OutOfWindowIcmps LockDroppedIcmps ArpFilter TW TWRecycled TWKilled PAWSActive PAWSEstab DelayedACKs DelayedACKLocked DelayedACKLost ListenOverflows ListenDrops TCPHPHits TCPPureAcks TCPHPAcks TCPRenoRecovery TCPSackRecovery TCPSACKReneging TCPSACKReorder TCPRenoReorder TCPTSReorder TCPFullUndo TCPPartialUndo TCPDSACKUndo TCPLossUndo TCPLostRetransmit TCPRenoFailures TCPSackFailures TCPLossFailures TCPFastRetrans TCPSlowStartRetrans TCPTimeouts TCPLossProbes TCPLossProbeRecovery TCPRenoRecoveryFail TCPSackRecoveryFail TCPRcvCollapsed TCPBacklogCoalesce TCPDSACKOldSent TCPDSACKOfoSent TCPDSACKRecv TCPDSACKOfoRecv TCPAbortOnData TCPAbortOnClose TCPAbortOnMemory TCPAbortOnTimeout TCPAbortOnLinger TCPAbortFailed TCPMemoryPressures TCPMemoryPressuresChrono TCPSACKDiscard TCPDSACKIgnoredOld TCPDSACKIgnoredNoUndo TCPSpuriousRTOs TCPMD5NotFound TCPMD5Unexpected TCPMD5Failure TCPSackShifted TCPSackMerged TCPSackShiftFallback TCPBacklogDrop PFMemallocDrop TCPMinTTLDrop TCPDeferAcceptDrop IPReversePathFilter TCPTimeWaitOverflow TCPReqQFullDoCookies TCPReqQFullDrop TCPRetransFail TCPRcvCoalesce TCPOFOQueue TCPOFODrop TCPOFOMerge TCPChallengeACK TCPSYNChallenge TCPFastOpenActive TCPFastOpenActiveFail TCPFastOpenPassive TCPFastOpenPassiveFail TCPFastOpenListenOverflow TCPFastOpenCookieReqd TCPFastOpenBlackhole TCPSpuriousRtxHostQueues BusyPollRxPackets TCPAutoCorking TCPFromZeroWindowAdv TCPToZeroWindowAdv TCPWantZeroWindowAdv TCPSynRetrans TCPOrigDataSent TCPHystartTrainDetect TCPHystartTrainCwnd TCPHystartDelayDetect TCPHystartDelayCwnd TCPACKSkippedSynRecv TCPACKSkippedPAWS TCPACKSkippedSeq TCPACKSkippedFinWait2 TCPACKSkippedTimeWait TCPACKSkippedChallenge TCPWinProbe TCPKeepAlive TCPMTUPFail TCPMTUPSuccess TCPDelivered TCPDeliveredCE TCPAckCompressed TCPZeroWindowDrop TCPRcvQDrop TCPWqueueTooBig TCPFastOpenPassiveAltKey TcpTimeoutRehash TcpDuplicateDataRehash TCPDSACKRecvSegs TCPDSACKIgnoredDubious TCPMigrateReqSuccess TCPMigrateReqFailure\nTcpExt: 0 0 0 93 0 0 0 0 0 0 51432 1408 0 0 389 614524 38 7945 0 0 3732867 883645 4143874 0 3592 0 946 0 23 2 23 501 144 6283 0 435 1045 4558 2864 11874 26082 3208 0 1265 0 231 7953 36 11561 804 18780 2209 0 4 0 0 0 0 0 0 8015 9 0 0 0 318 634 7881 0 0 0 0 0 2338 0 0 0 74150 32487 0 36 34 30 0 0 0 0 0 0 0 0 0 13773 4 4 37 2076 5696387 2 101 1 188 0 0 6 0 0 0 0 970 0 0 5749443 0 13365 0 0 0 0 10700 993 12368 0 0 0\nIpExt: InNoRoutes InTruncatedPkts InMcastPkts OutMcastPkts InBcastPkts OutBcastPkts InOctets OutOctets InMcastOctets OutMcastOctets InBcastOctets OutBcastOctets InCsumErrors InNoECTPkts InECT1Pkts InECT0Pkts InCEPkts ReasmOverlaps\nIpExt: 0 0 103 0 0 0 2751781628 3006267282 3708 0 0 0 0 7988905 0 0 0 0\nMPTcpExt: MPCapableSYNRX MPCapableSYNTX MPCapableSYNACKRX MPCapableACKRX MPCapableFallbackACK MPCapableFallbackSYNACK MPCapableEndpAttempt MPFallbackTokenInit MPTCPRetrans MPJoinNoTokenFound MPJoinSynRx MPJoinSynBackupRx MPJoinSynAckRx MPJoinSynAckBackupRx MPJoinSynAckHMacFailure MPJoinAckRx MPJoinAckHMacFailure DSSNotMatching DSSCorruptionFallback DSSCorruptionReset InfiniteMapRx DSSNoMatchTCP DataCsumErr OFOQueueTail OFOQueue OFOMerge NoDSSInWindow DuplicateData AddAddr EchoAdd PortAdd AddAddrDrop MPJoinPortSynRx MPJoinPortSynAckRx MPJoinPortAckRx MismatchPortSynRx MismatchPortAckRx RmAddr RmAddrDrop RmSubflow MPPrioTx MPPrioRx MPFailTx MPFailRx RcvPruned SubflowStale SubflowRecover\nMPTcpExt: 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0\n",
+        "snmp": "Ip: Forwarding DefaultTTL InReceives InHdrErrors InAddrErrors ForwDatagrams InUnknownProtos InDiscards InDelivers OutRequests OutDiscards OutNoRoutes ReasmTimeout ReasmReqds ReasmOKs ReasmFails FragOKs FragFails FragCreates\nIp: 2 64 7766937 0 2 0 0 0 7766913 7626167 0 0 0 0 0 0 0 0 0\nIcmp: InMsgs InErrors InCsumErrors InDestUnreachs InTimeExcds InParmProbs InSrcQuenchs InRedirects InEchos InEchoReps InTimestamps InTimestampReps InAddrMasks InAddrMaskReps OutMsgs OutErrors OutDestUnreachs OutTimeExcds OutParmProbs OutSrcQuenchs OutRedirects OutEchos OutEchoReps OutTimestamps OutTimestampReps OutAddrMasks OutAddrMaskReps\nIcmp: 5330 0 0 0 0 0 0 0 5330 0 0 0 0 0 5348 0 18 0 0 0 0 0 5330 0 0 0 0\nIcmpMsg: InType8 OutType0 OutType3\nIcmpMsg: 5330 5330 18\nTcp: RtoAlgorithm RtoMin RtoMax MaxConn ActiveOpens PassiveOpens AttemptFails EstabResets CurrEstab InSegs OutSegs RetransSegs InErrs OutRsts InCsumErrors\nTcp: 1 200 120000 -1 60979 112795 93 2314 3213 7749194 7892348 45591 28 60114 0\nUdp: InDatagrams NoPorts InErrors OutDatagrams RcvbufErrors SndbufErrors InCsumErrors IgnoredMulti MemErrors\nUdp: 12286 0 0 12286 0 0 0 0 0\nUdpLite: InDatagrams NoPorts InErrors OutDatagrams RcvbufErrors SndbufErrors InCsumErrors IgnoredMulti MemErrors\nUdpLite: 0 0 0 0 0 0 0 0 0\n",
+        "sockstat": "sockets: used 3486\nTCP: inuse 3256 orphan 35 tw 242 alloc 3260 mem 783\nUDP: inuse 4 mem 2\nUDPLITE: inuse 0\nRAW: inuse 0\nFRAG: inuse 0 memory 0\n",
+        "host_cpu_ticks": "cpu  142433 3660 27030 2719480 7903 0 11028 0 0 0",
+        "pressure": {
+          "cpu": "some avg10=5.16 avg60=1.98 avg300=0.51 total=64422347\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=0\n",
+          "memory": "some avg10=0.00 avg60=0.00 avg300=0.00 total=0\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=0\n",
+          "io": "some avg10=2.27 avg60=0.86 avg300=0.20 total=35468661\nfull avg10=0.69 avg60=0.27 avg300=0.06 total=22516422\n"
+        },
+        "host_memory": {
+          "MemTotal": "        7931212 kB",
+          "MemAvailable": "    6017220 kB",
+          "SwapTotal": "             0 kB",
+          "SwapFree": "              0 kB"
+        },
+        "host_oom_kills": 0
+      },
+      "generator_cpu_percent": 8.2,
+      "generator_rss": 303349760
+    },
+    {
+      "at": 1790745657.7743711,
+      "server": {
+        "at": 1790745658.3702228,
+        "services": {
+          "club-api": {
+            "MainPID": "40661",
+            "NRestarts": "0",
+            "ControlGroup": "/system.slice/club-api.service",
+            "ActiveState": "active",
+            "resources": {
+              "memory.current": "476626944",
+              "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0",
+              "cpu.stat": "usage_usec 796257718\nuser_usec 712271997\nsystem_usec 83985721\nnr_periods 0\nnr_throttled 0\nthrottled_usec 0"
+            },
+            "processes": [
+              {
+                "pid": 40661,
+                "start_ticks": 192637,
+                "comm": "uvicorn"
+              },
+              {
+                "pid": 40664,
+                "start_ticks": 192654,
+                "comm": "python"
+              },
+              {
+                "pid": 40665,
+                "start_ticks": 192654,
+                "comm": "python"
+              },
+              {
+                "pid": 40666,
+                "start_ticks": 192654,
+                "comm": "python"
+              },
+              {
+                "pid": 40667,
+                "start_ticks": 192655,
+                "comm": "python"
+              },
+              {
+                "pid": 40668,
+                "start_ticks": 192655,
+                "comm": "python"
+              }
+            ]
+          },
+          "club-worker": {
+            "MainPID": "40660",
+            "NRestarts": "0",
+            "ControlGroup": "/system.slice/club-worker.service",
+            "ActiveState": "active",
+            "resources": {
+              "memory.current": "58687488",
+              "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0",
+              "cpu.stat": "usage_usec 50218291\nuser_usec 45174709\nsystem_usec 5043582\nnr_periods 0\nnr_throttled 0\nthrottled_usec 0"
+            },
+            "processes": [
+              {
+                "pid": 40660,
+                "start_ticks": 192635,
+                "comm": "python"
+              }
+            ]
+          },
+          "mysql": {
+            "MainPID": "37574",
+            "NRestarts": "0",
+            "ControlGroup": "/system.slice/mysql.service",
+            "ActiveState": "active",
+            "resources": {
+              "memory.current": "799113216",
+              "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0",
+              "cpu.stat": "usage_usec 216747620\nuser_usec 159120075\nsystem_usec 57627545\nnr_periods 0\nnr_throttled 0\nthrottled_usec 0"
+            },
+            "processes": [
+              {
+                "pid": 37574,
+                "start_ticks": 142672,
+                "comm": "mysqld"
+              }
+            ]
+          },
+          "redis-server": {
+            "MainPID": "40650",
+            "NRestarts": "0",
+            "ControlGroup": "/system.slice/redis-server.service",
+            "ActiveState": "active",
+            "resources": {
+              "memory.current": "5054464",
+              "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0",
+              "cpu.stat": "usage_usec 15640484\nuser_usec 8506004\nsystem_usec 7134480\nnr_periods 0\nnr_throttled 0\nthrottled_usec 0"
+            },
+            "processes": [
+              {
+                "pid": 40650,
+                "start_ticks": 192629,
+                "comm": "redis-server"
+              }
+            ]
+          },
+          "nginx": {
+            "MainPID": "34135",
+            "NRestarts": "0",
+            "ControlGroup": "/system.slice/nginx.service",
+            "ActiveState": "active",
+            "resources": {
+              "memory.current": "212639744",
+              "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0",
+              "cpu.stat": "usage_usec 124962027\nuser_usec 91408580\nsystem_usec 33553447\nnr_periods 0\nnr_throttled 0\nthrottled_usec 0"
+            },
+            "processes": [
+              {
+                "pid": 34135,
+                "start_ticks": 94116,
+                "comm": "nginx"
+              },
+              {
+                "pid": 37870,
+                "start_ticks": 146366,
+                "comm": "nginx"
+              },
+              {
+                "pid": 37871,
+                "start_ticks": 146366,
+                "comm": "nginx"
+              },
+              {
+                "pid": 37872,
+                "start_ticks": 146366,
+                "comm": "nginx"
+              },
+              {
+                "pid": 37873,
+                "start_ticks": 146366,
+                "comm": "nginx"
+              }
+            ]
+          }
+        },
+        "health": {
+          "local": {
+            "status": 200,
+            "seconds": 0.006263371999921219
+          },
+          "public": {
+            "status": 200,
+            "seconds": 0.014426976999857288
+          }
+        },
+        "dependencies": {
+          "club_database_available": 1.0,
+          "club_outbox_pending": 0.0,
+          "club_redis_available": 1.0
+        },
+        "net_dev": "Inter-|   Receive                                                |  Transmit\n face |bytes    packets errs drop fifo frame compressed multicast|bytes    packets errs drop fifo colls carrier compressed\n    lo: 2125188620 6062372    0    0    0     0          0         0 2125188620 6062372    0    0    0     0       0          0\n  eth0: 664258667 1934707    0    0    0     0          0         0 925590653 1899523    0    0    0     0       0          0\n",
+        "netstat": "TcpExt: SyncookiesSent SyncookiesRecv SyncookiesFailed EmbryonicRsts PruneCalled RcvPruned OfoPruned OutOfWindowIcmps LockDroppedIcmps ArpFilter TW TWRecycled TWKilled PAWSActive PAWSEstab DelayedACKs DelayedACKLocked DelayedACKLost ListenOverflows ListenDrops TCPHPHits TCPPureAcks TCPHPAcks TCPRenoRecovery TCPSackRecovery TCPSACKReneging TCPSACKReorder TCPRenoReorder TCPTSReorder TCPFullUndo TCPPartialUndo TCPDSACKUndo TCPLossUndo TCPLostRetransmit TCPRenoFailures TCPSackFailures TCPLossFailures TCPFastRetrans TCPSlowStartRetrans TCPTimeouts TCPLossProbes TCPLossProbeRecovery TCPRenoRecoveryFail TCPSackRecoveryFail TCPRcvCollapsed TCPBacklogCoalesce TCPDSACKOldSent TCPDSACKOfoSent TCPDSACKRecv TCPDSACKOfoRecv TCPAbortOnData TCPAbortOnClose TCPAbortOnMemory TCPAbortOnTimeout TCPAbortOnLinger TCPAbortFailed TCPMemoryPressures TCPMemoryPressuresChrono TCPSACKDiscard TCPDSACKIgnoredOld TCPDSACKIgnoredNoUndo TCPSpuriousRTOs TCPMD5NotFound TCPMD5Unexpected TCPMD5Failure TCPSackShifted TCPSackMerged TCPSackShiftFallback TCPBacklogDrop PFMemallocDrop TCPMinTTLDrop TCPDeferAcceptDrop IPReversePathFilter TCPTimeWaitOverflow TCPReqQFullDoCookies TCPReqQFullDrop TCPRetransFail TCPRcvCoalesce TCPOFOQueue TCPOFODrop TCPOFOMerge TCPChallengeACK TCPSYNChallenge TCPFastOpenActive TCPFastOpenActiveFail TCPFastOpenPassive TCPFastOpenPassiveFail TCPFastOpenListenOverflow TCPFastOpenCookieReqd TCPFastOpenBlackhole TCPSpuriousRtxHostQueues BusyPollRxPackets TCPAutoCorking TCPFromZeroWindowAdv TCPToZeroWindowAdv TCPWantZeroWindowAdv TCPSynRetrans TCPOrigDataSent TCPHystartTrainDetect TCPHystartTrainCwnd TCPHystartDelayDetect TCPHystartDelayCwnd TCPACKSkippedSynRecv TCPACKSkippedPAWS TCPACKSkippedSeq TCPACKSkippedFinWait2 TCPACKSkippedTimeWait TCPACKSkippedChallenge TCPWinProbe TCPKeepAlive TCPMTUPFail TCPMTUPSuccess TCPDelivered TCPDeliveredCE TCPAckCompressed TCPZeroWindowDrop TCPRcvQDrop TCPWqueueTooBig TCPFastOpenPassiveAltKey TcpTimeoutRehash TcpDuplicateDataRehash TCPDSACKRecvSegs TCPDSACKIgnoredDubious TCPMigrateReqSuccess TCPMigrateReqFailure\nTcpExt: 0 0 0 93 0 0 0 0 0 0 51441 1408 0 0 389 615634 38 8066 0 0 3734680 884713 4146676 0 3596 0 946 0 23 2 23 501 144 6310 0 435 1045 4564 2867 11932 26170 3305 0 1266 0 231 8074 36 11561 804 18780 2214 0 4 0 0 0 0 0 0 8015 9 0 0 0 318 634 7885 0 0 0 0 0 2338 0 0 0 74169 32487 0 36 34 30 0 0 0 0 0 0 0 0 0 13773 4 4 37 2076 5700389 2 101 1 188 0 0 6 0 0 0 0 970 0 0 5753417 0 13365 0 0 0 0 10758 1000 12368 0 0 0\nIpExt: InNoRoutes InTruncatedPkts InMcastPkts OutMcastPkts InBcastPkts OutBcastPkts InOctets OutOctets InMcastOctets OutMcastOctets InBcastOctets OutBcastOctets InCsumErrors InNoECTPkts InECT1Pkts InECT0Pkts InCEPkts ReasmOverlaps\nIpExt: 0 0 103 0 0 0 2752605269 3007207771 3708 0 0 0 0 7997076 0 0 0 0\nMPTcpExt: MPCapableSYNRX MPCapableSYNTX MPCapableSYNACKRX MPCapableACKRX MPCapableFallbackACK MPCapableFallbackSYNACK MPCapableEndpAttempt MPFallbackTokenInit MPTCPRetrans MPJoinNoTokenFound MPJoinSynRx MPJoinSynBackupRx MPJoinSynAckRx MPJoinSynAckBackupRx MPJoinSynAckHMacFailure MPJoinAckRx MPJoinAckHMacFailure DSSNotMatching DSSCorruptionFallback DSSCorruptionReset InfiniteMapRx DSSNoMatchTCP DataCsumErr OFOQueueTail OFOQueue OFOMerge NoDSSInWindow DuplicateData AddAddr EchoAdd PortAdd AddAddrDrop MPJoinPortSynRx MPJoinPortSynAckRx MPJoinPortAckRx MismatchPortSynRx MismatchPortAckRx RmAddr RmAddrDrop RmSubflow MPPrioTx MPPrioRx MPFailTx MPFailRx RcvPruned SubflowStale SubflowRecover\nMPTcpExt: 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0\n",
+        "snmp": "Ip: Forwarding DefaultTTL InReceives InHdrErrors InAddrErrors ForwDatagrams InUnknownProtos InDiscards InDelivers OutRequests OutDiscards OutNoRoutes ReasmTimeout ReasmReqds ReasmOKs ReasmFails FragOKs FragFails FragCreates\nIp: 2 64 7775100 0 2 0 0 0 7775076 7634511 0 0 0 0 0 0 0 0 0\nIcmp: InMsgs InErrors InCsumErrors InDestUnreachs InTimeExcds InParmProbs InSrcQuenchs InRedirects InEchos InEchoReps InTimestamps InTimestampReps InAddrMasks InAddrMaskReps OutMsgs OutErrors OutDestUnreachs OutTimeExcds OutParmProbs OutSrcQuenchs OutRedirects OutEchos OutEchoReps OutTimestamps OutTimestampReps OutAddrMasks OutAddrMaskReps\nIcmp: 5338 0 0 0 0 0 0 0 5338 0 0 0 0 0 5356 0 18 0 0 0 0 0 5338 0 0 0 0\nIcmpMsg: InType8 OutType0 OutType3\nIcmpMsg: 5338 5338 18\nTcp: RtoAlgorithm RtoMin RtoMax MaxConn ActiveOpens PassiveOpens AttemptFails EstabResets CurrEstab InSegs OutSegs RetransSegs InErrs OutRsts InCsumErrors\nTcp: 1 200 120000 -1 61008 112818 93 2319 3216 7757293 7900499 45745 28 60153 0\nUdp: InDatagrams NoPorts InErrors OutDatagrams RcvbufErrors SndbufErrors InCsumErrors IgnoredMulti MemErrors\nUdp: 12342 0 0 12342 0 0 0 0 0\nUdpLite: InDatagrams NoPorts InErrors OutDatagrams RcvbufErrors SndbufErrors InCsumErrors IgnoredMulti MemErrors\nUdpLite: 0 0 0 0 0 0 0 0 0\n",
+        "sockstat": "sockets: used 3489\nTCP: inuse 3259 orphan 35 tw 252 alloc 3263 mem 459\nUDP: inuse 4 mem 2\nUDPLITE: inuse 0\nRAW: inuse 0\nFRAG: inuse 0 memory 0\n",
+        "host_cpu_ticks": "cpu  142527 3664 27056 2723678 7913 0 11042 0 0 0",
+        "pressure": {
+          "cpu": "some avg10=1.89 avg60=1.67 avg300=0.49 total=64440284\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=0\n",
+          "memory": "some avg10=0.00 avg60=0.00 avg300=0.00 total=0\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=0\n",
+          "io": "some avg10=0.83 avg60=0.73 avg300=0.19 total=35495178\nfull avg10=0.25 avg60=0.23 avg300=0.06 total=22541966\n"
+        },
+        "host_memory": {
+          "MemTotal": "        7931212 kB",
+          "MemAvailable": "    6012508 kB",
+          "SwapTotal": "             0 kB",
+          "SwapFree": "              0 kB"
+        },
+        "host_oom_kills": 0
+      },
+      "generator_cpu_percent": 1.8,
+      "generator_rss": 296648704
+    },
+    {
+      "at": 1790745668.1990259,
+      "server": {
+        "at": 1790745668.8528934,
+        "services": {
+          "club-api": {
+            "MainPID": "40661",
+            "NRestarts": "0",
+            "ControlGroup": "/system.slice/club-api.service",
+            "ActiveState": "active",
+            "resources": {
+              "memory.current": "476483584",
+              "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0",
+              "cpu.stat": "usage_usec 797502805\nuser_usec 713378205\nsystem_usec 84124599\nnr_periods 0\nnr_throttled 0\nthrottled_usec 0"
+            },
+            "processes": [
+              {
+                "pid": 40661,
+                "start_ticks": 192637,
+                "comm": "uvicorn"
+              },
+              {
+                "pid": 40664,
+                "start_ticks": 192654,
+                "comm": "python"
+              },
+              {
+                "pid": 40665,
+                "start_ticks": 192654,
+                "comm": "python"
+              },
+              {
+                "pid": 40666,
+                "start_ticks": 192654,
+                "comm": "python"
+              },
+              {
+                "pid": 40667,
+                "start_ticks": 192655,
+                "comm": "python"
+              },
+              {
+                "pid": 40668,
+                "start_ticks": 192655,
+                "comm": "python"
+              }
+            ]
+          },
+          "club-worker": {
+            "MainPID": "40660",
+            "NRestarts": "0",
+            "ControlGroup": "/system.slice/club-worker.service",
+            "ActiveState": "active",
+            "resources": {
+              "memory.current": "58687488",
+              "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0",
+              "cpu.stat": "usage_usec 50305537\nuser_usec 45243364\nsystem_usec 5062172\nnr_periods 0\nnr_throttled 0\nthrottled_usec 0"
+            },
+            "processes": [
+              {
+                "pid": 40660,
+                "start_ticks": 192635,
+                "comm": "python"
+              }
+            ]
+          },
+          "mysql": {
+            "MainPID": "37574",
+            "NRestarts": "0",
+            "ControlGroup": "/system.slice/mysql.service",
+            "ActiveState": "active",
+            "resources": {
+              "memory.current": "799174656",
+              "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0",
+              "cpu.stat": "usage_usec 217086273\nuser_usec 159341333\nsystem_usec 57744940\nnr_periods 0\nnr_throttled 0\nthrottled_usec 0"
+            },
+            "processes": [
+              {
+                "pid": 37574,
+                "start_ticks": 142672,
+                "comm": "mysqld"
+              }
+            ]
+          },
+          "redis-server": {
+            "MainPID": "40650",
+            "NRestarts": "0",
+            "ControlGroup": "/system.slice/redis-server.service",
+            "ActiveState": "active",
+            "resources": {
+              "memory.current": "4870144",
+              "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0",
+              "cpu.stat": "usage_usec 15654833\nuser_usec 8518115\nsystem_usec 7136718\nnr_periods 0\nnr_throttled 0\nthrottled_usec 0"
+            },
+            "processes": [
+              {
+                "pid": 40650,
+                "start_ticks": 192629,
+                "comm": "redis-server"
+              }
+            ]
+          },
+          "nginx": {
+            "MainPID": "34135",
+            "NRestarts": "0",
+            "ControlGroup": "/system.slice/nginx.service",
+            "ActiveState": "active",
+            "resources": {
+              "memory.current": "211730432",
+              "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0",
+              "cpu.stat": "usage_usec 125088607\nuser_usec 91506115\nsystem_usec 33582492\nnr_periods 0\nnr_throttled 0\nthrottled_usec 0"
+            },
+            "processes": [
+              {
+                "pid": 34135,
+                "start_ticks": 94116,
+                "comm": "nginx"
+              },
+              {
+                "pid": 37870,
+                "start_ticks": 146366,
+                "comm": "nginx"
+              },
+              {
+                "pid": 37871,
+                "start_ticks": 146366,
+                "comm": "nginx"
+              },
+              {
+                "pid": 37872,
+                "start_ticks": 146366,
+                "comm": "nginx"
+              },
+              {
+                "pid": 37873,
+                "start_ticks": 146366,
+                "comm": "nginx"
+              }
+            ]
+          }
+        },
+        "health": {
+          "local": {
+            "status": 200,
+            "seconds": 0.006044679999831715
+          },
+          "public": {
+            "status": 200,
+            "seconds": 0.014134720000583911
+          }
+        },
+        "dependencies": {
+          "club_database_available": 1.0,
+          "club_outbox_pending": 0.0,
+          "club_redis_available": 1.0
+        },
+        "net_dev": "Inter-|   Receive                                                |  Transmit\n face |bytes    packets errs drop fifo frame compressed multicast|bytes    packets errs drop fifo colls carrier compressed\n    lo: 2128293828 6071733    0    0    0     0          0         0 2128293828 6071733    0    0    0     0       0          0\n  eth0: 664564335 1936645    0    0    0     0          0         0 926333304 1901548    0    0    0     0       0          0\n",
+        "netstat": "TcpExt: SyncookiesSent SyncookiesRecv SyncookiesFailed EmbryonicRsts PruneCalled RcvPruned OfoPruned OutOfWindowIcmps LockDroppedIcmps ArpFilter TW TWRecycled TWKilled PAWSActive PAWSEstab DelayedACKs DelayedACKLocked DelayedACKLost ListenOverflows ListenDrops TCPHPHits TCPPureAcks TCPHPAcks TCPRenoRecovery TCPSackRecovery TCPSACKReneging TCPSACKReorder TCPRenoReorder TCPTSReorder TCPFullUndo TCPPartialUndo TCPDSACKUndo TCPLossUndo TCPLostRetransmit TCPRenoFailures TCPSackFailures TCPLossFailures TCPFastRetrans TCPSlowStartRetrans TCPTimeouts TCPLossProbes TCPLossProbeRecovery TCPRenoRecoveryFail TCPSackRecoveryFail TCPRcvCollapsed TCPBacklogCoalesce TCPDSACKOldSent TCPDSACKOfoSent TCPDSACKRecv TCPDSACKOfoRecv TCPAbortOnData TCPAbortOnClose TCPAbortOnMemory TCPAbortOnTimeout TCPAbortOnLinger TCPAbortFailed TCPMemoryPressures TCPMemoryPressuresChrono TCPSACKDiscard TCPDSACKIgnoredOld TCPDSACKIgnoredNoUndo TCPSpuriousRTOs TCPMD5NotFound TCPMD5Unexpected TCPMD5Failure TCPSackShifted TCPSackMerged TCPSackShiftFallback TCPBacklogDrop PFMemallocDrop TCPMinTTLDrop TCPDeferAcceptDrop IPReversePathFilter TCPTimeWaitOverflow TCPReqQFullDoCookies TCPReqQFullDrop TCPRetransFail TCPRcvCoalesce TCPOFOQueue TCPOFODrop TCPOFOMerge TCPChallengeACK TCPSYNChallenge TCPFastOpenActive TCPFastOpenActiveFail TCPFastOpenPassive TCPFastOpenPassiveFail TCPFastOpenListenOverflow TCPFastOpenCookieReqd TCPFastOpenBlackhole TCPSpuriousRtxHostQueues BusyPollRxPackets TCPAutoCorking TCPFromZeroWindowAdv TCPToZeroWindowAdv TCPWantZeroWindowAdv TCPSynRetrans TCPOrigDataSent TCPHystartTrainDetect TCPHystartTrainCwnd TCPHystartDelayDetect TCPHystartDelayCwnd TCPACKSkippedSynRecv TCPACKSkippedPAWS TCPACKSkippedSeq TCPACKSkippedFinWait2 TCPACKSkippedTimeWait TCPACKSkippedChallenge TCPWinProbe TCPKeepAlive TCPMTUPFail TCPMTUPSuccess TCPDelivered TCPDeliveredCE TCPAckCompressed TCPZeroWindowDrop TCPRcvQDrop TCPWqueueTooBig TCPFastOpenPassiveAltKey TcpTimeoutRehash TcpDuplicateDataRehash TCPDSACKRecvSegs TCPDSACKIgnoredDubious TCPMigrateReqSuccess TCPMigrateReqFailure\nTcpExt: 0 0 0 93 0 0 0 0 0 0 51450 1408 0 0 389 616412 38 8083 0 0 3739589 885901 4152516 0 3607 0 946 0 23 2 23 501 144 6327 0 440 1046 4575 2872 11960 26206 3424 0 1268 0 231 8091 36 11561 804 18780 2219 0 4 0 0 0 0 0 0 8015 9 0 0 0 318 634 7905 0 0 0 0 0 2338 0 0 0 74191 32487 0 36 34 30 0 0 0 0 0 0 0 0 0 13773 4 4 37 2076 5708319 2 101 1 188 0 0 6 0 0 0 0 970 0 0 5761398 0 13365 0 0 0 0 10786 1003 12368 0 0 0\nIpExt: InNoRoutes InTruncatedPkts InMcastPkts OutMcastPkts InBcastPkts OutBcastPkts InOctets OutOctets InMcastOctets OutMcastOctets InBcastOctets OutBcastOctets InCsumErrors InNoECTPkts InECT1Pkts InECT0Pkts InCEPkts ReasmOverlaps\nIpExt: 0 0 103 0 0 0 2755988597 3011017852 3708 0 0 0 0 8008375 0 0 0 0\nMPTcpExt: MPCapableSYNRX MPCapableSYNTX MPCapableSYNACKRX MPCapableACKRX MPCapableFallbackACK MPCapableFallbackSYNACK MPCapableEndpAttempt MPFallbackTokenInit MPTCPRetrans MPJoinNoTokenFound MPJoinSynRx MPJoinSynBackupRx MPJoinSynAckRx MPJoinSynAckBackupRx MPJoinSynAckHMacFailure MPJoinAckRx MPJoinAckHMacFailure DSSNotMatching DSSCorruptionFallback DSSCorruptionReset InfiniteMapRx DSSNoMatchTCP DataCsumErr OFOQueueTail OFOQueue OFOMerge NoDSSInWindow DuplicateData AddAddr EchoAdd PortAdd AddAddrDrop MPJoinPortSynRx MPJoinPortSynAckRx MPJoinPortAckRx MismatchPortSynRx MismatchPortAckRx RmAddr RmAddrDrop RmSubflow MPPrioTx MPPrioRx MPFailTx MPFailRx RcvPruned SubflowStale SubflowRecover\nMPTcpExt: 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0\n",
+        "snmp": "Ip: Forwarding DefaultTTL InReceives InHdrErrors InAddrErrors ForwDatagrams InUnknownProtos InDiscards InDelivers OutRequests OutDiscards OutNoRoutes ReasmTimeout ReasmReqds ReasmOKs ReasmFails FragOKs FragFails FragCreates\nIp: 2 64 7786391 0 2 0 0 0 7786367 7645715 0 0 0 0 0 0 0 0 0\nIcmp: InMsgs InErrors InCsumErrors InDestUnreachs InTimeExcds InParmProbs InSrcQuenchs InRedirects InEchos InEchoReps InTimestamps InTimestampReps InAddrMasks InAddrMaskReps OutMsgs OutErrors OutDestUnreachs OutTimeExcds OutParmProbs OutSrcQuenchs OutRedirects OutEchos OutEchoReps OutTimestamps OutTimestampReps OutAddrMasks OutAddrMaskReps\nIcmp: 5345 0 0 0 0 0 0 0 5345 0 0 0 0 0 5363 0 18 0 0 0 0 0 5345 0 0 0 0\nIcmpMsg: InType8 OutType0 OutType3\nIcmpMsg: 5345 5345 18\nTcp: RtoAlgorithm RtoMin RtoMax MaxConn ActiveOpens PassiveOpens AttemptFails EstabResets CurrEstab InSegs OutSegs RetransSegs InErrs OutRsts InCsumErrors\nTcp: 1 200 120000 -1 61042 112846 93 2324 3226 7768552 7911773 45825 28 60158 0\nUdp: InDatagrams NoPorts InErrors OutDatagrams RcvbufErrors SndbufErrors InCsumErrors IgnoredMulti MemErrors\nUdp: 12367 0 0 12367 0 0 0 0 0\nUdpLite: InDatagrams NoPorts InErrors OutDatagrams RcvbufErrors SndbufErrors InCsumErrors IgnoredMulti MemErrors\nUdpLite: 0 0 0 0 0 0 0 0 0\n",
+        "sockstat": "sockets: used 3499\nTCP: inuse 3269 orphan 35 tw 262 alloc 3273 mem 167\nUDP: inuse 4 mem 3\nUDPLITE: inuse 0\nRAW: inuse 0\nFRAG: inuse 0 memory 0\n",
+        "host_cpu_ticks": "cpu  142708 3668 27097 2727596 7926 0 11063 0 0 0",
+        "pressure": {
+          "cpu": "some avg10=0.69 avg60=1.42 avg300=0.47 total=64464905\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=0\n",
+          "memory": "some avg10=0.00 avg60=0.00 avg300=0.00 total=0\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=0\n",
+          "io": "some avg10=0.30 avg60=0.61 avg300=0.18 total=35532311\nfull avg10=0.09 avg60=0.19 avg300=0.05 total=22576176\n"
+        },
+        "host_memory": {
+          "MemTotal": "        7931212 kB",
+          "MemAvailable": "    6002704 kB",
+          "SwapTotal": "             0 kB",
+          "SwapFree": "              0 kB"
+        },
+        "host_oom_kills": 0
+      },
+      "generator_cpu_percent": 2.2,
+      "generator_rss": 296124416
+    }
+  ],
+  "errors": [],
+  "parts": [
+    {
+      "file": "cold-1.parts/round-1-part-1.json",
+      "sha256": "c1823ba9827e2a72e58512f0ad4f39aa9d05c53d652890bfbea5ec725215fd1c"
+    },
+    {
+      "file": "cold-1.parts/round-1-part-2.json",
+      "sha256": "9ee8560d5f712fcfa6b60e6d5436e31094817da4daf01bab472b11cc88bb76e6"
+    },
+    {
+      "file": "cold-1.parts/round-1-part-3.json",
+      "sha256": "01d23b2ad49719bc8915b07093f2683053b583725adb53e43cc9a39d780d2be8"
+    }
+  ],
+  "production_capacity_verified": false,
+  "network_scope": "Independent generator to actual Tencent public HTTPS; no artificial shaping; generator OS/interface recorded separately",
+  "cpu_scope": "Actual new Tencent host 4 vCPU / 8GB, native systemd services, no CPU quota",
+  "generator_scope": "3 independent Python processes, disjoint student accounts",
+  "data_scope": "Dedicated synthetic club_test on new host; user switched DNS; old production data untouched",
+  "application_sha256": "1b1ad6ec212d94e7328f7c4170cc27bcf24acb8085e0b03c73896dcd06ae84f1",
+  "api_image_id": "/srv/club/releases/81adef2bfa4441fc54d014f445e1f81383242a13",
+  "api_command": "{ path=/srv/club/current/.venv/bin/uvicorn ; argv[]=/srv/club/current/.venv/bin/uvicorn club.api:app --host 127.0.0.1 --port 8001 --workers 4 --no-access-log --log-level warning --timeout-graceful-shutdown 20 ; ignore_errors=no ; start_time=[Wed 2026-09-30 11:51:13 CST] ; stop_time=[n/a] ; pid=40661 ; code=(null) ; status=0/0 }",
+  "runtime_settings": {
+    "pool_size": 15,
+    "pool_overflow": 3,
+    "read_pool_size": 4,
+    "password_storage": "plaintext"
+  },
+  "test_ca_sha256": null,
+  "deployment_config_sha256": {
+    "/etc/nginx/nginx.conf": "54e4c735ec32109b6b444c8ce206f92980e7cfd15b0bbec25cfa5c86cc0dba55",
+    "/etc/nginx/club-routes.conf": "a54840ea6e56fa426877a72cbb35d88a414b788a82dd1f659b3ff5e2d5f45d29",
+    "/etc/nginx/conf.d/club-v2.conf": "6735b6d0ffabd60feb8e5e4ce38d1f8414490024c20c3f7b31002a4ba20bf7ad",
+    "/etc/systemd/system/club-api.service": "aa6ec3dc5cefeeaa2956b2a12aba596c4de5c456f125a2b2dda414578119232e",
+    "/etc/systemd/system/club-worker.service": "1b03f254c2a24fbf1451f73efbd7d63c95a5231a80b665b07a6146c46fb94210",
+    "/srv/club/current/uv.lock": "0d301e9e835f07d5368aeb0a3ebbd4672b6b2c6bd428a0d82e3e7c4343a72b39"
+  },
+  "opening_guard_s": 0.05
+}

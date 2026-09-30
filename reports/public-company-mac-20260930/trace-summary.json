@@ -1,0 +1,67 @@
+{
+  "cold-1": {
+    "completed": 656,
+    "outcomes": {
+      "login_failed": 836,
+      "enroll_http_200": 656,
+      "bootstrap_failed": 8
+    },
+    "websocket": {
+      "open_at_end": 662,
+      "unexpected_close": 1,
+      "timed_deliveries": 119226,
+      "missing_final_quota_snapshots": 35154,
+      "notification_p95_s": 1.5403
+    },
+    "loop_lag_p95_s": [
+      0.0021,
+      0.0021,
+      0.0022
+    ],
+    "connection_and_timeout_errors": 844,
+    "before_headers_sent": 817,
+    "failure_groups": {
+      "login|ClientConnectorError|before_headers=True|errno=54": 623,
+      "login|ClientConnectorError|before_headers=True|errno=22": 31,
+      "login|ClientConnectorError|before_headers=True|errno=32": 50,
+      "login|TimeoutError|before_headers=True|errno=None": 106,
+      "login|TimeoutError|before_headers=False|errno=None": 26,
+      "event_bootstrap|TimeoutError|before_headers=False|errno=None": 1,
+      "event_bootstrap|TimeoutError|before_headers=True|errno=None": 6,
+      "event_bootstrap|ClientConnectorError|before_headers=True|errno=None": 1
+    }
+  },
+  "ready-1": {
+    "completed": 1489,
+    "outcomes": {
+      "enroll_http_200": 1433,
+      "bootstrap_failed": 11,
+      "enroll_http_503": 55,
+      "enroll_http_0": 1
+    },
+    "websocket": {
+      "open_at_end": 1500,
+      "unexpected_close": 0,
+      "timed_deliveries": 271500,
+      "missing_final_quota_snapshots": 0,
+      "notification_p95_s": 2.5682
+    },
+    "loop_lag_p95_s": [
+      0.0034,
+      0.0023,
+      0.0051
+    ],
+    "connection_and_timeout_errors": 64,
+    "before_headers_sent": 27,
+    "failure_groups": {
+      "active_detail|TimeoutError|before_headers=False|errno=None": 25,
+      "burst_bootstrap|TimeoutError|before_headers=False|errno=None": 11,
+      "event_enrollment|ClientConnectorError|before_headers=True|errno=54": 13,
+      "event_enrollment|TimeoutError|before_headers=True|errno=None": 5,
+      "active_detail|ClientConnectorError|before_headers=True|errno=54": 6,
+      "periodic_quotas|ClientConnectorError|before_headers=True|errno=None": 1,
+      "periodic_quotas|ClientConnectorError|before_headers=True|errno=54": 2,
+      "enroll|TimeoutError|before_headers=False|errno=None": 1
+    }
+  }
+}
