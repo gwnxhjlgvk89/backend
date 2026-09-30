@@ -36,7 +36,7 @@ def target(args):
 def scope(args):
     selected = target(args)
     return {
-        "network_scope": "Independent wired Linux generator to actual Tencent public HTTPS; no artificial shaping",
+        "network_scope": "Independent generator to actual Tencent public HTTPS; no artificial shaping; generator OS/interface recorded separately",
         "cpu_scope": selected["cpu_scope"],
         "data_scope": selected["data_scope"],
         "production_capacity_verified": False,
