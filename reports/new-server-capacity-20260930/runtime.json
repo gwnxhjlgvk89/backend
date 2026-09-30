@@ -1,0 +1,33 @@
+{
+  "recorded_at": 1790740595.7291493,
+  "deployment_commit": "81adef2bfa4441fc54d014f445e1f81383242a13",
+  "driver_commit": "50defcf",
+  "provision_precheck_commit": "7302c6d",
+  "host": "43.142.19.144",
+  "url": "https://wjy-1214.cloud",
+  "dns_switched_by_user": true,
+  "production_data_imported": false,
+  "packages": "libc6 2.35-0ubuntu3.13\nmysql-server 8.0.46-0ubuntu0.22.04.4\nnginx 1.18.0-6ubuntu14.21\nredis-server 6:7.2.16-1rl1~jammy1\nredis-tools 6:7.2.16-1rl1~jammy1",
+  "redis_config": "maxmemory\n201326592\nbind\n127.0.0.1 ::1\nmaxmemory-policy\nnoeviction",
+  "db": "8.0.46-0ubuntu0.22.04.4\t151\t805306368\t1\t1",
+  "services": {
+    "club-api": "NRestarts=0\nExecStart={ path=/srv/club/current/.venv/bin/uvicorn ; argv[]=/srv/club/current/.venv/bin/uvicorn club.api:app --host 127.0.0.1 --port 8001 --workers 4 --no-access-log --log-level warning --timeout-graceful-shutdown 20 ; ignore_errors=no ; start_time=[Wed 2026-09-30 11:51:13 CST] ; stop_time=[n/a] ; pid=40661 ; code=(null) ; status=0/0 }\nCPUQuotaPerSecUSec=infinity\nMemoryMax=infinity\nLimitNOFILE=16384\nUser=club",
+    "club-worker": "NRestarts=0\nExecStart={ path=/srv/club/current/.venv/bin/python ; argv[]=/srv/club/current/.venv/bin/python -m club.worker ; ignore_errors=no ; start_time=[Wed 2026-09-30 11:51:13 CST] ; stop_time=[n/a] ; pid=40660 ; code=(null) ; status=0/0 }\nCPUQuotaPerSecUSec=infinity\nMemoryMax=infinity\nLimitNOFILE=524288\nUser=club",
+    "mysql": "NRestarts=0\nExecStart={ path=/usr/sbin/mysqld ; argv[]=/usr/sbin/mysqld ; ignore_errors=no ; start_time=[n/a] ; stop_time=[n/a] ; pid=0 ; code=(null) ; status=0/0 }\nCPUQuotaPerSecUSec=infinity\nMemoryMax=infinity\nLimitNOFILE=10000\nUser=mysql",
+    "redis-server": "NRestarts=0\nExecStart={ path=/usr/bin/redis-server ; argv[]=/usr/bin/redis-server /etc/redis/redis.conf ; ignore_errors=no ; start_time=[Wed 2026-09-30 11:51:13 CST] ; stop_time=[n/a] ; pid=40650 ; code=(null) ; status=0/0 }\nCPUQuotaPerSecUSec=infinity\nMemoryMax=infinity\nLimitNOFILE=65535\nUser=redis",
+    "nginx": "NRestarts=0\nExecStart={ path=/usr/sbin/nginx ; argv[]=/usr/sbin/nginx -g daemon on; master_process on; ; ignore_errors=no ; start_time=[n/a] ; stop_time=[n/a] ; pid=0 ; code=(null) ; status=0/0 }\nCPUQuotaPerSecUSec=infinity\nMemoryMax=infinity\nLimitNOFILE=524288\nUser="
+  },
+  "cert_sha256": "e35ee47bec36796e64c922d8752632084663983ed89bb753eff945deb025bfaa",
+  "cert_bytes": 5651,
+  "provision_commits": [
+    "88cafd7",
+    "7302c6d",
+    "50defcf"
+  ],
+  "remarks": [
+    "Business application remains 81adef2; newer commits affect deployment or drivers only",
+    "Shared directory mode changed to 0751; test-files remains 0750",
+    "Public domain points to synthetic test deployment, not formal empty production"
+  ],
+  "first_login_driver_commit": "7edc83b"
+}

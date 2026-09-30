@@ -1,0 +1,40 @@
+{
+  "lan": {
+    "host": "192.168.100.20",
+    "python": "3.11.2",
+    "packages": {
+      "aiohttp": "3.13.3",
+      "aiohappyeyeballs": "2.7.1",
+      "psutil": "7.2.2",
+      "yarl": "1.25.1"
+    },
+    "path": "wired direct via ordinary router; shared WAN source with alt"
+  },
+  "alt": {
+    "host": "192.168.100.130",
+    "python": "3.11.16",
+    "packages": {
+      "aiohttp": "3.13.3",
+      "aiohappyeyeballs": "2.7.1",
+      "psutil": "7.2.2",
+      "yarl": "1.25.1"
+    },
+    "path": "wired, local Meta TUN; same observed public HTTPS egress as lan"
+  },
+  "cloud": {
+    "host": "150.158.22.139",
+    "python": "3.11.15",
+    "packages": {
+      "aiohttp": "3.13.3",
+      "aiohappyeyeballs": "2.7.1",
+      "psutil": "7.2.2",
+      "yarl": "1.25.1"
+    },
+    "cpu": 4,
+    "ram_approx_gb": 4,
+    "public_out_mbps": 5,
+    "public_test_limitation": "Generator public egress can bottleneck; not an unconfounded public control",
+    "private_path": "10.0.0.4 to 10.0.0.11, process-local resolver, same TLS hostname and verification",
+    "old_business_services_unchanged": true
+  }
+}

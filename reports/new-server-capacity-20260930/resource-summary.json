@@ -1,0 +1,121 @@
+{
+  "samples": 610,
+  "start_epoch": 1790740928.1154459,
+  "end_epoch": 1790743985.736983,
+  "duration_s": 3057.621537208557,
+  "sample_note": "Approximately 5-second deltas, not instantaneous CPU peaks",
+  "service_cpu_cores_peak_5s": 3.84757488853108,
+  "peak_interval": {
+    "start": 1790743810.0255437,
+    "end": 1790743815.0261304,
+    "seconds": 5.000586748123169,
+    "services": {
+      "club-api": 2.929200459425609,
+      "club-worker": 0.035114679305564354,
+      "mysql": 0.644555761623318,
+      "redis-server": 0.026441697076773362,
+      "nginx": 0.21226229109981554
+    },
+    "sum": 3.84757488853108,
+    "host_cpu_cores": 3.7444089456869007,
+    "host_iowait_cores": 0.038338658146964855,
+    "host_steal_cores": 0.0
+  },
+  "host_cpu_cores_peak_5s": 3.979718309859155,
+  "host_iowait_cores_peak_5s": 0.26373626373626374,
+  "host_steal_cores_peak_5s": 0.0,
+  "min_available_memory_mib": 5749.15625,
+  "oom_delta": 0,
+  "services": {
+    "club-api": {
+      "restarts_delta": 0,
+      "always_active": true,
+      "max_memory_mib": 459.9140625,
+      "process_identities_unchanged": true
+    },
+    "club-worker": {
+      "restarts_delta": 0,
+      "always_active": true,
+      "max_memory_mib": 56.13671875,
+      "process_identities_unchanged": true
+    },
+    "mysql": {
+      "restarts_delta": 0,
+      "always_active": true,
+      "max_memory_mib": 736.8828125,
+      "process_identities_unchanged": true
+    },
+    "redis-server": {
+      "restarts_delta": 0,
+      "always_active": true,
+      "max_memory_mib": 6.234375,
+      "process_identities_unchanged": true
+    },
+    "nginx": {
+      "restarts_delta": 0,
+      "always_active": true,
+      "max_memory_mib": 271.9375,
+      "process_identities_unchanged": true
+    }
+  },
+  "health": {
+    "local": {
+      "samples": 610,
+      "success": 610,
+      "errors": 0,
+      "max_success_seconds": 2.8662190740005826
+    },
+    "public": {
+      "samples": 610,
+      "success": 610,
+      "errors": 0,
+      "max_success_seconds": 1.7651644349998605
+    }
+  },
+  "outbox_max": 375.0,
+  "outbox_final": 0.0,
+  "network_counter_deltas": {
+    "TcpExt:ListenOverflows": 0,
+    "TcpExt:ListenDrops": 0,
+    "TcpExt:TCPBacklogDrop": 0,
+    "TcpExt:TCPSynRetrans": 885,
+    "Tcp:RetransSegs": 19842
+  },
+  "online_600s_after_first_minute": {
+    "samples": 107,
+    "start": 1790743071.681505,
+    "end": 1790743604.1377797,
+    "memory_mib": {
+      "club-api": {
+        "first": 451.33984375,
+        "last": 450.4140625,
+        "min": 450.375,
+        "max": 451.44140625
+      },
+      "club-worker": {
+        "first": 55.9765625,
+        "last": 55.96875,
+        "min": 55.96484375,
+        "max": 55.98046875
+      },
+      "mysql": {
+        "first": 672.16796875,
+        "last": 672.125,
+        "min": 672.09375,
+        "max": 672.3046875
+      },
+      "redis-server": {
+        "first": 4.16015625,
+        "last": 3.8046875,
+        "min": 3.80078125,
+        "max": 4.16015625
+      },
+      "nginx": {
+        "first": 255.10546875,
+        "last": 261.59765625,
+        "min": 255.10546875,
+        "max": 261.59765625
+      }
+    }
+  }
+}
