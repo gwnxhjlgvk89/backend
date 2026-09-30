@@ -117,7 +117,7 @@ async def main(args):
     except ModuleNotFoundError:
         from load_native import enabled, scope
     if enabled():
-        report.update(scope())
+        report.update(scope(args))
 
     def save():
         path.write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n")

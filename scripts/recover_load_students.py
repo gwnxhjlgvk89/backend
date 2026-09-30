@@ -24,16 +24,20 @@ except ModuleNotFoundError:
 
 async def main(args):
     try:
-        from scripts.load_native import enabled
+        from scripts.load_native import enabled, target
     except ModuleNotFoundError:
-        from load_native import enabled
+        from load_native import enabled, target
     native = enabled()
     source = json.loads(Path(args.journey_report).read_text())
     params = source["parameters"]
+    try:
+        expected_url = target(SimpleNamespace(**params))["url"] if native else "https://192.168.100.130:18082"
+    except (ValueError, AttributeError):
+        raise SystemExit("Requires one completed original TEST cold/uniform round") from None
     if not (
         source.get("completed")
         and not source["errors"]
-        and params["url"] == ("https://wjy-1214.cloud" if native else "https://192.168.100.130:18082")
+        and params["url"] == expected_url
         and params["mode"] == "login"
         and params["scenario"] == "uniform"
         and params["users"] == 1500

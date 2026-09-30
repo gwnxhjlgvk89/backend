@@ -1,4 +1,6 @@
 import json
+import os
+import ssl
 import subprocess
 import time
 import urllib.request
@@ -51,11 +53,12 @@ def sample():
         result["services"][name] = d
     for kind, url in [
         ("local", "http://127.0.0.1:8001/health/ready"),
-        ("public", "https://wjy-1214.cloud/health/ready"),
+        ("public", os.environ.get("CLUB_PROBE_PUBLIC_URL", "https://wjy-1214.cloud") + "/health/ready"),
     ]:
         start = time.monotonic()
         try:
-            with urllib.request.urlopen(url, timeout=5) as r:
+            context = ssl.create_default_context(cafile=os.environ.get("CLUB_PROBE_CA"))
+            with urllib.request.urlopen(url, timeout=5, context=context) as r:
                 result["health"][kind] = {"status": r.status, "seconds": time.monotonic() - start}
         except Exception as exc:
             result["health"][kind] = {"error": type(exc).__name__, "seconds": time.monotonic() - start}

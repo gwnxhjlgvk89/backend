@@ -12,20 +12,39 @@ def enabled():
     return os.environ.get("CLUB_NATIVE_CAPACITY") == "1"
 
 
-def scope():
-    return {
-        "network_scope": "Independent wired Linux generator to actual Tencent public HTTPS; no artificial shaping",
+TARGETS = {
+    "ubuntu@150.158.22.139": {
+        "url": "https://wjy-1214.cloud",
         "cpu_scope": "Actual Tencent production 4 vCPU / approximately 4GB, native systemd services",
         "data_scope": "Temporary club_test database; original club_v2_prod untouched",
+    },
+    "ubuntu@43.142.19.144": {
+        "url": "https://wjy-1214.cloud",
+        "cpu_scope": "Actual new Tencent host 4 vCPU / 8GB, native systemd services, no CPU quota",
+        "data_scope": "Dedicated synthetic club_test on new host; user switched DNS; old production data untouched",
+    },
+}
+
+
+def target(args):
+    selected = TARGETS.get(args.ssh)
+    if selected is None or (hasattr(args, "url") and args.url != selected["url"]):
+        raise ValueError("Native adapter requires an explicitly authorized host and matching HTTPS endpoint")
+    return selected
+
+
+def scope(args):
+    selected = target(args)
+    return {
+        "network_scope": "Independent wired Linux generator to actual Tencent public HTTPS; no artificial shaping",
+        "cpu_scope": selected["cpu_scope"],
+        "data_scope": selected["data_scope"],
         "production_capacity_verified": False,
     }
 
 
 def translate(args, command):
-    if args.ssh != "ubuntu@150.158.22.139":
-        raise ValueError("Native adapter requires the explicit authorized Tencent host")
-    if hasattr(args, "url") and args.url != "https://wjy-1214.cloud":
-        raise ValueError("Native adapter requires the actual public HTTPS domain")
+    target(args)
     argv = shlex.split(command)
     prefix = ["podman", "exec", "club-capacity-test_api_1", "python"]
     launcher = "cd /srv/club/current && sudo .venv/bin/python deploy/run-private-env.py /etc/club/load-test.env .venv/bin/python "

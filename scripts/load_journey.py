@@ -126,7 +126,7 @@ async def run(args):
     except ModuleNotFoundError:
         from load_native import enabled, scope
     if enabled():
-        report.update(scope())
+        report.update(scope(args))
 
     def save():
         temporary = path.with_suffix(".tmp")
