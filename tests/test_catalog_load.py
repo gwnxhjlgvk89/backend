@@ -10,7 +10,7 @@ async def test_cold_catalog_does_not_query_once_per_student(env):
         if "v2_clubs.active IS true" in statement:
             catalog_reads.append(statement)
 
-    event.listen(app.state.engine.sync_engine, "before_cursor_execute", observed)
+    event.listen(app.state.read_engine.sync_engine, "before_cursor_execute", observed)
     try:
         responses = await asyncio.gather(
             *(
@@ -26,4 +26,4 @@ async def test_cold_catalog_does_not_query_once_per_student(env):
         assert all(r.status_code == 200 for r in responses)
         assert len(catalog_reads) == 1
     finally:
-        event.remove(app.state.engine.sync_engine, "before_cursor_execute", observed)
+        event.remove(app.state.read_engine.sync_engine, "before_cursor_execute", observed)

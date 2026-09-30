@@ -15,7 +15,7 @@ async def test_bootstrap_batches_queries_and_isolates_personal_results(env):
         if statement.startswith("SELECT"):
             queries.append(statement)
 
-    event.listen(app.state.engine.sync_engine, "before_cursor_execute", observed)
+    event.listen(app.state.read_engine.sync_engine, "before_cursor_execute", observed)
     try:
         values = await asyncio.gather(*(app.state.bootstrap_reads.get(i) for i in range(1, 31)))
         assert len(queries) == 4  # one batch, not four round-trips per student
@@ -24,7 +24,7 @@ async def test_bootstrap_batches_queries_and_isolates_personal_results(env):
         assert values[1]["enrollment"] is None and values[1]["favorites"] == [2]
         assert all(v["enrollment"] is None and v["favorites"] == [] for v in values[2:])
     finally:
-        event.remove(app.state.engine.sync_engine, "before_cursor_execute", observed)
+        event.remove(app.state.read_engine.sync_engine, "before_cursor_execute", observed)
     # No cache survives a batch: a newly paused activity and changed quota are read again.
     async with app.state.sessions() as db, db.begin():
         (await db.get(Activity, 1)).state = "paused"

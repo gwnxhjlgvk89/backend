@@ -49,7 +49,7 @@ from club.security import (
     token,
     verify_password,
 )
-from club.services import club_data, enrollment_data, event, iso, mutate_enrollment
+from club.services import CLUB_KEYS, club_data, enrollment_data, event, iso, mutate_enrollment
 
 install()
 logger = logging.getLogger("club")
@@ -68,11 +68,14 @@ async def lifespan(app):
     app.state.engine = make_engine()
     app.state.sessions = sessions(app.state.engine)
     app.state.catalog_lock = asyncio.Lock()
-    app.state.bootstrap_reads = BootstrapReader(app.state.sessions)
-    # Reserve connections per API process for identity/result reads and
-    # connection validation; enrollment writes cannot exhaust this small pool.
-    app.state.read_engine = make_engine(pool_size=s.read_pool_size, max_overflow=0)
+    # Enrollment transactions queue here, bounded below the write pool so login
+    # and other writes keep the overflow connections.
+    app.state.enrollment_slots = asyncio.Semaphore(s.pool_size)
+    # Reserve connections per API process for identity, bootstrap, detail and
+    # result reads; enrollment writes cannot exhaust this pool.
+    app.state.read_engine = make_engine(pool_size=s.read_pool_size, max_overflow=0, read_only=True)
     app.state.read_sessions = sessions(app.state.read_engine)
+    app.state.bootstrap_reads = BootstrapReader(app.state.read_sessions)
     app.state.identities = IdentityReader(app.state.read_sessions)
     app.state.login_accounts = IdentityReader(app.state.read_sessions, User.username)
     app.state.redis = Redis.from_url(
@@ -171,7 +174,7 @@ def ok(data=None):
     return {"data": data}
 
 
-def error_response(request, status, code, message):
+def error_response(request, status, code, message, extra=None):
     return JSONResponse(
         status_code=status,
         content={
@@ -179,6 +182,7 @@ def error_response(request, status, code, message):
                 "code": code,
                 "message": message,
                 "request_id": getattr(request.state, "request_id", ""),
+                **(extra or {}),
             }
         },
     )
@@ -186,7 +190,7 @@ def error_response(request, status, code, message):
 
 @app.exception_handler(DomainError)
 async def domain_error(request, exc):
-    return error_response(request, exc.status, exc.code, exc.message)
+    return error_response(request, exc.status, exc.code, exc.message, exc.extra)
 
 
 @app.exception_handler(RequestValidationError)
@@ -318,7 +322,7 @@ async def clubs_cached(request):
                 return json.loads(value)
         except RedisError:
             pass
-        async with request.app.state.sessions() as db:
+        async with request.app.state.read_sessions() as db:
             rows = list((await db.scalars(select(Club).where(Club.active.is_(True)).order_by(Club.id))).all())
             data = [
                 {k: v for k, v in club_data(c).items() if k not in {"remaining", "version"}} for c in rows
@@ -331,7 +335,7 @@ async def clubs_cached(request):
 
 
 async def quota_snapshot(request):
-    async with request.app.state.sessions() as db:
+    async with request.app.state.read_sessions() as db:
         rows = (await db.execute(select(Club.id, Club.remaining, Club.version))).all()
         return [{"club_id": cid, "remaining": rem, "version": ver} for cid, rem, ver in rows]
 
@@ -354,13 +358,16 @@ async def quotas(request: Request, user=Depends(current_user)):
     return ok(await quota_snapshot(request))
 
 
+DETAIL_COLUMNS = [getattr(Club, k) for k in CLUB_KEYS + ("description",)]
+
+
 @app.get("/api/v1/clubs/{club_id}", response_model=Envelope[ClubDetailOutput])
 async def detail(club_id: int, request: Request, user=Depends(current_user)):
-    async with request.app.state.sessions() as db:
-        club = await db.get(Club, club_id)
-        if not club or not club.active:
-            fail(404, "CLUB_NOT_FOUND", "社团不存在")
-        return ok(club_data(club, True))
+    async with request.app.state.read_sessions() as db:
+        club = (await db.execute(select(*DETAIL_COLUMNS).where(Club.id == club_id))).first()
+    if not club or not club.active:
+        fail(404, "CLUB_NOT_FOUND", "社团不存在")
+    return ok(club._asdict())
 
 
 @app.put("/api/v1/favorites/{club_id}")
@@ -397,7 +404,12 @@ async def select_club(
     await rate_limit(request, "enrollment", user.id, 6, 10)
     return ok(
         await mutate_enrollment(
-            request.app.state.sessions, user.id, user.token_version, idempotency_key, body.club_id
+            request.app.state.sessions,
+            user.id,
+            user.token_version,
+            idempotency_key,
+            body.club_id,
+            slots=request.app.state.enrollment_slots,
         )
     )
 
@@ -407,7 +419,12 @@ async def cancel(request: Request, user=Depends(enrollment_identity), idempotenc
     await rate_limit(request, "enrollment", user.id, 6, 10)
     return ok(
         await mutate_enrollment(
-            request.app.state.sessions, user.id, user.token_version, idempotency_key, cancel=True
+            request.app.state.sessions,
+            user.id,
+            user.token_version,
+            idempotency_key,
+            cancel=True,
+            slots=request.app.state.enrollment_slots,
         )
     )
 

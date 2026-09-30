@@ -15,7 +15,7 @@ class Settings(BaseSettings):
     token_minutes: int = 120
     pool_size: int = 10
     pool_overflow: int = 5
-    read_pool_size: int = 4
+    read_pool_size: int = 8
     storage_backend: str = "local"
     storage_dir: Path = Path(".local/uploads")
     public_url: str = "http://127.0.0.1:8001"

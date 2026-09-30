@@ -4,17 +4,21 @@ from club.config import settings
 from club.metrics import before_cursor, after_cursor
 
 
-def make_engine(*, pool_size=None, max_overflow=None):
+def make_engine(*, pool_size=None, max_overflow=None, read_only=False):
     s = settings()
     engine = create_async_engine(
         s.database_url,
         pool_size=s.pool_size if pool_size is None else pool_size,
         max_overflow=s.pool_overflow if max_overflow is None else max_overflow,
         pool_timeout=3,
+        # Recycling bounds idle staleness; a per-checkout ping would add a
+        # round-trip to every request during the opening burst.
         pool_recycle=300,
-        pool_pre_ping=True,
         hide_parameters=True,
-        isolation_level="READ COMMITTED",
+        # Reads run in autocommit: each SELECT sees committed data (as READ
+        # COMMITTED would) and returning the connection needs no ROLLBACK.
+        isolation_level="AUTOCOMMIT" if read_only else "READ COMMITTED",
+        pool_reset_on_return=None if read_only else "rollback",
         connect_args={"connect_timeout": 5},
     )
 
