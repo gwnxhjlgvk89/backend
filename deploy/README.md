@@ -2,6 +2,36 @@
 
 所有容量与故障脚本仅用于 `CLUB_ENV=test`、`club_test` 数据库、`club:test` Redis前缀和纯 `load*` 合成账号；不执行生产报名压测。
 
+## 审核体验环境（2026-09-30）
+
+`https://wjy-1214.cloud` 当前使用正常生产运行配置，但连接独立的 **`club_v2_review` 模拟体验库**。应用仍为 Claude 已部署的 `53fc191af98204305294a583f2a1f87bd554315c`，本次没有修改业务规则、前端或发布小程序。原 `club_test` 压测库及其配置保留。
+
+- `/etc/club/review.env`、`review-migrate.env` 分别使用独立的应用和迁移数据库账户，文件权限0600。应用账户只有审核库的查询和业务写权限。
+- Redis使用逻辑库3及 `club:review:v1` 前缀；持久文件位于 `/srv/club/shared/review-files`。没有清空其他Redis库。
+- 两个systemd服务通过各自 `20-review.conf` drop-in加载审核环境；4个API进程及独立worker保持原配置。
+- 库内为8个完整模拟社团、3个体验学生、1个超级管理员。活动和详情明确标记模拟资料，没有真实学生或真实报名。
+- 仅模拟活动开放报名和退选，截止北京时间 **2026-11-30 23:59:59**。不是正式招新开放时间；若提前导入真实名单，应先按下述流程结束体验环境。
+- `review01` 为计算机专业，`review02` 为艺术专业；两者已通过正常首次改密流程。`review03` 保留首次改密体验。超级管理员仍须首次改密；不要把管理员凭据提供给审核人员。
+- 一个账号再次登录会使此前会话失效，避免多人共用同一体验账号。修改名单或社团前须先在管理端暂停模拟活动，修改完再恢复。
+
+新增 `deploy/initialize-review.py` 仅接受生产配置、loopback数据库 `club_v2_review` 和审核专用Redis前缀；检查所有业务表为空，事务初始化，保持活动草稿。显式提供带时区的截止时间及0700目录中的新凭据文件，拒绝覆盖已有文件或数据。示例（先由运维建立独立库、账户及环境文件，并通过迁移账户执行 `alembic upgrade head`）：
+
+```sh
+sudo /srv/club/current/.venv/bin/python /srv/club/current/deploy/run-private-env.py \
+  /etc/club/review.env /srv/club/current/.venv/bin/python /path/to/initialize-review.py \
+  --credentials /private/review/credentials.json --ends-at 2026-11-30T15:59:59Z
+```
+
+初始化工具在提交 `8f076d7` 中；服务器通过独立运维脚本使用它，没有改写不可变的应用版本目录。初始化后走正常API完成登录、改密和发布模拟活动，不增加审核专用接口或资格绕过。当前环境已初始化，**不要重复执行**。
+
+本次功能证据见 `reports/review-environment-20260930.json`：内部和HTTPS域名验证了登录、改密、浏览、专业限制、报名幂等、退选、收藏、WSS名额事件及权限；最终无报名/收藏残留，无名额差异、待投递事件或服务异常重启。本机公网访问另经现有macOS网络路径验证（DNS返回代理fake IP，不作为直连或容量证据）。未做微信真机验收或新的容量测试。
+
+切换前备份位于服务器 `/var/backups/club/review-20260930/`，本机副本在忽略目录 `.local/review-20260930/`；包括旧压测库、服务与Nginx等配置、校验清单。SQL已恢复到独立临时库，核对全部表行数和列定义后删除验证库。凭据单独保存在上述私有目录，禁止进入Git或公开报告。
+
+真实名单到位后：暂停体验操作，备份体验库；创建并迁移独立的 `club_v2_prod`，初始化正式管理员和草稿活动，录入/核对真实社团、学生、预报名和时间；再切换服务环境、Redis前缀及存储目录并重启验证。不要把体验报名或压测账号迁入正式库，不要直接在已开放的模拟活动中导入真实名单。域名与API契约未变且前端代码不变时，名单更换无需重新打包前端。
+
+若本次环境需要回退，先开启维护并备份审核库，再恢复切换前服务配置（移除本次两个 `20-review.conf`，保留其他drop-in），执行daemon-reload与服务重启。原环境是压测库，恢复后应保持公网维护，不能当作正式业务重新开放。
+
 ## 当前测试机复现
 
 Ubuntu测试机安装Podman / podman-compose / uidmap / slirp4netns / aardvark-dns，使用普通用户。后端代码放在 `~/club-system-test/backend`，私有配置和数据不打入代码包。
