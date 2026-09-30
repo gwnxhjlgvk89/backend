@@ -254,6 +254,22 @@ async def run(args):
         trace_config.on_connection_create_end.append(connection_end)
         trace_config.on_request_headers_sent.append(headers_sent)
 
+        def mark_connection_phase(name):
+            async def record(session, ctx, params):
+                if ctx.trace_request_ctx is not None:
+                    ctx.trace_request_ctx[name] = time.monotonic()
+            return record
+
+        for signal, name in (
+            (trace_config.on_connection_queued_start, "queued_start"),
+            (trace_config.on_connection_queued_end, "queued_end"),
+            (trace_config.on_dns_resolvehost_start, "dns_start"),
+            (trace_config.on_dns_resolvehost_end, "dns_end"),
+            (trace_config.on_dns_cache_hit, "dns_cached"),
+            (trace_config.on_connection_reuseconn, "connection_reused"),
+        ):
+            signal.append(mark_connection_phase(name))
+
         def make_students():
             return [
                 aiohttp.ClientSession(
@@ -373,6 +389,7 @@ async def run(args):
                             probe_id,
                             error_errno,
                             api_request_id,
+                            {k: round(v - begin, 6) for k, v in trace.items() if k != "connect_s"},
                         )
                     )
                     last_codes[(i, stage)] = code

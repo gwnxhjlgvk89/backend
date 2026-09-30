@@ -55,7 +55,9 @@ def main():
     if subprocess.run(["id", "club"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL).returncode:
         run(["useradd", "--system", "--user-group", "--home-dir", "/srv/club", "--shell", "/usr/sbin/nologin", "club"])
     for folder in ("/srv/club/shared", "/srv/club/shared/test-files"):
-        run(["install", "-d", "-m", "750", "-o", "club", "-g", "club", folder])
+        # Nginx must stat maintenance.on; file contents and uploads stay private.
+        mode = "751" if folder == "/srv/club/shared" else "750"
+        run(["install", "-d", "-m", mode, "-o", "club", "-g", "club", folder])
     Path("/srv/club/current").symlink_to(RELEASE, target_is_directory=True)
 
     mysql("CREATE DATABASE club_test CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;")
