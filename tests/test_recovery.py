@@ -359,3 +359,27 @@ async def test_large_import_payload_does_not_block_job_queue(env):
             await db.scalar(select(func.count()).select_from(User).where(User.username.like("bulk%")))
             == 1600
         )
+
+
+async def test_job_list_with_large_pending_preview(env):
+    # The job list once selected full rows; a pending preview payload above the
+    # 256KB sort buffer made every list request fail until it was confirmed.
+    app, client, tokens = env
+    rows = [{"username": f"bulk{i:05d}", "name": "Synthetic", "note": "x" * 200} for i in range(1600)]
+    async with app.state.sessions() as db, db.begin():
+        db.add(
+            Job(
+                id="synthetic-large-preview",
+                actor_id=100,
+                kind="import_preview",
+                state="preview",
+                payload={"rows": rows},
+                result={"rows": 1600},
+            )
+        )
+    async with app.state.sessions() as db:
+        size = await db.scalar(select(func.length(Job.payload)).where(Job.id == "synthetic-large-preview"))
+        assert size > max(256 * 1024, await db.scalar(select(text("@@sort_buffer_size"))))
+    r = await client.get("/api/v1/admin/jobs", headers=headers(tokens, 100))
+    assert r.status_code == 200
+    assert r.json()["data"] == [{"id": "synthetic-large-preview", "state": "preview", "result": {"rows": 1600}}]

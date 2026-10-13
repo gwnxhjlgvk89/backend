@@ -376,14 +376,15 @@ async def job_status(job_id: str, request: Request, user=Depends(admin)):
 @router.get("/jobs")
 async def job_list(request: Request, user=Depends(admin)):
     async with request.app.state.sessions() as db:
-        return {
-            "data": [
-                {"id": j.id, "state": j.state, "result": j.result}
-                for j in await db.scalars(
-                    select(Job).where(Job.actor_id == user.id).order_by(Job.created_at.desc()).limit(30)
-                )
-            ]
-        }
+        # Never select payload here: a large pending import would not fit the
+        # filesort buffer and the whole list would fail.
+        rows = await db.execute(
+            select(Job.id, Job.state, Job.result)
+            .where(Job.actor_id == user.id)
+            .order_by(Job.created_at.desc())
+            .limit(30)
+        )
+        return {"data": [{"id": i, "state": s, "result": r} for i, s, r in rows]}
 
 
 @router.get("/jobs/{job_id}/download")
