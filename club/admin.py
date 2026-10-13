@@ -37,7 +37,11 @@ async def students(
     if major:
         conditions.append(User.major == major)
     if selected in {"yes", "no"}:
-        exists = select(Enrollment.student_id).where(Enrollment.student_id == User.id).exists()
+        # Correlate only User: the list query also outerjoins Enrollment, and auto-correlation
+        # would otherwise strip the subquery's own FROM clause.
+        exists = (
+            select(Enrollment.student_id).where(Enrollment.student_id == User.id).correlate(User).exists()
+        )
         conditions.append(exists if selected == "yes" else ~exists)
     async with request.app.state.sessions() as db:
         total = await db.scalar(select(func.count()).select_from(User).where(*conditions))
