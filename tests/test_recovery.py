@@ -5,7 +5,7 @@ from unittest.mock import AsyncMock
 
 from openpyxl import Workbook
 from redis.exceptions import ConnectionError
-from sqlalchemy import func, select
+from sqlalchemy import func, select, text
 
 from club.jobs import run_one
 from club.models import Activity, Club, Enrollment, Job, User, utcnow
@@ -313,3 +313,49 @@ async def test_batched_ws_validation_recovers_missed_revocation(env):
     good.close.assert_not_awaited()
     for socket in (stale, disabled, missing):
         socket.close.assert_awaited_once_with(code=1008, reason="session expired")
+
+
+async def test_large_import_payload_does_not_block_job_queue(env):
+    # A queued payload above MySQL's default 256KB sort buffer once failed the
+    # filesort in run_one forever and starved every later job.
+    from club.jobs import upload_cipher
+
+    app, client, tokens = env
+    await pause(client, tokens)
+    secret = upload_cipher().encrypt(b"SyntheticPass2026!").decode()
+    rows = [
+        {
+            "username": f"bulk{i:05d}",
+            "name": "Synthetic",
+            "major": "CS",
+            "class_name": "A",
+            "reserved_club_id": None,
+            "password_ciphertext": secret,
+        }
+        for i in range(1600)
+    ]
+    async with app.state.sessions() as db, db.begin():
+        db.add(Job(id="synthetic-large-import", actor_id=100, kind="import_students", payload={"rows": rows}))
+        db.add(
+            Job(
+                id="synthetic-later-export",
+                actor_id=100,
+                kind="export_students",
+                created_at=utcnow() + timedelta(seconds=1),
+            )
+        )
+        sort_buffer = await db.scalar(select(text("@@sort_buffer_size")))
+    async with app.state.sessions() as db:
+        size = await db.scalar(
+            select(func.length(Job.payload)).where(Job.id == "synthetic-large-import")
+        )
+        assert size > max(256 * 1024, sort_buffer)
+    await run_one(app.state.sessions)
+    await run_one(app.state.sessions)
+    async with app.state.sessions() as db:
+        assert (await db.get(Job, "synthetic-large-import")).state == "done"
+        assert (await db.get(Job, "synthetic-later-export")).state == "done"
+        assert (
+            await db.scalar(select(func.count()).select_from(User).where(User.username.like("bulk%")))
+            == 1600
+        )

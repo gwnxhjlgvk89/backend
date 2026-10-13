@@ -1,6 +1,16 @@
 from datetime import datetime, timezone
 
-from sqlalchemy import Boolean, CheckConstraint, ForeignKey, Integer, JSON, String, Text, UniqueConstraint
+from sqlalchemy import (
+    Boolean,
+    CheckConstraint,
+    ForeignKey,
+    Index,
+    Integer,
+    JSON,
+    String,
+    Text,
+    UniqueConstraint,
+)
 from sqlalchemy.dialects.mysql import DATETIME
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
@@ -104,6 +114,7 @@ class Audit(Base):
 
 class Job(Base):
     __tablename__ = "v2_jobs"
+    __table_args__ = (Index("ix_v2_jobs_state_created_at", "state", "created_at"),)
     id: Mapped[str] = mapped_column(String(36), primary_key=True)
     actor_id: Mapped[int] = mapped_column(ForeignKey("v2_users.id"))
     kind: Mapped[str] = mapped_column(String(32))

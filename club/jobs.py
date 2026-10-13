@@ -87,15 +87,18 @@ async def run_one(factory):
         a = await db.get(Activity, 1, with_for_update={"read": True})
         if a and a.state == "published" and a.starts_at <= utcnow() < a.ends_at:
             return
-        job = await db.scalar(
-            select(Job)
+        # Lock by id only: sorting full rows puts the JSON payload into the
+        # filesort, which exceeds sort_buffer_size for large imports.
+        job_id = await db.scalar(
+            select(Job.id)
             .where(Job.state == "queued")
             .order_by(Job.created_at)
             .limit(1)
             .with_for_update(skip_locked=True)
         )
-        if not job:
+        if not job_id:
             return
+        job = await db.get(Job, job_id)
         job_id, kind, payload = job.id, job.kind, job.payload
         job.state = "running"
     try:
