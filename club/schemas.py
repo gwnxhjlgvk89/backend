@@ -1,7 +1,13 @@
 from datetime import datetime, timezone
+import re
 from typing import Generic, Literal, TypeVar
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
+
+
+def normalize_label(value: str) -> str:
+    """Canonical major/class text: no whitespace, full-width parentheses as in the roster."""
+    return re.sub(r"\s+", "", value or "").replace("(", "（").replace(")", "）")
 
 
 class Input(BaseModel):
@@ -59,6 +65,12 @@ class ClubInput(Input):
     active: bool = True
     allowed_majors: list[str] = Field(default_factory=list, max_length=200)
 
+    @field_validator("allowed_majors")
+    @classmethod
+    def canonical_majors(cls, v):
+        # Restrictions compare majors verbatim, so store the same canonical text.
+        return list(dict.fromkeys(m for m in map(normalize_label, v) if m))
+
 
 class StudentInput(Input):
     username: str = Field(min_length=1, max_length=64)
@@ -68,6 +80,13 @@ class StudentInput(Input):
     active: bool = True
     password: str | None = Field(default=None, min_length=1, max_length=72)
     reserved_club_id: int | None = Field(default=None, gt=0)
+    # None keeps the reservation's current exemption; only super admins may change it.
+    major_exempt: bool | None = None
+
+    @field_validator("major", "class_name")
+    @classmethod
+    def canonical_label(cls, v):
+        return normalize_label(v)
 
 
 class AdminInput(Input):

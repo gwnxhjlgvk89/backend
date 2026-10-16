@@ -77,7 +77,13 @@ async def test_admin_edit_with_same_club_keeps_exemption(env):
 
     r = await client.put(
         "/api/v1/admin/students/1",
-        json={"username": "user1", "name": "Renamed", "major": "CS", "class_name": "A", "reserved_club_id": 2},
+        json={
+            "username": "user1",
+            "name": "Renamed",
+            "major": "CS",
+            "class_name": "A",
+            "reserved_club_id": 2,
+        },
         headers=headers(tokens, 100),
     )
     assert r.status_code == 200

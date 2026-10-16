@@ -47,7 +47,7 @@ async def students(
         total = await db.scalar(select(func.count()).select_from(User).where(*conditions))
         rows = (
             await db.execute(
-                select(User, Enrollment.club_id, Enrollment.source, Club.name)
+                select(User, Enrollment.club_id, Enrollment.source, Enrollment.major_exempt, Club.name)
                 .outerjoin(Enrollment, Enrollment.student_id == User.id)
                 .outerjoin(Club, Club.id == Enrollment.club_id)
                 .where(*conditions)
@@ -57,10 +57,37 @@ async def students(
             )
         ).all()
         items = [
-            {**public_user(u), "club_id": cid, "club_name": name, "source": source}
-            for u, cid, source, name in rows
+            {
+                **public_user(u),
+                "club_id": cid,
+                "club_name": name,
+                "source": source,
+                "major_exempt": bool(exempt),
+            }
+            for u, cid, source, exempt, name in rows
         ]
     return {"data": {"items": items, "total": total, "page": page, "page_size": page_size}}
+
+
+@router.get("/options")
+async def options(request: Request):
+    """Existing majors and classes, so the admin form can suggest them instead of free text."""
+    students = User.role == "student"
+    async with request.app.state.sessions() as db:
+        majors = dict(
+            (await db.execute(select(User.major, func.count()).where(students).group_by(User.major))).all()
+        )
+        classes = (
+            await db.execute(select(User.class_name, func.count()).where(students).group_by(User.class_name))
+        ).all()
+        for allowed in await db.scalars(select(Club.allowed_majors)):
+            for m in allowed or []:
+                majors.setdefault(m, 0)
+
+    def ranked(pairs):
+        return [{"name": n, "count": c} for n, c in sorted(pairs, key=lambda p: (-p[1], p[0])) if n]
+
+    return {"data": {"majors": ranked(majors.items()), "classes": ranked(classes)}}
 
 
 @router.get("/clubs")
@@ -174,7 +201,7 @@ async def delete_club(club_id: int, request: Request, user=Depends(admin)):
     return {"data": None}
 
 
-async def save_student(db, body, password, user_id=None):
+async def save_student(db, body, password, user_id=None, actor=None):
     u = await db.get(User, user_id, with_for_update=True) if user_id else None
     if user_id and (not u or u.role != "student"):
         fail(404, "NOT_FOUND", "学生不存在")
@@ -203,14 +230,32 @@ async def save_student(db, body, password, user_id=None):
         await db.delete(current)
         await db.flush()
         current = None
-    if body.reserved_club_id and not current:
+    if not body.reserved_club_id or (current and current.source == "normal"):
+        return u
+    # An approved exemption skips the club's major restriction for this reservation only.
+    # None keeps the current state; changing it requires a super admin.
+    current_exempt = bool(current and current.major_exempt)
+    exempt = current_exempt if body.major_exempt is None else body.major_exempt
+    if exempt != current_exempt and (not actor or actor.role != "super_admin"):
+        fail(403, "SUPER_ADMIN_REQUIRED", "特批预报名需要超级管理员操作")
+    if not current:
         c = await db.get(Club, body.reserved_club_id, with_for_update=True)
         if not c or not c.active or c.remaining <= 0:
             fail(409, "RESERVATION_UNAVAILABLE", "预报名社团不存在、未开放或已满")
-        if c.allowed_majors and u.major not in c.allowed_majors:
+        if c.allowed_majors and u.major not in c.allowed_majors and not exempt:
             fail(409, "MAJOR_NOT_ALLOWED", "预报名不符合专业要求")
         c.remaining, c.version = c.remaining - 1, c.version + 1
-        db.add(Enrollment(student_id=u.id, club_id=c.id, source="reserved"))
+        db.add(Enrollment(student_id=u.id, club_id=c.id, source="reserved", major_exempt=exempt))
+    elif exempt != current_exempt:
+        if not exempt:
+            c = await db.get(Club, current.club_id)
+            if c.allowed_majors and u.major not in c.allowed_majors:
+                fail(409, "MAJOR_NOT_ALLOWED", "取消特批后不符合该社团的专业要求")
+        current.major_exempt = exempt
+    if exempt != current_exempt:
+        audit(
+            db, actor, "enrollment.major_exempt", u.id, {"club_id": body.reserved_club_id, "exempt": exempt}
+        )
     return u
 
 
@@ -243,7 +288,7 @@ async def exempt_reserve(db, username, club_id, actor_username):
 async def create_student(body: StudentInput, request: Request, user=Depends(admin)):
     async with request.app.state.sessions() as db, db.begin():
         await mutable_activity(db)
-        u = await save_student(db, body, body.password)
+        u = await save_student(db, body, body.password, actor=user)
         audit(db, user, "student.create", u.id)
         changed(db)
     return {"data": public_user(u)}
@@ -253,7 +298,7 @@ async def create_student(body: StudentInput, request: Request, user=Depends(admi
 async def edit_student(user_id: int, body: StudentInput, request: Request, user=Depends(admin)):
     async with request.app.state.sessions() as db, db.begin():
         await mutable_activity(db)
-        u = await save_student(db, body, body.password, user_id)
+        u = await save_student(db, body, body.password, user_id, actor=user)
         audit(db, user, "student.update", u.id)
         changed(db)
     return {"data": public_user(u)}
