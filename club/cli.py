@@ -79,6 +79,22 @@ async def main(args):
                 print(
                     "Local demo: admin / student0001; password: ClubDemo2026! (synthetic test credentials only)"
                 )
+            elif args.action == "exempt-reserve":
+                from club.admin import exempt_reserve
+                from club.errors import DomainError
+
+                if not args.club_id:
+                    raise SystemExit("exempt-reserve requires --username, --club-id and --actor")
+                try:
+                    u, c = await exempt_reserve(db, args.username, args.club_id, args.actor)
+                except DomainError as exc:
+                    raise SystemExit(f"{exc.code}: {exc.message}") from None
+                print(
+                    json.dumps(
+                        {"student": u.username, "club_id": c.id, "club": c.name, "remaining": c.remaining},
+                        ensure_ascii=False,
+                    )
+                )
             elif args.action == "check":
                 discrepancies = await consistency(db)
                 print(json.dumps({"consistent": not discrepancies, "discrepancies": discrepancies}))
@@ -90,8 +106,10 @@ async def main(args):
 
 if __name__ == "__main__":
     p = argparse.ArgumentParser()
-    p.add_argument("action", choices=["init", "seed", "admin", "check"])
+    p.add_argument("action", choices=["init", "seed", "admin", "check", "exempt-reserve"])
     p.add_argument("--students", type=int, default=1500)
     p.add_argument("--username", default="admin")
     p.add_argument("--name", default="管理员")
+    p.add_argument("--club-id", type=int)
+    p.add_argument("--actor", default="admin", help="Approving super administrator's username")
     asyncio.run(main(p.parse_args()))

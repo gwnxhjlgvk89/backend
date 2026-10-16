@@ -115,7 +115,9 @@ async def state(body: ActivityState, request: Request, user=Depends(super_admin)
                 )
             ).all()
             if any(
-                not u.active or not c.active or (c.allowed_majors and u.major not in c.allowed_majors)
+                not u.active
+                or not c.active
+                or (c.allowed_majors and u.major not in c.allowed_majors and not e.major_exempt)
                 for e, u, c in enrolled
             ):
                 fail(409, "INVALID_ENROLLMENT", "已有报名或预报名包含停用账号、隐藏社团或资格冲突，请先核对")
@@ -210,6 +212,31 @@ async def save_student(db, body, password, user_id=None):
         c.remaining, c.version = c.remaining - 1, c.version + 1
         db.add(Enrollment(student_id=u.id, club_id=c.id, source="reserved"))
     return u
+
+
+async def exempt_reserve(db, username, club_id, actor_username):
+    """Reserve a seat that bypasses the club's major restriction (operator-only approval).
+
+    Editing the student in the admin UI keeps it while the reserved club stays the same;
+    changing or clearing the reservation there drops the exemption.
+    """
+    await mutable_activity(db)
+    actor = await db.scalar(select(User).where(User.username == actor_username))
+    if not actor or not actor.active or actor.role != "super_admin":
+        fail(403, "SUPER_ADMIN_REQUIRED", "执行人必须是启用的超级管理员")
+    u = await db.scalar(select(User).where(User.username == username).with_for_update())
+    if not u or u.role != "student" or not u.active:
+        fail(404, "NOT_FOUND", "学生不存在或已停用")
+    if await db.get(Enrollment, u.id):
+        fail(409, "ENROLLMENT_EXISTS", "学生已有报名或预报名，请先在管理端取消")
+    c = await db.get(Club, club_id, with_for_update=True)
+    if not c or not c.active or c.remaining <= 0:
+        fail(409, "RESERVATION_UNAVAILABLE", "预报名社团不存在、未开放或已满")
+    c.remaining, c.version = c.remaining - 1, c.version + 1
+    db.add(Enrollment(student_id=u.id, club_id=c.id, source="reserved", major_exempt=True))
+    audit(db, actor, "enrollment.exempt_reserve", u.id, {"club_id": c.id})
+    changed(db)
+    return u, c
 
 
 @router.post("/students")

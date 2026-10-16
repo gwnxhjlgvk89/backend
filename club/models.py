@@ -10,6 +10,7 @@ from sqlalchemy import (
     String,
     Text,
     UniqueConstraint,
+    false,
 )
 from sqlalchemy.dialects.mysql import DATETIME
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
@@ -75,6 +76,9 @@ class Enrollment(Base):
     club_id: Mapped[int] = mapped_column(ForeignKey("v2_clubs.id"), index=True)
     source: Mapped[str] = mapped_column(String(16), default="normal")
     created_at: Mapped[datetime] = mapped_column(DATETIME(fsp=6), default=utcnow)
+    # Set only by the operator command `club.cli exempt-reserve`: an approved
+    # reservation that is exempt from the club's major restriction.
+    major_exempt: Mapped[bool] = mapped_column(Boolean, default=False, server_default=false())
 
 
 class Favorite(Base):
