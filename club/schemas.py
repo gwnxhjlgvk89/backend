@@ -89,6 +89,10 @@ class StudentInput(Input):
         return normalize_label(v)
 
 
+class EnrollmentMoveInput(Input):
+    club_id: int = Field(gt=0)
+
+
 class AdminInput(Input):
     username: str = Field(min_length=1, max_length=64)
     name: str = Field(min_length=1, max_length=64)

@@ -6,7 +6,15 @@ from sqlalchemy import delete, func, or_, select, update
 from club.errors import fail
 from club.initial_passwords import initial_password
 from club.models import Activity, Audit, Club, Enrollment, Favorite, Idempotency, Job, User, utcnow
-from club.schemas import ActivityInput, ActivityState, AdminInput, AdminRoleInput, ClubInput, StudentInput
+from club.schemas import (
+    ActivityInput,
+    ActivityState,
+    AdminInput,
+    AdminRoleInput,
+    ClubInput,
+    EnrollmentMoveInput,
+    StudentInput,
+)
 from club.security import admin, set_password, public_user, super_admin
 from club.services import activity_data, club_data, consistency, event, mutable_activity
 
@@ -302,6 +310,50 @@ async def edit_student(user_id: int, body: StudentInput, request: Request, user=
         audit(db, user, "student.update", u.id)
         changed(db)
     return {"data": public_user(u)}
+
+
+@router.put("/students/{user_id}/enrollment")
+async def move_enrollment(user_id: int, body: EnrollmentMoveInput, request: Request, user=Depends(admin)):
+    """Move a normal enrollment to another club, e.g. when its club was dissolved.
+
+    Reservations keep their own path in save_student; the seat moves with the student.
+    """
+    async with request.app.state.sessions() as db, db.begin():
+        await mutable_activity(db)
+        u = await db.get(User, user_id, with_for_update=True)
+        if not u or u.role != "student":
+            fail(404, "NOT_FOUND", "学生不存在")
+        current = await db.get(Enrollment, user_id, with_for_update=True)
+        if not current or current.source != "normal":
+            fail(409, "NOT_NORMAL_ENROLLMENT", "该学生没有普通报名，预报名请在“预报名社团”中修改")
+        old_id = current.club_id
+        if body.club_id == old_id:
+            fail(409, "SAME_CLUB", "学生已在该社团")
+        # Lock both clubs in id order, the same order any other multi-club writer would use.
+        clubs = {
+            c.id: c
+            for c in await db.scalars(
+                select(Club).where(Club.id.in_([old_id, body.club_id])).order_by(Club.id).with_for_update()
+            )
+        }
+        c = clubs.get(body.club_id)
+        if not c or not c.active or c.remaining <= 0:
+            fail(409, "CLUB_UNAVAILABLE", "目标社团不存在、未开放或已满")
+        if c.allowed_majors and u.major not in c.allowed_majors:
+            fail(409, "MAJOR_NOT_ALLOWED", "该学生专业不符合目标社团的专业要求")
+        old = clubs[old_id]
+        old.remaining, old.version = old.remaining + 1, old.version + 1
+        c.remaining, c.version = c.remaining - 1, c.version + 1
+        current.club_id = c.id
+        audit(
+            db,
+            user,
+            "enrollment.move",
+            u.id,
+            {"from_club_id": old_id, "from_club": old.name, "to_club_id": c.id, "to_club": c.name},
+        )
+        changed(db)
+    return {"data": {"club_id": c.id, "club_name": c.name, "source": "normal"}}
 
 
 @router.delete("/students/{user_id}")
