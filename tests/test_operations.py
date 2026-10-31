@@ -1,12 +1,13 @@
 from copy import deepcopy
+from datetime import timedelta
 
 import pytest
 from sqlalchemy import delete, select, func
 
 from club.legacy import TABLES, plan_legacy, apply_legacy
-from club.models import Activity, Club, Enrollment, User
+from club.models import Activity, Club, Enrollment, User, utcnow
 from club.operations import reset_current, state_summary
-from club.services import consistency
+from club.services import accepts_student_writes, consistency
 
 
 def legacy_snapshot():
@@ -97,6 +98,48 @@ async def test_reset_rejects_active_or_changed_data(env):
             (await db.get(Activity, 1)).state = "paused"
             await db.flush()
             await reset_current(db, "outdated-review", actor)
+
+
+def test_published_activity_stops_accepting_writes_after_windows():
+    now = utcnow()
+    hour = timedelta(hours=1)
+
+    def activity(state="published", allow_cancel=False, cancel_until=None):
+        return Activity(
+            state=state,
+            starts_at=now - 2 * hour,
+            ends_at=now - hour,
+            allow_cancel=allow_cancel,
+            cancel_until=cancel_until,
+        )
+
+    assert not accepts_student_writes(None)
+    assert not accepts_student_writes(activity())
+    assert accepts_student_writes(activity(allow_cancel=True, cancel_until=now + hour))
+    assert not accepts_student_writes(activity(allow_cancel=True, cancel_until=now - hour / 2))
+    assert accepts_student_writes(activity(), now - hour - timedelta(seconds=1))
+    assert accepts_student_writes(activity(), now - 3 * hour)  # published, not yet open
+    assert not accepts_student_writes(activity("paused"), now - 3 * hour)
+
+
+async def test_reset_allowed_after_published_activity_ends(env):
+    app, _, _ = env
+    async with app.state.sessions() as db, db.begin():
+        a = await db.get(Activity, 1)
+        a.starts_at, a.ends_at = utcnow() - timedelta(hours=2), utcnow() - timedelta(hours=1)
+        a.cancel_until = utcnow() + timedelta(hours=1)
+    async with app.state.sessions() as db:
+        actor = await db.get(User, 101)
+        summary = await state_summary(db)
+    with pytest.raises(ValueError, match="Pause"):  # self-cancellation still open
+        async with app.state.sessions() as db, db.begin():
+            await reset_current(db, summary["fingerprint"], actor)
+    async with app.state.sessions() as db, db.begin():
+        (await db.get(Activity, 1)).cancel_until = utcnow() - timedelta(minutes=30)
+    async with app.state.sessions() as db, db.begin():
+        await reset_current(db, summary["fingerprint"], actor)
+    async with app.state.sessions() as db:
+        assert (await db.get(Activity, 1)).state == "draft"
 
 
 async def test_reset_review_detects_profile_change(env):

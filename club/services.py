@@ -15,6 +15,15 @@ def iso(value):
     return value.isoformat() + "Z" if value else None
 
 
+def accepts_student_writes(a, now=None):
+    # "published" is never rewritten when the window ends; the phase is derived from time.
+    # Students may enroll until ends_at and, when allowed, self-cancel until cancel_until.
+    if not a or a.state != "published":
+        return False
+    last = max(a.ends_at, a.cancel_until) if a.allow_cancel and a.cancel_until else a.ends_at
+    return (now or utcnow()) < last
+
+
 def activity_data(a):
     now = utcnow()
     state = a.state

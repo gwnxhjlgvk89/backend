@@ -22,7 +22,7 @@
 
 `python -m club.operations backup --file /secure/backup-YYYYMMDD.sql`
 
-- 活动先暂停，停止其他管理写入。
+- 活动先暂停，或等报名和退选都已截止（已发布活动结束后存储状态仍是 published，按时间判断）；停止其他管理写入。
 - MySQL 密码通过0600临时配置文件传递，不放进命令行。
 - 同时生成 `.manifest.json` 校验和与数据指纹；备份期间数据变化则拒绝将其用于重置。
 - 配置、R2/本地文件、当前部署 commit 另行备份。数据库备份不能替代头像文件备份。

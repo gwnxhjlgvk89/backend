@@ -19,7 +19,7 @@ from club.db import make_engine, sessions
 from club.legacy import apply_legacy, plan_legacy, read_legacy
 from club.models import Activity, Audit, Club, Enrollment, Favorite, Idempotency, Job, Outbox, User
 from club.security import verify_password
-from club.services import consistency
+from club.services import accepts_student_writes, consistency
 
 
 def private_json(path, value):
@@ -131,8 +131,8 @@ async def state_summary(db):
 
 async def reset_current(db, expected, actor):
     a = await db.get(Activity, 1, with_for_update=True)
-    if not a or a.state not in ("paused", "draft"):
-        raise ValueError("Pause the activity before reset")
+    if not a or accepts_student_writes(a):
+        raise ValueError("Pause the activity or wait for it to end before reset")
     live = await db.get(User, actor.id, with_for_update=True)
     if not live or not live.active or live.role != "super_admin" or live.token_version != actor.token_version:
         raise ValueError("Super admin session changed")
@@ -158,8 +158,8 @@ async def run(args):
             path.parent.mkdir(parents=True, exist_ok=True)
             async with factory() as db:
                 a = await db.get(Activity, 1)
-                if a and a.state == "published":
-                    raise ValueError("Pause before maintenance backup")
+                if accepts_student_writes(a):
+                    raise ValueError("Pause before maintenance backup, or wait for the activity to end")
                 before = await state_summary(db)
             await asyncio.to_thread(mysql_process, "backup", path)
             async with factory() as db:
